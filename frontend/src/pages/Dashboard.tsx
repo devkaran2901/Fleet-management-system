@@ -1,20 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
-  LayoutDashboard, Users, Truck, Map, Settings, LogOut,
-  Activity, AlertCircle, Navigation, Bell, MapPin, Clock, Search, Plus,
-  Sun, Moon, ChevronDown, ChevronRight
+  Truck, AlertCircle, Navigation, Bell, Clock, Search, Plus,
+  Sun, Moon, Menu
 } from 'lucide-react';
-import { ADMIN_MODULES } from './admin/AdminLayout';
+import { AppSidebar } from '../components/AppSidebar';
 
 export const Dashboard: React.FC = () => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-  
-  const [activeTab, setActiveTab] = useState<'overview' | 'fleet' | 'routes' | 'drivers' | 'hubs' | 'reports'>('overview');
+  const { user } = useAuth();
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [adminOpen, setAdminOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
   // Light/Dark mode switcher hook
@@ -40,32 +35,10 @@ export const Dashboard: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
-  const roleLabel = user?.roles?.[0] || 'USER';
+  // Logout and the profile capsule now live in the shared AppSidebar.
   const initials = `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`.toUpperCase();
 
   const renderContent = () => {
-    if (activeTab !== 'overview') {
-      return (
-        <div style={{ backgroundColor: 'var(--panel)', border: '1px solid var(--border)', borderRadius: '16px', padding: '40px', textAlign: 'center', marginTop: '24px' }}>
-          <span className="mono-label" style={{ color: 'var(--green)', fontSize: '12px', display: 'block', marginBottom: '16px' }}>System Status: Normal</span>
-          <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-1)', marginBottom: '12px' }}>
-            {activeTab.toUpperCase()} Telemetry Feed
-          </h2>
-          <p style={{ color: 'var(--text-2)', fontSize: '14px', maxWidth: '480px', margin: '0 auto 24px', lineHeight: 1.5 }}>
-            Real-time telemetry stream for {activeTab} is routing actively. Select "Overview" to return to the master air-traffic console.
-          </p>
-          <button className="mono-label" onClick={() => setActiveTab('overview')} style={{ backgroundColor: 'var(--green)', color: 'var(--void)', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700 }}>
-            Return to Console
-          </button>
-        </div>
-      );
-    }
-
     return (
       <>
         {/* STATS ROW (4 Cards) */}
@@ -306,172 +279,19 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="dashboard-container" style={{ display: 'flex', flexDirection: 'row', minHeight: '100vh', backgroundColor: 'var(--void)' }}>
-      
-      {/* SIDEBAR NAVIGATION PANEL (~236px) */}
-      <aside style={{
-        width: '236px',
-        backgroundColor: 'var(--panel)',
-        borderRight: '1px solid var(--border)',
-        display: sidebarOpen ? 'flex' : 'none',
-        flexDirection: 'column',
-        padding: '24px 16px',
-        flexShrink: 0,
-        zIndex: 999,
-        position: 'fixed',
-        top: 0,
-        bottom: 0,
-        left: 0,
-      }} className="responsive-sidebar">
-        
-        {/* Wordmark Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '32px' }}>
-          <span className="argo-mark" aria-hidden="true" style={{ width: '22px', height: '22px' }} />
-          <span style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-1)' }}>
-            Argo<span style={{ color: 'var(--green)' }}>Logics</span>
-          </span>
-        </div>
+    <div className="adm-shell">
 
-        {/* Navigation Categories */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', flexGrow: 1 }}>
-          
-          {/* Section: OPERATE */}
-          <div>
-            <span className="mono-label" style={{ fontSize: '9px', color: 'var(--text-3)', display: 'block', marginBottom: '12px', paddingLeft: '8px' }}>
-              OPERATE
-            </span>
-            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              {[
-                { id: 'overview', label: 'Overview', icon: <LayoutDashboard size={16} /> },
-                { id: 'fleet', label: 'Live Fleet', icon: <Truck size={16} /> },
-                { id: 'routes', label: 'Routes', icon: <Map size={16} /> },
-                { id: 'drivers', label: 'Drivers', icon: <Users size={16} /> },
-                { id: 'hubs', label: 'Hubs', icon: <MapPin size={16} /> },
-                { id: 'reports', label: 'Reports', icon: <Activity size={16} /> },
-              ].map((item) => (
-                <li key={item.id}>
-                  <button
-                    onClick={() => { setActiveTab(item.id as any); setSidebarOpen(false); }}
-                    style={{
-                      width: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px',
-                      padding: '10px 12px',
-                      borderRadius: '8px',
-                      border: activeTab === item.id ? '1px solid rgba(46, 204, 113, 0.2)' : '1px solid transparent',
-                      backgroundColor: activeTab === item.id ? 'var(--green-glow)' : 'transparent',
-                      color: activeTab === item.id ? 'var(--green)' : 'var(--text-2)',
-                      cursor: 'pointer',
-                      fontSize: '13px',
-                      fontWeight: 500,
-                      textAlign: 'left',
-                      transition: 'all 0.15s',
-                    }}
-                    className="sidebar-link-btn"
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
+      {/* The same rail the Admin suite renders, so the nav never shifts on navigation. */}
+      <AppSidebar open={sidebarOpen} onNavigate={() => setSidebarOpen(false)} />
 
-          {/* Section: MANAGE — the Admin group expands to the seven S-35 modules */}
-          <div>
-            <span className="mono-label" style={{ fontSize: '9px', color: 'var(--text-3)', display: 'block', marginBottom: '12px', paddingLeft: '8px' }}>
-              MANAGE
-            </span>
-            <ul style={{ listStyle: 'none' }}>
-              <li>
-                <button
-                  onClick={() => setAdminOpen((o) => !o)}
-                  style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '10px 12px',
-                    borderRadius: '8px',
-                    border: '1px solid transparent',
-                    backgroundColor: 'transparent',
-                    color: 'var(--text-2)',
-                    cursor: 'pointer',
-                    fontSize: '13px',
-                    fontWeight: 500,
-                    textAlign: 'left',
-                    transition: 'all 0.15s',
-                  }}
-                  className="sidebar-link-btn"
-                  aria-expanded={adminOpen}
-                >
-                  <Settings size={16} />
-                  <span style={{ flexGrow: 1 }}>Admin</span>
-                  {adminOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                </button>
-
-                {adminOpen && (
-                  <ul style={{ listStyle: 'none', marginTop: 4, marginLeft: 20, paddingLeft: 12, borderLeft: '1px dashed var(--border)', display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    {ADMIN_MODULES.map((mod) => (
-                      <li key={mod.to}>
-                        <button
-                          onClick={() => navigate(mod.to)}
-                          style={{
-                            width: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '9px',
-                            padding: '7px 10px',
-                            borderRadius: '6px',
-                            border: '1px solid transparent',
-                            backgroundColor: 'transparent',
-                            color: 'var(--text-2)',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                            textAlign: 'left',
-                            transition: 'all 0.15s',
-                          }}
-                          className="sidebar-link-btn"
-                        >
-                          <mod.icon size={13} />
-                          <span>{mod.label}</span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        {/* Footer profile capsule */}
-        <div style={{ borderTop: '1px solid var(--border-soft)', paddingTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--green-dim), var(--green))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--void)', fontWeight: 700, fontSize: '11px' }}>
-              {initials}
-            </div>
-            <div>
-              <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-1)', display: 'block' }}>{user?.firstName}</span>
-              <span style={{ fontSize: '10px', color: 'var(--text-3)', display: 'block' }}>{roleLabel} · Delhi</span>
-            </div>
-          </div>
-          <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', display: 'flex', padding: '4px' }} title="Log out">
-            <LogOut size={16} />
-          </button>
-        </div>
-      </aside>
-      
       {/* FLUID MAIN CONTENT AREA */}
       <main style={{
         flexGrow: 1,
+        minWidth: 0,
         padding: '24px 32px 40px',
         backgroundColor: 'var(--void)',
         minHeight: '100vh',
-        marginLeft: sidebarOpen ? '236px' : '0',
-        transition: 'margin-left 0.2s',
-      }} className="responsive-main">
+      }}>
         
         {/* TOPBAR HEADER PANEL */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-soft)', paddingBottom: '16px', gap: '16px' }}>
@@ -480,21 +300,18 @@ export const Dashboard: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, maxWidth: '400px' }}>
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="adm-icon-btn adm-rail-toggle"
               style={{
                 backgroundColor: 'var(--panel-2)',
                 border: '1px solid var(--border-soft)',
                 borderRadius: '8px',
                 color: 'var(--text-1)',
                 padding: '8px 12px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 700,
+                flexShrink: 0,
               }}
               title="Toggle Menu Panel"
             >
-              ☰
+              <Menu size={16} />
             </button>
             <div style={{ position: 'relative', width: '100%' }}>
               <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-3)', display: 'flex' }}>
@@ -603,35 +420,12 @@ export const Dashboard: React.FC = () => {
 
       </main>
 
-      {/* Global CSS adjustments for mobile layouts */}
+      {/* Rail responsiveness now lives in admin.css alongside the shared sidebar. */}
       <style>{`
-        @media (min-width: 981px) {
-          .responsive-sidebar {
-            display: flex !important;
-            position: sticky !important;
-          }
-          .responsive-main {
-            margin-left: 0 !important;
-          }
-          /* Hide menu toggle button on desktop */
-          main > div:first-child button:first-child {
-            display: none !important;
-          }
-          main > div:first-child > div:first-child {
-            padding-left: 0 !important;
-          }
-        }
         @media (max-width: 980px) {
-          .responsive-sidebar {
-            box-shadow: 10px 0 30px rgba(0,0,0,0.5);
-          }
           .mobile-hide {
             display: none !important;
           }
-        }
-        .sidebar-link-btn:hover {
-          background-color: var(--panel-2) !important;
-          color: var(--text-1) !important;
         }
       `}</style>
     </div>
