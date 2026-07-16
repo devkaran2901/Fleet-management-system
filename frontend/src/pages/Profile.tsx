@@ -36,7 +36,7 @@ export const Profile: React.FC = () => {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-primary)', padding: '40px' }}>
       <div style={{ maxWidth: '700px', margin: '0 auto' }}>
-        <Link to="/dashboard" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', marginBottom: '32px', fontSize: '14px', transition: 'color 0.2s' }}>
+        <Link to="/dashboard" className="back-link">
           <ArrowLeft size={16} />
           Back to Dashboard
         </Link>
