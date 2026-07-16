@@ -29,38 +29,33 @@ async function main() {
     console.log(`Role ${role.name} seeded successfully.`);
   }
 
-  // Check if admin user already exists
-  const adminEmail = 'admin@fms.com';
-  const existingAdmin = await prisma.user.findUnique({
+  // Seed (or update) the default administrator account.
+  const adminEmail = 'admin@fleetos.com';
+  const hashedPassword = await bcrypt.hash('password123', 10);
+  const adminUser = await prisma.user.upsert({
     where: { email: adminEmail },
+    update: { password: hashedPassword, isActive: true },
+    create: {
+      email: adminEmail,
+      password: hashedPassword,
+      firstName: 'System',
+      lastName: 'Administrator',
+      isActive: true,
+    },
   });
 
-  if (!existingAdmin) {
-    const hashedPassword = await bcrypt.hash('AdminPassword123', 10);
-    const adminUser = await prisma.user.create({
-      data: {
-        email: adminEmail,
-        password: hashedPassword,
-        firstName: 'System',
-        lastName: 'Administrator',
-        isActive: true,
+  const adminRole = dbRoles.find((r) => r.name === 'ADMIN');
+  if (adminRole) {
+    await prisma.userRole.upsert({
+      where: {
+        userId_roleId: { userId: adminUser.id, roleId: adminRole.id },
       },
+      update: {},
+      create: { userId: adminUser.id, roleId: adminRole.id },
     });
-
-    const adminRole = dbRoles.find((r) => r.name === 'ADMIN');
-    if (adminRole) {
-      await prisma.userRole.create({
-        data: {
-          userId: adminUser.id,
-          roleId: adminRole.id,
-        },
-      });
-    }
-
-    console.log('Default administrator user seeded successfully.');
-  } else {
-    console.log('Default administrator user already exists.');
   }
+
+  console.log(`Administrator account ready: ${adminEmail}`);
 
   console.log('Seeding finished.');
 }

@@ -14,7 +14,6 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (firstName: string, lastName: string, email: string, password: string, roles: string[]) => Promise<void>;
   logout: () => void;
   updateUser: (updatedUser: Partial<User>) => void;
 }
@@ -67,34 +66,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (
-    firstName: string,
-    lastName: string,
-    email: string,
-    password: string,
-    roles: string[]
-  ) => {
-    setLoading(true);
-    try {
-      const response = await api.post('/auth/register', {
-        firstName,
-        lastName,
-        email,
-        password,
-        roles,
-      });
-      const { access_token, user: registeredUser } = response.data;
-      localStorage.setItem('fms_token', access_token);
-      setUser(registeredUser);
-    } catch (err: any) {
-      localStorage.removeItem('fms_token');
-      setUser(null);
-      throw new Error(err.response?.data?.message || 'Registration failed');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const logout = () => {
     localStorage.removeItem('fms_token');
     setUser(null);
@@ -107,7 +78,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
