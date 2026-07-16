@@ -4,15 +4,17 @@ import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Users, Truck, Map, Settings, LogOut,
   Activity, AlertCircle, Navigation, Bell, MapPin, Clock, Search, Plus,
-  Sun, Moon
+  Sun, Moon, ChevronDown, ChevronRight
 } from 'lucide-react';
+import { ADMIN_MODULES } from './admin/AdminLayout';
 
 export const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   
-  const [activeTab, setActiveTab] = useState<'overview' | 'fleet' | 'routes' | 'drivers' | 'hubs' | 'reports' | 'admin'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'fleet' | 'routes' | 'drivers' | 'hubs' | 'reports'>('overview');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
   // Light/Dark mode switcher hook
@@ -376,7 +378,7 @@ export const Dashboard: React.FC = () => {
             </ul>
           </div>
 
-          {/* Section: MANAGE */}
+          {/* Section: MANAGE — the Admin group expands to the seven S-35 modules */}
           <div>
             <span className="mono-label" style={{ fontSize: '9px', color: 'var(--text-3)', display: 'block', marginBottom: '12px', paddingLeft: '8px' }}>
               MANAGE
@@ -384,7 +386,7 @@ export const Dashboard: React.FC = () => {
             <ul style={{ listStyle: 'none' }}>
               <li>
                 <button
-                  onClick={() => { setActiveTab('admin'); setSidebarOpen(false); }}
+                  onClick={() => setAdminOpen((o) => !o)}
                   style={{
                     width: '100%',
                     display: 'flex',
@@ -392,9 +394,9 @@ export const Dashboard: React.FC = () => {
                     gap: '12px',
                     padding: '10px 12px',
                     borderRadius: '8px',
-                    border: activeTab === 'admin' ? '1px solid rgba(46, 204, 113, 0.2)' : '1px solid transparent',
-                    backgroundColor: activeTab === 'admin' ? 'var(--green-glow)' : 'transparent',
-                    color: activeTab === 'admin' ? 'var(--green)' : 'var(--text-2)',
+                    border: '1px solid transparent',
+                    backgroundColor: 'transparent',
+                    color: 'var(--text-2)',
                     cursor: 'pointer',
                     fontSize: '13px',
                     fontWeight: 500,
@@ -402,10 +404,43 @@ export const Dashboard: React.FC = () => {
                     transition: 'all 0.15s',
                   }}
                   className="sidebar-link-btn"
+                  aria-expanded={adminOpen}
                 >
                   <Settings size={16} />
-                  <span>Admin</span>
+                  <span style={{ flexGrow: 1 }}>Admin</span>
+                  {adminOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                 </button>
+
+                {adminOpen && (
+                  <ul style={{ listStyle: 'none', marginTop: 4, marginLeft: 20, paddingLeft: 12, borderLeft: '1px dashed var(--border)', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {ADMIN_MODULES.map((mod) => (
+                      <li key={mod.to}>
+                        <button
+                          onClick={() => navigate(mod.to)}
+                          style={{
+                            width: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '9px',
+                            padding: '7px 10px',
+                            borderRadius: '6px',
+                            border: '1px solid transparent',
+                            backgroundColor: 'transparent',
+                            color: 'var(--text-2)',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            textAlign: 'left',
+                            transition: 'all 0.15s',
+                          }}
+                          className="sidebar-link-btn"
+                        >
+                          <mod.icon size={13} />
+                          <span>{mod.label}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </li>
             </ul>
           </div>

@@ -28,9 +28,10 @@ model Role {
   id          Int        @id @default(autoincrement())
   name        String     @unique
   description String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  users       UserRole[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  users        UserRole[]
+  capabilities RoleCapability[]
 
   @@map("roles")
 }
@@ -44,4 +45,235 @@ model UserRole {
 
   @@id([userId, roleId])
   @@map("user_roles")
+}
+
+// ---------------------------------------------------------------------------
+// P-01 Identity, RBAC & Org — org tree, capability x scope role builder
+// ---------------------------------------------------------------------------
+
+enum OrgNodeType {
+  ORG
+  REGION
+  HUB
+  DEPOT
+  TEAM
+}
+
+model OrgNode {
+  id       String      @id @default(uuid())
+  name     String
+  code     String      @unique
+  type     OrgNodeType
+  parentId String?
+  parent   OrgNode?    @relation("OrgHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children OrgNode[]   @relation("OrgHierarchy")
+
+  @@index([parentId])
+  @@map("org_nodes")
+}
+
+model Capability {
+  key    String @id
+  label  String
+  group  String
+
+  roles  RoleCapability[]
+
+  @@map("capabilities")
+}
+
+enum CapabilityScope {
+  GLOBAL
+  REGION
+  HUB
+  SELF
+}
+
+model RoleCapability {
+  roleId        Int
+  capabilityKey String
+  scope         CapabilityScope @default(HUB)
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  capability Capability @relation(fields: [capabilityKey], references: [key], onDelete: Cascade)
+
+  @@id([roleId, capabilityKey])
+  @@map("role_capabilities")
+}
+
+// Pairs of capabilities that must never be held by one role (SoD).
+model SegregationRule {
+  id            Int    @id @default(autoincrement())
+  capabilityA   String
+  capabilityB   String
+  message       String
+
+  @@unique([capabilityA, capabilityB])
+  @@map("segregation_rules")
+}
+
+// ---------------------------------------------------------------------------
+// M-21 Compliance Suite — versioned, effective-dated rule packs
+// ---------------------------------------------------------------------------
+
+enum RulePackStatus {
+  DRAFT
+  ACTIVE
+  RETIRED
+}
+
+model RulePack {
+  id        String            @id @default(uuid())
+  key       String            @unique
+  name      String
+  stateCode String
+  versions  RulePackVersion[]
+
+  @@map("rule_packs")
+}
+
+model RulePackVersion {
+  id            String         @id @default(uuid())
+  rulePackId    String
+  version       Int
+  status        RulePackStatus @default(DRAFT)
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  rules         Json
+  createdAt     DateTime       @default(now())
+
+  rulePack RulePack @relation(fields: [rulePackId], references: [id], onDelete: Cascade)
+
+  @@unique([rulePackId, version])
+  @@map("rule_pack_versions")
+}
+
+// ---------------------------------------------------------------------------
+// P-02 Approvals Engine
+// ---------------------------------------------------------------------------
+
+enum ApprovalStepType {
+  APPROVAL
+  THRESHOLD
+  PARALLEL
+  NOTIFY
+}
+
+model ApprovalFlow {
+  id       String         @id @default(uuid())
+  name     String
+  entity   String
+  isActive Boolean        @default(true)
+  steps    ApprovalStep[]
+
+  @@map("approval_flows")
+}
+
+model ApprovalStep {
+  id              String           @id @default(uuid())
+  flowId          String
+  order           Int
+  type            ApprovalStepType @default(APPROVAL)
+  roleName        String
+  thresholdAmount Decimal?         @db.Decimal(14, 2)
+  slaHours        Int              @default(24)
+
+  flow ApprovalFlow @relation(fields: [flowId], references: [id], onDelete: Cascade)
+
+  @@unique([flowId, order])
+  @@map("approval_steps")
+}
+
+// ---------------------------------------------------------------------------
+// P-03 Notifications
+// ---------------------------------------------------------------------------
+
+enum NotificationSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+model NotificationPolicy {
+  id            String               @id @default(uuid())
+  eventKey      String               @unique
+  label         String
+  severity      NotificationSeverity @default(INFO)
+  channels      String[]
+  audienceRole  String
+  quietHours    Boolean              @default(false)
+  digest        Boolean              @default(false)
+
+  @@map("notification_policies")
+}
+
+// ---------------------------------------------------------------------------
+// P-06 Integration & Import
+// ---------------------------------------------------------------------------
+
+enum ConnectorStatus {
+  HEALTHY
+  DEGRADED
+  DOWN
+  DISCONNECTED
+}
+
+model Connector {
+  id         String          @id @default(uuid())
+  key        String          @unique
+  name       String
+  category   String
+  status     ConnectorStatus @default(DISCONNECTED)
+  config     Json            @default("{}")
+  lastSyncAt DateTime?
+
+  @@map("connectors")
+}
+
+enum ImportStatus {
+  MAPPING
+  VALIDATED
+  COMMITTED
+  FAILED
+}
+
+model ImportJob {
+  id          String       @id @default(uuid())
+  entity      String
+  fileName    String
+  status      ImportStatus @default(MAPPING)
+  totalRows   Int          @default(0)
+  validRows   Int          @default(0)
+  errorRows   Int          @default(0)
+  mapping     Json         @default("{}")
+  rows        Json         @default("[]")
+  errors      Json         @default("[]")
+  createdAt   DateTime     @default(now())
+  committedAt DateTime?
+
+  @@map("import_jobs")
+}
+
+// ---------------------------------------------------------------------------
+// P-05 Audit — append-only, tamper-evident hash chain, lineage
+// ---------------------------------------------------------------------------
+
+model AuditEvent {
+  seq        Int      @id @default(autoincrement())
+  id         String   @unique @default(uuid())
+  actorId    String?
+  actorEmail String
+  action     String
+  entity     String
+  entityId   String?
+  payload    Json     @default("{}")
+  // Lineage: the event this one was caused by (payment -> ... -> request).
+  parentId   String?
+  hash       String
+  prevHash   String
+  createdAt  DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([parentId])
+  @@map("audit_events")
 }
