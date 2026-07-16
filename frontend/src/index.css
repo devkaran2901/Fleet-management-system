@@ -50,6 +50,24 @@
   --shadow-glow: 0 0 15px rgba(46, 204, 113, 0.08);
 }
 
+:root.light-theme {
+  /* Light mode design tokens */
+  --void: #f5f6f2; /* Light off-white background */
+  --panel: #ffffff; /* White cards and panels */
+  --panel-2: #eaebe4; /* Hover states, inputs */
+  --panel-3: #e0e1db; /* Nested surfaces */
+  --border: #d4d5cf;
+  --border-soft: #e2e3dd;
+  --green: #27ae60; /* Darker green for high-contrast */
+  --green-dim: #1e7e43;
+  --green-glow: rgba(39, 174, 96, 0.12);
+  --amber: #d35400;
+  --red: #c0392b;
+  --text-1: #14161b; /* Near-black text */
+  --text-2: #4a4f55;
+  --text-3: #757b82;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

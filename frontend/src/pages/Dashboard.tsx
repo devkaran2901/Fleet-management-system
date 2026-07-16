@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Users, Truck, Map, Settings, LogOut,
-  Activity, AlertCircle, Navigation, Bell, MapPin, Clock, Search, Plus
+  Activity, AlertCircle, Navigation, Bell, MapPin, Clock, Search, Plus,
+  Sun, Moon
 } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
@@ -14,11 +15,23 @@ export const Dashboard: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
+  // Light/Dark mode switcher hook
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => (localStorage.getItem('theme') as 'light' | 'dark') || 'dark');
+
+  useEffect(() => {
+    if (theme === 'light') {
+      document.documentElement.classList.add('light-theme');
+    } else {
+      document.documentElement.classList.remove('light-theme');
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
   // Real-time clock for system telemetry
   const [systemTime, setSystemTime] = useState(new Date().toLocaleTimeString('en-US', { hour12: true }));
   const [systemDate] = useState(new Date().toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }));
   
-  React.useEffect(() => {
+  useEffect(() => {
     const timer = setInterval(() => {
       setSystemTime(new Date().toLocaleTimeString('en-US', { hour12: true }));
     }, 1000);
@@ -414,7 +427,7 @@ export const Dashboard: React.FC = () => {
           </button>
         </div>
       </aside>
-
+      
       {/* FLUID MAIN CONTENT AREA */}
       <main style={{
         flexGrow: 1,
@@ -485,6 +498,16 @@ export const Dashboard: React.FC = () => {
               <span className="pulsing-dot" />
               <span className="mono-label" style={{ fontSize: '9px', color: 'var(--text-1)' }}>LIVE FLEET FEED</span>
             </div>
+
+            {/* Theme Switcher Toggle Button */}
+            <button
+              onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
+              className="icon-btn"
+              style={{ border: '1px solid var(--border-soft)', backgroundColor: 'var(--panel)' }}
+              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {theme === 'dark' ? <Sun size={16} color="var(--green)" /> : <Moon size={16} color="var(--green)" />}
+            </button>
             
             <button className="icon-btn" style={{ position: 'relative', border: '1px solid var(--border-soft)', backgroundColor: 'var(--panel)' }} title="System Alerts">
               <span className="dot" style={{ backgroundColor: 'var(--red)', border: '2px solid var(--panel)' }} />
@@ -576,7 +599,6 @@ export const Dashboard: React.FC = () => {
           color: var(--text-1) !important;
         }
       `}</style>
-
     </div>
   );
 };
