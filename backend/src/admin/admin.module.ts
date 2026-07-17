@@ -9,6 +9,11 @@ import { ApprovalFlowsService } from './approval-flows.service';
 import { NotificationPoliciesService } from './notification-policies.service';
 import { ConnectorsService } from './connectors.service';
 import { ImportsService } from './imports.service';
+import { DashboardService } from './dashboard.service';
+import { CostCentersService } from './cost-centers.service';
+import { DelegationsService } from './delegations.service';
+import { PermissionsService } from './permissions.service';
+import { HealthService } from './health.service';
 
 @Module({
   imports: [PrismaModule],
@@ -22,6 +27,11 @@ import { ImportsService } from './imports.service';
     NotificationPoliciesService,
     ConnectorsService,
     ImportsService,
+    DashboardService,
+    CostCentersService,
+    DelegationsService,
+    PermissionsService,
+    HealthService,
   ],
   exports: [AuditService],
 })

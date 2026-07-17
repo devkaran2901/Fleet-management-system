@@ -3,18 +3,15 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { ChevronRight, Menu, Moon, Sun } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { AppSidebar } from '../../components/AppSidebar';
-import { ADMIN_MODULES } from './adminModules';
+import { findGroup, findModule } from './adminModules';
 import { ToastProvider } from '../../components/admin/ui';
 import '../../styles/admin.css';
-
-export { ADMIN_MODULES };
 
 export const AdminLayout: React.FC = () => {
   const { user } = useAuth();
   const location = useLocation();
   const [railOpen, setRailOpen] = useState(false);
 
-  // Mirrors the Dashboard's switcher so the theme stays consistent across routes.
   const [theme, setTheme] = useState<'light' | 'dark'>(
     () => (localStorage.getItem('theme') as 'light' | 'dark') || 'dark',
   );
@@ -25,12 +22,22 @@ export const AdminLayout: React.FC = () => {
   }, [theme]);
 
   const initials = `${user?.firstName?.[0] ?? ''}${user?.lastName?.[0] ?? ''}`.toUpperCase();
-  const active = ADMIN_MODULES.find((m) => location.pathname.startsWith(m.to));
+  const activeModule = findModule(location.pathname);
+  const activeGroup = findGroup(location.pathname);
 
   return (
     <ToastProvider>
       <div className="adm-shell">
         <AppSidebar open={railOpen} onNavigate={() => setRailOpen(false)} />
+
+        {/* Click-catcher so tapping outside the rail closes it on mobile. */}
+        {railOpen && (
+          <div
+            className="adm-rail-scrim"
+            onClick={() => setRailOpen(false)}
+            role="presentation"
+          />
+        )}
 
         <main className="adm-main">
           <div className="adm-topbar">
@@ -44,8 +51,12 @@ export const AdminLayout: React.FC = () => {
               </button>
               <span className="mono-label" style={{ fontSize: 9 }}>ADMIN</span>
               <ChevronRight size={12} />
+              <span className="mono-label" style={{ fontSize: 9 }}>
+                {activeGroup?.label ?? '—'}
+              </span>
+              <ChevronRight size={12} />
               <span style={{ color: 'var(--text-1)', fontWeight: 500 }}>
-                {active?.label ?? 'Suite'}
+                {activeModule?.label ?? 'Suite'}
               </span>
             </div>
 
@@ -74,7 +85,10 @@ export const AdminLayout: React.FC = () => {
             </div>
           </div>
 
-          <Outlet />
+          {/* Keyed on path so each module fades in rather than snapping. */}
+          <div className="adm-page" key={location.pathname}>
+            <Outlet />
+          </div>
         </main>
       </div>
     </ToastProvider>

@@ -226,11 +226,165 @@ export interface ChainVerification {
   brokenAtId: string | null;
 }
 
+/** A dashboard number. `available: false` means nothing produces it yet. */
+export interface Metric {
+  value: number | null;
+  available: boolean;
+  reason?: string;
+}
+
+export interface DashboardSummary {
+  users: { total: Metric; active: Metric; disabled: Metric; newThisMonth: Metric; failedLogins: Metric };
+  fleet: { total: Metric; active: Metric; inMaintenance: Metric; complianceBlocked: Metric; idle: Metric };
+  drivers: { total: Metric; onDuty: Metric; offDuty: Metric; expiringLicenses: Metric };
+  system: {
+    apiRequestsToday: Metric; failedApiRequests: Metric; activeIntegrations: Metric;
+    failedIntegrations: Metric; totalIntegrations: Metric;
+  };
+  workflow: {
+    pendingApprovals: Metric; escalatedApprovals: Metric; pendingNotifications: Metric;
+    activeFlows: Metric; notificationPolicies: Metric;
+  };
+  governance: {
+    orgNodes: Metric; roles: Metric; rulePacks: Metric; activeRulePackVersions: Metric;
+    importJobs: Metric; auditEvents: Metric;
+  };
+}
+
+export interface ActivityEntry {
+  id: string;
+  seq: number;
+  actorEmail: string;
+  action: string;
+  entity: string;
+  entityId: string | null;
+  payload: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface CostCenter {
+  code: string;
+  name: string;
+  department: string;
+  managerId: string | null;
+  manager: { id: string; firstName: string; lastName: string; email: string } | null;
+  orgNodeId: string | null;
+  orgNode: { id: string; name: string; code: string } | null;
+  budgetAllocated: number;
+  budgetUsed: number;
+  budgetRemaining: number;
+  utilisation: number;
+  createdAt: string;
+}
+
+export type DelegationStatus = 'ACTIVE' | 'SCHEDULED' | 'EXPIRED' | 'REVOKED';
+
+export interface Delegation {
+  id: string;
+  fromUserId: string;
+  toUserId: string;
+  fromUser: { id: string; firstName: string; lastName: string; email: string };
+  toUser: { id: string; firstName: string; lastName: string; email: string };
+  startDate: string;
+  endDate: string;
+  reason: string | null;
+  revokedAt: string | null;
+  status: DelegationStatus;
+  createdAt: string;
+}
+
+export interface EffectiveCapability {
+  capabilityKey: string;
+  label: string;
+  group: string;
+  scope: CapabilityScope;
+  grantedBy: { roleName: string; scope: CapabilityScope }[];
+  viaDelegation: boolean;
+  delegatedFrom?: string;
+}
+
+export interface EffectivePermissions {
+  user: {
+    id: string; email: string; firstName: string; lastName: string;
+    isActive: boolean; roles: string[];
+  };
+  activeDelegations: { id: string; from: string; endDate: string }[];
+  capabilities: EffectiveCapability[];
+}
+
+export interface SimulationVerdict {
+  allowed: boolean;
+  scope: CapabilityScope | null;
+  reason: string;
+  grantedBy: { roleName: string; scope: CapabilityScope }[];
+  viaDelegation: boolean;
+}
+
+export interface PermissionMatrix {
+  capabilities: Capability[];
+  roles: { id: number; name: string; grants: Record<string, CapabilityScope> }[];
+}
+
+export interface HealthSnapshot {
+  services: {
+    name: string;
+    status: 'UP' | 'DOWN' | 'NOT_CONFIGURED';
+    detail: string;
+    latencyMs: number | null;
+  }[];
+  process: {
+    uptimeSeconds: number; uptimeLabel: string; nodeVersion: string;
+    platform: string; pid: number;
+  };
+  memory: { heapUsedMb: number; heapTotalMb: number; rssMb: number; heapUtilisation: number };
+  cpu: { userMs: number; systemMs: number; note: string };
+  errorRate: { available: boolean; note: string };
+  checkedAt: string;
+}
+
 // --- Client -----------------------------------------------------------------
 
 const unwrap = <T,>(promise: Promise<{ data: T }>) => promise.then((res) => res.data);
 
 export const adminApi = {
+  // Dashboard
+  dashboard: () => unwrap<DashboardSummary>(api.get('/admin/dashboard')),
+  dashboardActivity: (take = 12) =>
+    unwrap<ActivityEntry[]>(api.get('/admin/dashboard/activity', { params: { take } })),
+
+  // Cost centres
+  costCenters: () => unwrap<CostCenter[]>(api.get('/admin/cost-centers')),
+  createCostCenter: (body: {
+    code: string; name: string; department: string; managerId?: string | null;
+    orgNodeId?: string | null; budgetAllocated: number; budgetUsed?: number;
+  }) => unwrap<CostCenter>(api.post('/admin/cost-centers', body)),
+  updateCostCenter: (
+    code: string,
+    body: Partial<{
+      name: string; department: string; managerId: string | null;
+      orgNodeId: string | null; budgetAllocated: number; budgetUsed: number;
+    }>,
+  ) => unwrap<CostCenter>(api.patch(`/admin/cost-centers/${code}`, body)),
+  deleteCostCenter: (code: string) => unwrap<{ code: string }>(api.delete(`/admin/cost-centers/${code}`)),
+
+  // Delegations
+  delegations: () => unwrap<Delegation[]>(api.get('/admin/delegations')),
+  createDelegation: (body: {
+    fromUserId: string; toUserId: string; startDate: string; endDate: string; reason?: string;
+  }) => unwrap<Delegation>(api.post('/admin/delegations', body)),
+  revokeDelegation: (id: string) => unwrap<Delegation>(api.post(`/admin/delegations/${id}/revoke`, {})),
+  deleteDelegation: (id: string) => unwrap<{ id: string }>(api.delete(`/admin/delegations/${id}`)),
+
+  // Permissions
+  permissionMatrix: () => unwrap<PermissionMatrix>(api.get('/admin/permissions/matrix')),
+  effectivePermissions: (userId: string) =>
+    unwrap<EffectivePermissions>(api.get(`/admin/permissions/effective/${userId}`)),
+  simulatePermission: (userId: string, capabilityKey: string) =>
+    unwrap<SimulationVerdict>(api.post('/admin/permissions/simulate', { userId, capabilityKey })),
+
+  // Health
+  health: () => unwrap<HealthSnapshot>(api.get('/admin/health')),
+
   // Org / Users / Roles
   orgTree: () => unwrap<OrgNode[]>(api.get('/admin/org/tree')),
   createOrgNode: (body: { name: string; code: string; type: OrgNodeType; parentId?: string | null }) =>

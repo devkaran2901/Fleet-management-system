@@ -9,9 +9,10 @@ export const Panel: React.FC<{
   actions?: React.ReactNode;
   padded?: boolean;
   className?: string;
+  style?: React.CSSProperties;
   children: React.ReactNode;
-}> = ({ title, subtitle, actions, padded = true, className = '', children }) => (
-  <section className={`adm-panel ${className}`}>
+}> = ({ title, subtitle, actions, padded = true, className = '', style, children }) => (
+  <section className={`adm-panel ${className}`} style={style}>
     {(title || actions) && (
       <header className="adm-panel-head">
         <div>

@@ -33,6 +33,13 @@ import type {
 } from './notification-policies.service';
 import { ConnectorsService } from './connectors.service';
 import { ImportsService } from './imports.service';
+import { DashboardService } from './dashboard.service';
+import { CostCentersService } from './cost-centers.service';
+import type { CostCenterDto } from './cost-centers.service';
+import { DelegationsService } from './delegations.service';
+import type { DelegationDto } from './delegations.service';
+import { PermissionsService } from './permissions.service';
+import { HealthService } from './health.service';
 
 /** The JWT payload shape produced by JwtStrategy.validate. */
 interface JwtUser {
@@ -56,7 +63,96 @@ export class AdminController {
     private connectors: ConnectorsService,
     private imports: ImportsService,
     private audit: AuditService,
+    private dashboard: DashboardService,
+    private costCenters: CostCentersService,
+    private delegations: DelegationsService,
+    private permissions: PermissionsService,
+    private health: HealthService,
   ) {}
+
+  // --- Dashboard ----------------------------------------------------------
+
+  @Get('dashboard')
+  dashboardSummary() {
+    return this.dashboard.summary();
+  }
+
+  @Get('dashboard/activity')
+  dashboardActivity(@Query('take') take?: string) {
+    return this.dashboard.recentActivity(take ? Number(take) : undefined);
+  }
+
+  // --- Cost centres -------------------------------------------------------
+
+  @Get('cost-centers')
+  listCostCenters() {
+    return this.costCenters.findAll();
+  }
+
+  @Post('cost-centers')
+  createCostCenter(@Body() body: CostCenterDto, @CurrentUser() user: JwtUser) {
+    return this.costCenters.create(body, actorOf(user));
+  }
+
+  @Patch('cost-centers/:code')
+  updateCostCenter(
+    @Param('code') code: string,
+    @Body() body: Partial<CostCenterDto>,
+    @CurrentUser() user: JwtUser,
+  ) {
+    return this.costCenters.update(code, body, actorOf(user));
+  }
+
+  @Delete('cost-centers/:code')
+  deleteCostCenter(@Param('code') code: string, @CurrentUser() user: JwtUser) {
+    return this.costCenters.remove(code, actorOf(user));
+  }
+
+  // --- Delegations --------------------------------------------------------
+
+  @Get('delegations')
+  listDelegations() {
+    return this.delegations.findAll();
+  }
+
+  @Post('delegations')
+  createDelegation(@Body() body: DelegationDto, @CurrentUser() user: JwtUser) {
+    return this.delegations.create(body, actorOf(user));
+  }
+
+  @Post('delegations/:id/revoke')
+  revokeDelegation(@Param('id') id: string, @CurrentUser() user: JwtUser) {
+    return this.delegations.revoke(id, actorOf(user));
+  }
+
+  @Delete('delegations/:id')
+  deleteDelegation(@Param('id') id: string, @CurrentUser() user: JwtUser) {
+    return this.delegations.remove(id, actorOf(user));
+  }
+
+  // --- Permissions --------------------------------------------------------
+
+  @Get('permissions/matrix')
+  permissionMatrix() {
+    return this.permissions.matrix();
+  }
+
+  @Get('permissions/effective/:userId')
+  effectivePermissions(@Param('userId') userId: string) {
+    return this.permissions.effectiveFor(userId);
+  }
+
+  @Post('permissions/simulate')
+  simulatePermission(@Body() body: { userId: string; capabilityKey: string }) {
+    return this.permissions.simulate(body.userId, body.capabilityKey);
+  }
+
+  // --- System health ------------------------------------------------------
+
+  @Get('health')
+  systemHealth() {
+    return this.health.snapshot();
+  }
 
   // --- Org / Users / Roles ------------------------------------------------
 

@@ -63,8 +63,37 @@ async function main() {
   await seedApprovalFlows();
   await seedNotificationPolicies();
   await seedConnectors();
+  await seedCostCenters();
 
   console.log('Seeding finished.');
+}
+
+async function seedCostCenters() {
+  const centers = [
+    { code: 'CC-OPS', name: 'Operations', department: 'Operations', orgCode: 'ARGO', budgetAllocated: 12000000, budgetUsed: 7450000 },
+    { code: 'CC-MNT', name: 'Maintenance', department: 'Workshop', orgCode: 'HUB-DEL', budgetAllocated: 4500000, budgetUsed: 3980000 },
+    { code: 'CC-HR', name: 'Human Resources', department: 'HR', orgCode: 'ARGO', budgetAllocated: 2200000, budgetUsed: 910000 },
+    { code: 'CC-FIN', name: 'Finance', department: 'Finance', orgCode: 'ARGO', budgetAllocated: 1800000, budgetUsed: 640000 },
+    { code: 'CC-NORTH', name: 'North Region Running', department: 'Operations', orgCode: 'NORTH', budgetAllocated: 6000000, budgetUsed: 5820000 },
+  ];
+
+  for (const center of centers) {
+    const orgNode = await prisma.orgNode.findUnique({ where: { code: center.orgCode } });
+    await prisma.costCenter.upsert({
+      where: { code: center.code },
+      update: { name: center.name, department: center.department },
+      create: {
+        code: center.code,
+        name: center.name,
+        department: center.department,
+        orgNodeId: orgNode?.id ?? null,
+        budgetAllocated: center.budgetAllocated,
+        budgetUsed: center.budgetUsed,
+      },
+    });
+  }
+
+  console.log(`Cost centres seeded (${centers.length} centres).`);
 }
 
 // --- P-01 Identity, RBAC & Org ---------------------------------------------

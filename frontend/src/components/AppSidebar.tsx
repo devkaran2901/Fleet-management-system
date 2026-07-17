@@ -1,14 +1,16 @@
-import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { LogOut, Settings } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { ChevronDown, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { ADMIN_MODULES } from '../pages/admin/adminModules';
+import { ADMIN_NAV, findGroup } from '../pages/admin/adminModules';
 import '../styles/admin.css';
 
+const STORAGE_KEY = 'fms_admin_nav_collapsed';
+
 /**
- * The single navigation rail for the whole app. Both the Dashboard and the
- * Admin suite render this same component, so the nav never changes shape as you
- * move between routes — only the active highlight moves.
+ * The single navigation rail for the whole app. Every admin route renders this
+ * same component, so the nav never changes shape as you move around — only the
+ * active highlight moves.
  */
 export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = ({
   open,
@@ -16,6 +18,28 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
 }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Collapsed groups persist across navigations and reloads.
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}');
+    } catch {
+      return {};
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(collapsed));
+  }, [collapsed]);
+
+  // Never leave the active module hidden inside a collapsed group.
+  const activeGroup = findGroup(location.pathname);
+  useEffect(() => {
+    if (activeGroup && collapsed[activeGroup.label]) {
+      setCollapsed((c) => ({ ...c, [activeGroup.label]: false }));
+    }
+  }, [activeGroup?.label]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const initials = `${user?.firstName?.[0] ?? ''}${user?.lastName?.[0] ?? ''}`.toUpperCase();
 
@@ -23,9 +47,8 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
     <aside className={`adm-rail ${open ? 'is-open' : ''}`}>
       <button
         className="adm-rail-brand"
-        onClick={() => { navigate('/dashboard'); onNavigate(); }}
-        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-        title="Back to the console"
+        onClick={() => { navigate('/admin/dashboard'); onNavigate(); }}
+        title="Admin dashboard"
       >
         <span className="argo-mark" aria-hidden="true" />
         <span>
@@ -33,45 +56,64 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
         </span>
       </button>
 
-      <span className="adm-rail-group mono-label">ADMIN</span>
-      {/* flexGrow is cleared so MANAGE sits directly beneath, not pushed to the bottom. */}
-      <ul className="adm-rail-links" style={{ flexGrow: 0 }}>
-        {ADMIN_MODULES.map((mod) => (
-          <li key={mod.to}>
-            <NavLink
-              to={mod.to}
-              onClick={onNavigate}
-              className={({ isActive }) => `adm-rail-link ${isActive ? 'is-active' : ''}`}
-            >
-              <mod.icon size={16} />
-              <span>{mod.label}</span>
-              <span className="adm-rail-count">{mod.service}</span>
-            </NavLink>
-          </li>
-        ))}
-      </ul>
+      <nav className="adm-rail-nav">
+        {ADMIN_NAV.map((group) => {
+          const isCollapsed = collapsed[group.label];
+          const hasActive = group.modules.some((m) => location.pathname.startsWith(m.to));
 
-      <span className="adm-rail-group mono-label" style={{ marginTop: 20 }}>
-        MANAGE
-      </span>
-      <ul style={{ listStyle: 'none', marginBottom: 8 }}>
-        <li>
-          <NavLink
-            to="/admin"
-            end
-            onClick={onNavigate}
-            className={({ isActive }) => `adm-rail-link ${isActive ? 'is-active' : ''}`}
-          >
-            <Settings size={16} />
-            <span>Admin</span>
-          </NavLink>
-        </li>
-      </ul>
+          return (
+            <div className="adm-rail-section" key={group.label}>
+              <button
+                className={`adm-rail-group-btn ${hasActive ? 'has-active' : ''}`}
+                onClick={() => setCollapsed((c) => ({ ...c, [group.label]: !c[group.label] }))}
+                aria-expanded={!isCollapsed}
+              >
+                <span className="mono-label">{group.label}</span>
+                <ChevronDown
+                  size={12}
+                  className={`adm-rail-chevron ${isCollapsed ? 'is-collapsed' : ''}`}
+                />
+              </button>
 
-      <div className="adm-rail-foot" style={{ marginTop: 'auto' }}>
+              <div className={`adm-rail-collapse ${isCollapsed ? 'is-collapsed' : ''}`}>
+                <ul className="adm-rail-links" aria-hidden={isCollapsed}>
+                  {group.modules.map((mod) => (
+                    <li key={mod.to}>
+                      <NavLink
+                        to={mod.to}
+                        onClick={onNavigate}
+                        title={mod.summary}
+                        tabIndex={isCollapsed ? -1 : undefined}
+                        className={({ isActive }) =>
+                          `adm-rail-link ${isActive ? 'is-active' : ''} ${mod.built ? '' : 'is-stub'}`
+                        }
+                      >
+                        <mod.icon size={15} />
+                        <span>{mod.label}</span>
+                        {!mod.built && (
+                          <span className="adm-rail-count" title="Not built yet">
+                            soon
+                          </span>
+                        )}
+                      </NavLink>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          );
+        })}
+      </nav>
+
+      <div className="adm-rail-foot">
         <div className="adm-avatar">{initials}</div>
         <div style={{ flexGrow: 1, minWidth: 0 }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)', display: 'block' }}>
+          <span
+            style={{
+              fontSize: 12, fontWeight: 600, color: 'var(--text-1)', display: 'block',
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}
+          >
             {user?.firstName} {user?.lastName}
           </span>
           <span style={{ fontSize: 10, color: 'var(--text-3)' }}>
