@@ -406,6 +406,13 @@ export const adminApi = {
   deleteRole: (id: number) => unwrap<{ id: number }>(api.delete(`/admin/roles/${id}`)),
 
   users: () => unwrap<AdminUser[]>(api.get('/admin/users')),
+  createUser: (body: {
+    email: string;
+    firstName: string;
+    lastName: string;
+    password?: string;
+    roles?: string[];
+  }) => unwrap<AdminUser>(api.post('/admin/users', body)),
   setUserRoles: (id: string, roles: string[]) =>
     unwrap<{ userId: string; roles: string[] }>(api.put(`/admin/users/${id}/roles`, { roles })),
   setUserActive: (id: string, isActive: boolean) =>

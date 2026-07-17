@@ -40,6 +40,7 @@ import { DelegationsService } from './delegations.service';
 import type { DelegationDto } from './delegations.service';
 import { PermissionsService } from './permissions.service';
 import { HealthService } from './health.service';
+import { UserService } from '../user/user.service';
 
 /** The JWT payload shape produced by JwtStrategy.validate. */
 interface JwtUser {
@@ -68,6 +69,7 @@ export class AdminController {
     private delegations: DelegationsService,
     private permissions: PermissionsService,
     private health: HealthService,
+    private userService: UserService,
   ) {}
 
   // --- Dashboard ----------------------------------------------------------
@@ -225,6 +227,31 @@ export class AdminController {
   @Get('users')
   listUsers() {
     return this.roles.users();
+  }
+
+  @Post('users')
+  async createUser(
+    @Body() body: any,
+    @CurrentUser() user: JwtUser,
+  ) {
+    const created = await this.userService.create({
+      email: body.email,
+      password: body.password,
+      firstName: body.firstName,
+      lastName: body.lastName,
+      roleNames: body.roles || ['DRIVER'],
+    });
+
+    await this.audit.record({
+      actor: actorOf(user),
+      action: 'user.created',
+      entity: 'User',
+      entityId: created.id,
+      payload: { email: created.email, roles: body.roles || ['DRIVER'] },
+    });
+
+    const { password, ...result } = created;
+    return result;
   }
 
   @Put('users/:id/roles')

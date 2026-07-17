@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { adminApi, errorConflicts, errorMessage } from '../../services/adminApi';
 import type { AdminRole, AdminUser } from '../../services/adminApi';
 import {
-  Badge, Button, EmptyState, ErrorState, Input, LoadingState, Modal, Panel, Toggle, useToast,
+  Badge, Button, EmptyState, ErrorState, Input, LoadingState, Modal, Panel, Select, Toggle, useToast,
 } from '../../components/admin/ui';
 import { Stat } from './orgShared';
 
@@ -19,6 +19,43 @@ export const Users: React.FC = () => {
   const [draftRoles, setDraftRoles] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [query, setQuery] = useState('');
+
+  const [adding, setAdding] = useState(false);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [selectedRole, setSelectedRole] = useState('DRIVER');
+
+  const createUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!firstName || !lastName || !email || !password) {
+      notify('error', 'All fields are required');
+      return;
+    }
+    setSaving(true);
+    try {
+      await adminApi.createUser({
+        firstName,
+        lastName,
+        email,
+        password,
+        roles: [selectedRole],
+      });
+      notify('success', `Created user ${email}`);
+      setAdding(false);
+      setFirstName('');
+      setLastName('');
+      setEmail('');
+      setPassword('');
+      setSelectedRole('DRIVER');
+      await load();
+    } catch (err) {
+      notify('error', errorMessage(err, 'Could not create user'));
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -95,12 +132,7 @@ export const Users: React.FC = () => {
         <Button
           variant="primary"
           icon={<UserPlus size={14} />}
-          onClick={() =>
-            notify(
-              'info',
-              'Users are created by signing up or via Imports → Users. In-app user creation is not wired yet.',
-            )
-          }
+          onClick={() => setAdding(true)}
         >
           Add user
         </Button>
@@ -236,6 +268,78 @@ export const Users: React.FC = () => {
             );
           })}
         </div>
+      </Modal>
+
+      <Modal
+        open={adding}
+        title="Add new user"
+        subtitle="Create a new user profile and assign initial roles"
+        onClose={() => setAdding(false)}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setAdding(false)}>Cancel</Button>
+            <Button variant="primary" loading={saving} onClick={createUser}>Create user</Button>
+          </>
+        }
+      >
+        <form onSubmit={createUser} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div className="adm-form-row">
+            <div className="adm-field">
+              <span className="adm-field-label">First Name</span>
+              <Input
+                required
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="John"
+              />
+            </div>
+            <div className="adm-field">
+              <span className="adm-field-label">Last Name</span>
+              <Input
+                required
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Doe"
+              />
+            </div>
+          </div>
+
+          <div className="adm-field">
+            <span className="adm-field-label">Email Address</span>
+            <Input
+              required
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="user@fleetos.com"
+            />
+          </div>
+
+          <div className="adm-field">
+            <span className="adm-field-label">Password</span>
+            <Input
+              required
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+            />
+          </div>
+
+          <div className="adm-field">
+            <span className="adm-field-label">Initial Role</span>
+            <Select
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value)}
+            >
+              {roles.map((role) => (
+                <option key={role.id} value={role.name}>
+                  {role.name} {role.description ? ` - ${role.description}` : ''}
+                </option>
+              ))}
+            </Select>
+          </div>
+        </form>
       </Modal>
     </>
   );
