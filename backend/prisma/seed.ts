@@ -16,6 +16,7 @@ async function main() {
     { name: 'ADMIN', description: 'System Administrator with full access' },
     { name: 'DISPATCHER', description: 'Fleet Dispatcher managing runs and drivers' },
     { name: 'DRIVER', description: 'Fleet Driver performing transport operations' },
+    { name: 'FLEET_MANAGER', description: 'Fleet Manager managing assets, compliance and maintenance' },
   ];
 
   const dbRoles: Role[] = [];
@@ -82,6 +83,32 @@ async function main() {
     });
   }
   console.log(`Dispatcher account ready: ${dispatcherEmail}`);
+
+  // Seed fleet manager user
+  const managerEmail = 'manager@fleetos.com';
+  const managerUser = await prisma.user.upsert({
+    where: { email: managerEmail },
+    update: { password: hashedPassword, isActive: true },
+    create: {
+      email: managerEmail,
+      password: hashedPassword,
+      firstName: 'Fleet',
+      lastName: 'Manager',
+      isActive: true,
+    },
+  });
+
+  const managerRole = dbRoles.find((r) => r.name === 'FLEET_MANAGER');
+  if (managerRole) {
+    await prisma.userRole.upsert({
+      where: {
+        userId_roleId: { userId: managerUser.id, roleId: managerRole.id },
+      },
+      update: {},
+      create: { userId: managerUser.id, roleId: managerRole.id },
+    });
+  }
+  console.log(`Fleet Manager account ready: ${managerEmail}`);
 
   await seedOrgTree();
   await seedCapabilities(dbRoles);
@@ -246,6 +273,12 @@ async function seedCapabilities(dbRoles: Role[]) {
       { key: 'fleet.view', scope: 'SELF' },
       { key: 'trip.record', scope: 'SELF' },
       { key: 'expense.submit', scope: 'SELF' },
+    ],
+    FLEET_MANAGER: [
+      { key: 'fleet.view', scope: 'GLOBAL' },
+      { key: 'fleet.edit', scope: 'GLOBAL' },
+      { key: 'driver.manage', scope: 'GLOBAL' },
+      { key: 'expense.approve', scope: 'GLOBAL' },
     ],
   };
 

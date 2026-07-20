@@ -120,7 +120,7 @@ const App: React.FC = () => {
           <Route
             path="/admin"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['ADMIN']}>
                 <AdminLayout />
               </ProtectedRoute>
             }
@@ -142,7 +142,7 @@ const App: React.FC = () => {
           <Route
             path="/dispatcher"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['DISPATCHER', 'ADMIN']}>
                 <DispatcherLayout />
               </ProtectedRoute>
             }
@@ -164,7 +164,7 @@ const App: React.FC = () => {
           <Route
             path="/fleet"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['FLEET_MANAGER', 'ADMIN']}>
                 <FleetLayout />
               </ProtectedRoute>
             }

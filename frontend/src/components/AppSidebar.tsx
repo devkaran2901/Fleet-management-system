@@ -68,35 +68,52 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
         </div>
         
         {/* Workspace Switcher */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
-          <span className="mono-label" style={{ fontSize: 8, color: 'var(--text-3)' }}>WORKSPACE</span>
-          <select 
-            value={isDispatcher ? 'dispatcher' : (isFleet ? 'fleet' : 'admin')}
-            onChange={(e) => {
-              const val = e.target.value;
-              if (val === 'admin') navigate('/admin/dashboard');
-              else if (val === 'dispatcher') navigate('/dispatcher/dashboard');
-              else if (val === 'fleet') navigate('/fleet/dashboard');
-              onNavigate();
-            }}
-            style={{
-              width: '100%',
-              backgroundColor: 'var(--panel-2)',
-              color: 'var(--text-1)',
-              border: '1px solid var(--border-soft)',
-              padding: '6px 8px',
-              borderRadius: 6,
-              fontSize: 11,
-              fontWeight: 500,
-              cursor: 'pointer',
-              outline: 'none'
-            }}
-          >
-            <option value="admin">🔧 Admin Suite</option>
-            <option value="dispatcher">⚡ Dispatcher Workspace</option>
-            <option value="fleet">🚚 Fleet Manager Portal</option>
-          </select>
-        </div>
+        {(() => {
+          const roles = user?.roles ?? [];
+          const hasAdmin = roles.includes('ADMIN');
+          const hasDispatcher = roles.includes('DISPATCHER') || hasAdmin;
+          const hasFleetManager = roles.includes('FLEET_MANAGER') || hasAdmin;
+
+          // Only render switcher if user has access to more than 1 workspace
+          const workspaceCount = (hasAdmin ? 1 : 0) + 
+                                 (!hasAdmin && hasDispatcher ? 1 : 0) + 
+                                 (!hasAdmin && hasFleetManager ? 1 : 0);
+
+          if (hasAdmin || workspaceCount > 1) {
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
+                <span className="mono-label" style={{ fontSize: 8, color: 'var(--text-3)' }}>WORKSPACE</span>
+                <select 
+                  value={isDispatcher ? 'dispatcher' : (isFleet ? 'fleet' : 'admin')}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === 'admin') navigate('/admin/dashboard');
+                    else if (val === 'dispatcher') navigate('/dispatcher/dashboard');
+                    else if (val === 'fleet') navigate('/fleet/dashboard');
+                    onNavigate();
+                  }}
+                  style={{
+                    width: '100%',
+                    backgroundColor: 'var(--panel-2)',
+                    color: 'var(--text-1)',
+                    border: '1px solid var(--border-soft)',
+                    padding: '6px 8px',
+                    borderRadius: 6,
+                    fontSize: 11,
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    outline: 'none'
+                  }}
+                >
+                  {hasAdmin && <option value="admin">🔧 Admin Suite</option>}
+                  {hasDispatcher && <option value="dispatcher">⚡ Dispatcher Workspace</option>}
+                  {hasFleetManager && <option value="fleet">🚚 Fleet Manager Portal</option>}
+                </select>
+              </div>
+            );
+          }
+          return null;
+        })()}
       </div>
 
       <nav className="adm-rail-nav">
