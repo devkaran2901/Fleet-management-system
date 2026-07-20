@@ -24,8 +24,37 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
   const isDispatcher = location.pathname.startsWith('/dispatcher');
   const isFleet = location.pathname.startsWith('/fleet');
   
-  const nav = isDispatcher ? DISPATCHER_NAV : (isFleet ? FLEET_NAV : ADMIN_NAV);
-  const resolveGroup = isDispatcher ? findDispatcherGroup : (isFleet ? findFleetGroup : findGroup);
+  const roles = user?.roles ?? [];
+  const hasAdmin = roles.includes('ADMIN');
+  const hasDispatcher = roles.includes('DISPATCHER');
+  const hasFleetManager = roles.includes('FLEET_MANAGER') || roles.includes('FLEET');
+
+  // Determine which nav to show
+  let nav = ADMIN_NAV;
+  let resolveGroup = findGroup;
+
+  if (hasAdmin) {
+    if (isDispatcher) {
+      nav = DISPATCHER_NAV;
+      resolveGroup = findDispatcherGroup;
+    } else if (isFleet) {
+      nav = FLEET_NAV;
+      resolveGroup = findFleetGroup;
+    } else {
+      nav = ADMIN_NAV;
+      resolveGroup = findGroup;
+    }
+  } else if (hasFleetManager) {
+    nav = FLEET_NAV;
+    resolveGroup = findFleetGroup;
+  } else if (hasDispatcher) {
+    nav = DISPATCHER_NAV;
+    resolveGroup = findDispatcherGroup;
+  } else {
+    // DRIVER or guest fallback
+    nav = DISPATCHER_NAV;
+    resolveGroup = findDispatcherGroup;
+  }
 
   // Collapsed groups persist across navigations and reloads.
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => {
@@ -57,7 +86,13 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
           className="adm-rail-brand" 
           style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 0 8px 0', border: 'none', background: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }} 
           onClick={() => {
-            navigate(isDispatcher ? '/dispatcher/dashboard' : (isFleet ? '/fleet/dashboard' : '/admin/dashboard'));
+            if (hasAdmin) {
+              navigate(isDispatcher ? '/dispatcher/dashboard' : (isFleet ? '/fleet/dashboard' : '/admin/dashboard'));
+            } else if (hasFleetManager) {
+              navigate('/fleet/dashboard');
+            } else {
+              navigate('/dispatcher/dashboard');
+            }
             onNavigate();
           }}
         >
