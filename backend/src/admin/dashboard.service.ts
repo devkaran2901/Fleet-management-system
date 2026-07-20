@@ -40,6 +40,14 @@ export class DashboardService {
       activeRulePackVersions,
       importJobs,
       auditCount,
+      totalVehicles,
+      activeVehicles,
+      maintenanceVehicles,
+      blockedVehicles,
+      idleVehicles,
+      totalDrivers,
+      onDutyDrivers,
+      offDutyDrivers
     ] = await Promise.all([
       this.prisma.user.count(),
       this.prisma.user.count({ where: { isActive: true } }),
@@ -55,7 +63,25 @@ export class DashboardService {
       this.prisma.rulePackVersion.count({ where: { status: 'ACTIVE' } }),
       this.prisma.importJob.count(),
       this.prisma.auditEvent.count(),
+      this.prisma.vehicle.count(),
+      this.prisma.vehicle.count({ where: { status: 'Available' } }),
+      this.prisma.vehicle.count({ where: { status: 'Maintenance' } }),
+      this.prisma.vehicle.count({ where: { status: 'Blocked' } }),
+      this.prisma.vehicle.count({ where: { status: 'Available', currentTripId: null } }),
+      this.prisma.driver.count(),
+      this.prisma.driver.count({ where: { status: 'On Duty' } }),
+      this.prisma.driver.count({ where: { status: 'Available' } }),
     ]);
+
+    const driversWithWarnings = await this.prisma.driver.findMany();
+    const expiringLicenses = driversWithWarnings.filter(d => {
+      try {
+        const warnings = JSON.parse(d.warnings as string);
+        return warnings.some((w: string) => w.toLowerCase().includes('expired') || w.toLowerCase().includes('license') || w.toLowerCase().includes('suspend'));
+      } catch {
+        return false;
+      }
+    }).length;
 
     return {
       users: {
@@ -67,17 +93,17 @@ export class DashboardService {
         failedLogins: noSource('Login attempts are not recorded — no auth event log yet'),
       },
       fleet: {
-        total: noSource('No Vehicle model — Master Data → Vehicles is not built yet'),
-        active: noSource('No Vehicle model — Master Data → Vehicles is not built yet'),
-        inMaintenance: noSource('No Vehicle model — Master Data → Vehicles is not built yet'),
-        complianceBlocked: noSource('No Vehicle model — Master Data → Vehicles is not built yet'),
-        idle: noSource('No Vehicle model — Master Data → Vehicles is not built yet'),
+        total: real(totalVehicles),
+        active: real(activeVehicles),
+        inMaintenance: real(maintenanceVehicles),
+        complianceBlocked: real(blockedVehicles),
+        idle: real(idleVehicles),
       },
       drivers: {
-        total: noSource('No Driver model — Master Data → Drivers is not built yet'),
-        onDuty: noSource('No Driver model — Master Data → Drivers is not built yet'),
-        offDuty: noSource('No Driver model — Master Data → Drivers is not built yet'),
-        expiringLicenses: noSource('No Driver model — Master Data → Drivers is not built yet'),
+        total: real(totalDrivers),
+        onDuty: real(onDutyDrivers),
+        offDuty: real(offDutyDrivers),
+        expiringLicenses: real(expiringLicenses),
       },
       system: {
         apiRequestsToday: noSource('No request-counting middleware installed'),

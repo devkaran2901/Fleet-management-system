@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Login } from './pages/Login';
 import { Profile } from './pages/Profile';
@@ -8,7 +8,7 @@ import { AdminLayout } from './pages/admin/AdminLayout';
 import { ADMIN_MODULES } from './pages/admin/adminModules';
 import { ModuleStub } from './pages/admin/ModuleStub';
 
-// Built modules, keyed by route path.
+// Built admin modules
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { OrgTree } from './pages/admin/OrgTree';
 import { CostCenters } from './pages/admin/CostCenters';
@@ -25,11 +25,18 @@ import { Audit } from './pages/admin/Audit';
 import { Lineage } from './pages/admin/Lineage';
 import { SystemHealth } from './pages/admin/SystemHealth';
 
-/**
- * Every module in the nav gets a route. Those with an implementation resolve to
- * it; the rest fall through to ModuleStub, so the IA is fully navigable without
- * any screen pretending to work.
- */
+// Built dispatcher modules
+import { DispatcherLayout } from './pages/dispatcher/DispatcherLayout';
+import { DISPATCHER_MODULES } from './pages/dispatcher/dispatcherModules';
+import { DispatcherDashboard } from './pages/dispatcher/DispatcherDashboard';
+import { TransportRequests } from './pages/dispatcher/TransportRequests';
+import { TripManagement } from './pages/dispatcher/TripManagement';
+import { DriverAssignment } from './pages/dispatcher/DriverAssignment';
+import { VehicleAssignment } from './pages/dispatcher/VehicleAssignment';
+import { GateQueue } from './pages/dispatcher/GateQueue';
+import { ExceptionCenter } from './pages/dispatcher/ExceptionCenter';
+import { Reports } from './pages/dispatcher/Reports';
+
 const BUILT_PAGES: Record<string, React.ComponentType> = {
   '/admin/dashboard': AdminDashboard,
   '/admin/org': OrgTree,
@@ -46,6 +53,28 @@ const BUILT_PAGES: Record<string, React.ComponentType> = {
   '/admin/audit': Audit,
   '/admin/lineage': Lineage,
   '/admin/system-health': SystemHealth,
+};
+
+const BUILT_DISPATCHER_PAGES: Record<string, React.ComponentType> = {
+  '/dispatcher/dashboard': DispatcherDashboard,
+  '/dispatcher/requests': TransportRequests,
+  '/dispatcher/trips': TripManagement,
+  '/dispatcher/gate-queue': GateQueue,
+  '/dispatcher/drivers': DriverAssignment,
+  '/dispatcher/vehicles': VehicleAssignment,
+  '/dispatcher/exceptions': ExceptionCenter,
+  '/dispatcher/reports': Reports,
+};
+
+const DashboardRedirect: React.FC = () => {
+  const { user } = useAuth();
+  if (user?.roles?.includes('ADMIN')) {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+  if (user?.roles?.includes('DISPATCHER')) {
+    return <Navigate to="/dispatcher/dashboard" replace />;
+  }
+  return <Navigate to="/admin/dashboard" replace />;
 };
 
 const App: React.FC = () => {
@@ -87,10 +116,53 @@ const App: React.FC = () => {
             })}
           </Route>
 
-          {/* The admin dashboard is the landing page. */}
-          <Route path="/dashboard" element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+          {/* Dispatcher suite (P-11) */}
+          <Route
+            path="/dispatcher"
+            element={
+              <ProtectedRoute>
+                <DispatcherLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/dispatcher/dashboard" replace />} />
+            {DISPATCHER_MODULES.map((mod) => {
+              const Page = BUILT_DISPATCHER_PAGES[mod.to] ?? ModuleStub;
+              return (
+                <Route
+                  key={mod.to}
+                  path={mod.to.replace('/dispatcher/', '')}
+                  element={<Page />}
+                />
+              );
+            })}
+          </Route>
+
+          {/* Landing page redirects */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardRedirect />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <DashboardRedirect />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="*"
+            element={
+              <ProtectedRoute>
+                <DashboardRedirect />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </Router>
     </AuthProvider>

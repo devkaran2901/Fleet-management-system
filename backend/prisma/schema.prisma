@@ -319,3 +319,141 @@ model AuditEvent {
   @@index([parentId])
   @@map("audit_events")
 }
+
+// ---------------------------------------------------------------------------
+// Fleet Operations & Dispatcher Models
+// ---------------------------------------------------------------------------
+
+model Vehicle {
+  id                    String   @id @default(uuid())
+  photo                 String?
+  vehicleNumber         String   @unique
+  capacity              String
+  currentLocation       String
+  currentTripId         String?
+  fuel                  Int
+  status                String   // "Available", "In Transit", "Maintenance", "Blocked"
+  complianceFASTag      Boolean  @default(true)
+  compliancePM          Boolean  @default(true)
+  complianceGPS         Boolean  @default(true)
+  complianceInspection  Boolean  @default(true)
+  complianceInsurance   Boolean  @default(true)
+  complianceFitness     Boolean  @default(true)
+  compliancePermit      Boolean  @default(true)
+  utilization           Float    @default(0)
+  category              String   @default("Owned") // "Owned" or "Vendor"
+  vendorName            String?
+  gpsDeviceStatus       String   @default("Online") // "Online", "Offline", "Tampered"
+  lastPingAge           String   @default("2m ago")
+  site                  String   @default("Delhi Hub")
+  class                 String   @default("Container") // "Container", "Flatbed", "Open Body"
+  alerts                Json     @default("[]") // Array of warning strings or objects
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("vehicles")
+}
+
+model Driver {
+  id            String   @id @default(uuid())
+  photo         String?
+  name          String
+  license       String
+  licenseType   String
+  dutyHours     Float    @default(0)
+  restHours     Float    @default(0)
+  safetyScore   Int      @default(90)
+  currentTripId String?
+  status        String   // "Available", "On Duty", "Off Duty", "Suspended"
+  warnings      Json     @default("[]") // Array of warnings
+  site          String   @default("Delhi Hub")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("drivers")
+}
+
+model TransportRequest {
+  id                String   @id
+  customer          String
+  pickup            String
+  destination       String
+  vehicleType       String
+  capacityRequired  String
+  timeWindow        String
+  priority          String   // "CRITICAL", "HIGH", "MEDIUM", "LOW"
+  approvalStatus    String   // "APPROVED", "PENDING", "HOLD"
+  tripType          String   // "FCL", "LCL", "Secondary"
+  status            String   // "Unassigned", "Assigned", "Deferred", "Hold", "Merged", "Split"
+  date              DateTime
+  distance          Float
+  eta               String
+  ineligibleReasons Json     @default("{}") // Map of vehicle number/id to reason string
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("transport_requests")
+}
+
+model Trip {
+  id             String    @id @default(uuid())
+  tripId         String    @unique
+  vehicleId      String?
+  vehicleNumber  String?
+  driverId       String?
+  driverName     String?
+  status         String    // "Scheduled", "In Transit", "Completed", "Cancelled"
+  routeName      String
+  pickup         String
+  destination    String
+  eta            String
+  distance       Float
+  startDateTime  DateTime?
+  endDateTime    DateTime?
+  cost           Float
+  vendorName     String?
+  documents      Json      @default("[]") // Array of { name, url, status }
+  expenses       Json      @default("[]") // Array of { category, amount, status }
+  fuelEntries    Json      @default("[]") // Array of { odo, liters, cost, station }
+  gateEvents     Json      @default("[]") // Array of { event, timestamp }
+  stateTimeline  Json      @default("[]") // Array of { state, timestamp }
+  auditTrail     Json      @default("[]") // Array of { user, action, timestamp }
+  timeline       Json      @default("[]") // Array of checkpoints with ETA, distance, and status
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("trips")
+}
+
+model GateQueueEntry {
+  id              String    @id @default(uuid())
+  vehicleNumber   String
+  status          String    // "Expected", "Waiting", "Entered", "Exited", "Blocked"
+  gatePassNumber  String
+  eta             String
+  enteredAt       DateTime?
+  exitedAt        DateTime?
+  detentionTimer  Int?      // Minutes
+  checklistPhotos Json      @default("[]") // Array of images: load, seal, odo
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("gate_queue_entries")
+}
+
+model ExceptionAlert {
+  id            String   @id @default(uuid())
+  type          String   // "Overspeed", "SOS", "Breakdown", etc.
+  vehicleNumber String
+  driverName    String
+  tripId        String?
+  timestamp     DateTime @default(now())
+  status        String   @default("Open") // "Open", "Acknowledged", "Resolved"
+  severity      String   @default("WARNING") // "CRITICAL", "WARNING", "INFO"
+  details       String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("exception_alerts")
+}
+

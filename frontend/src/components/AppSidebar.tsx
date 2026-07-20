@@ -3,14 +3,14 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { ChevronDown, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { ADMIN_NAV, findGroup } from '../pages/admin/adminModules';
+import { DISPATCHER_NAV, findDispatcherGroup } from '../pages/dispatcher/dispatcherModules';
 import '../styles/admin.css';
 
 const STORAGE_KEY = 'fms_admin_nav_collapsed';
 
 /**
- * The single navigation rail for the whole app. Every admin route renders this
- * same component, so the nav never changes shape as you move around — only the
- * active highlight moves.
+ * The single navigation rail for the whole app. Dynamically switches between
+ * ADMIN and DISPATCHER menus based on route, ensuring perfect visual consistency.
  */
 export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = ({
   open,
@@ -19,6 +19,10 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const isDispatcher = location.pathname.startsWith('/dispatcher');
+  const nav = isDispatcher ? DISPATCHER_NAV : ADMIN_NAV;
+  const resolveGroup = isDispatcher ? findDispatcherGroup : findGroup;
 
   // Collapsed groups persist across navigations and reloads.
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => {
@@ -34,7 +38,7 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
   }, [collapsed]);
 
   // Never leave the active module hidden inside a collapsed group.
-  const activeGroup = findGroup(location.pathname);
+  const activeGroup = resolveGroup(location.pathname);
   useEffect(() => {
     if (activeGroup && collapsed[activeGroup.label]) {
       setCollapsed((c) => ({ ...c, [activeGroup.label]: false }));
@@ -47,8 +51,11 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
     <aside className={`adm-rail ${open ? 'is-open' : ''}`}>
       <button
         className="adm-rail-brand"
-        onClick={() => { navigate('/admin/dashboard'); onNavigate(); }}
-        title="Admin dashboard"
+        onClick={() => {
+          navigate(isDispatcher ? '/dispatcher/dashboard' : '/admin/dashboard');
+          onNavigate();
+        }}
+        title={isDispatcher ? 'Dispatcher board' : 'Admin dashboard'}
       >
         <span className="argo-mark" aria-hidden="true" />
         <span>
@@ -57,7 +64,7 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
       </button>
 
       <nav className="adm-rail-nav">
-        {ADMIN_NAV.map((group) => {
+        {nav.map((group) => {
           const isCollapsed = collapsed[group.label];
           const hasActive = group.modules.some((m) => location.pathname.startsWith(m.to));
 
@@ -110,8 +117,13 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
         <div style={{ flexGrow: 1, minWidth: 0 }}>
           <span
             style={{
-              fontSize: 12, fontWeight: 600, color: 'var(--text-1)', display: 'block',
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              fontSize: 12,
+              fontWeight: 600,
+              color: 'var(--text-1)',
+              display: 'block',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
             }}
           >
             {user?.firstName} {user?.lastName}
@@ -122,7 +134,10 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
         </div>
         <button
           className="adm-icon-btn"
-          onClick={() => { logout(); navigate('/login'); }}
+          onClick={() => {
+            logout();
+            navigate('/login');
+          }}
           title="Log out"
         >
           <LogOut size={15} />
