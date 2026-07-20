@@ -4,13 +4,14 @@ import { ChevronDown, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { ADMIN_NAV, findGroup } from '../pages/admin/adminModules';
 import { DISPATCHER_NAV, findDispatcherGroup } from '../pages/dispatcher/dispatcherModules';
+import { FLEET_NAV, findFleetGroup } from '../pages/fleet/fleetModules';
 import '../styles/admin.css';
 
 const STORAGE_KEY = 'fms_admin_nav_collapsed';
 
 /**
  * The single navigation rail for the whole app. Dynamically switches between
- * ADMIN and DISPATCHER menus based on route, ensuring perfect visual consistency.
+ * ADMIN, DISPATCHER and FLEET menus based on route, ensuring perfect visual consistency.
  */
 export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = ({
   open,
@@ -21,8 +22,10 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
   const location = useLocation();
 
   const isDispatcher = location.pathname.startsWith('/dispatcher');
-  const nav = isDispatcher ? DISPATCHER_NAV : ADMIN_NAV;
-  const resolveGroup = isDispatcher ? findDispatcherGroup : findGroup;
+  const isFleet = location.pathname.startsWith('/fleet');
+  
+  const nav = isDispatcher ? DISPATCHER_NAV : (isFleet ? FLEET_NAV : ADMIN_NAV);
+  const resolveGroup = isDispatcher ? findDispatcherGroup : (isFleet ? findFleetGroup : findGroup);
 
   // Collapsed groups persist across navigations and reloads.
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => {
@@ -49,19 +52,52 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
 
   return (
     <aside className={`adm-rail ${open ? 'is-open' : ''}`}>
-      <button
-        className="adm-rail-brand"
-        onClick={() => {
-          navigate(isDispatcher ? '/dispatcher/dashboard' : '/admin/dashboard');
-          onNavigate();
-        }}
-        title={isDispatcher ? 'Dispatcher board' : 'Admin dashboard'}
-      >
-        <span className="argo-mark" aria-hidden="true" />
-        <span>
-          Argo<span style={{ color: 'var(--green)' }}>Logics</span>
-        </span>
-      </button>
+      <div className="adm-rail-brand-container" style={{ padding: '0 16px 12px 16px', borderBottom: '1px solid var(--border-soft)', marginBottom: 8 }}>
+        <div 
+          className="adm-rail-brand" 
+          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 0 8px 0', border: 'none', background: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }} 
+          onClick={() => {
+            navigate(isDispatcher ? '/dispatcher/dashboard' : (isFleet ? '/fleet/dashboard' : '/admin/dashboard'));
+            onNavigate();
+          }}
+        >
+          <span className="argo-mark" aria-hidden="true" />
+          <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)' }}>
+            Argo<span style={{ color: 'var(--green)' }}>Logics</span>
+          </span>
+        </div>
+        
+        {/* Workspace Switcher */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
+          <span className="mono-label" style={{ fontSize: 8, color: 'var(--text-3)' }}>WORKSPACE</span>
+          <select 
+            value={isDispatcher ? 'dispatcher' : (isFleet ? 'fleet' : 'admin')}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === 'admin') navigate('/admin/dashboard');
+              else if (val === 'dispatcher') navigate('/dispatcher/dashboard');
+              else if (val === 'fleet') navigate('/fleet/dashboard');
+              onNavigate();
+            }}
+            style={{
+              width: '100%',
+              backgroundColor: 'var(--panel-2)',
+              color: 'var(--text-1)',
+              border: '1px solid var(--border-soft)',
+              padding: '6px 8px',
+              borderRadius: 6,
+              fontSize: 11,
+              fontWeight: 500,
+              cursor: 'pointer',
+              outline: 'none'
+            }}
+          >
+            <option value="admin">🔧 Admin Suite</option>
+            <option value="dispatcher">⚡ Dispatcher Workspace</option>
+            <option value="fleet">🚚 Fleet Manager Portal</option>
+          </select>
+        </div>
+      </div>
 
       <nav className="adm-rail-nav">
         {nav.map((group) => {

@@ -37,6 +37,16 @@ import { GateQueue } from './pages/dispatcher/GateQueue';
 import { ExceptionCenter } from './pages/dispatcher/ExceptionCenter';
 import { Reports } from './pages/dispatcher/Reports';
 
+// Built Fleet Manager modules
+import { FleetLayout } from './pages/fleet/FleetLayout';
+import { FLEET_MODULES } from './pages/fleet/fleetModules';
+import { FleetDashboard } from './pages/fleet/FleetDashboard';
+import { FleetVehicles } from './pages/fleet/FleetVehicles';
+import { FleetDrivers } from './pages/fleet/FleetDrivers';
+import { FleetCompliance } from './pages/fleet/FleetCompliance';
+import { FleetMaintenance } from './pages/fleet/FleetMaintenance';
+import { FleetDevices } from './pages/fleet/FleetDevices';
+
 const BUILT_PAGES: Record<string, React.ComponentType> = {
   '/admin/dashboard': AdminDashboard,
   '/admin/org': OrgTree,
@@ -66,6 +76,15 @@ const BUILT_DISPATCHER_PAGES: Record<string, React.ComponentType> = {
   '/dispatcher/reports': Reports,
 };
 
+const BUILT_FLEET_PAGES: Record<string, React.ComponentType> = {
+  '/fleet/dashboard': FleetDashboard,
+  '/fleet/vehicles': FleetVehicles,
+  '/fleet/drivers': FleetDrivers,
+  '/fleet/compliance': FleetCompliance,
+  '/fleet/maintenance': FleetMaintenance,
+  '/fleet/devices': FleetDevices,
+};
+
 const DashboardRedirect: React.FC = () => {
   const { user } = useAuth();
   if (user?.roles?.includes('ADMIN')) {
@@ -73,6 +92,9 @@ const DashboardRedirect: React.FC = () => {
   }
   if (user?.roles?.includes('DISPATCHER')) {
     return <Navigate to="/dispatcher/dashboard" replace />;
+  }
+  if (user?.roles?.includes('FLEET_MANAGER') || user?.roles?.includes('FLEET')) {
+    return <Navigate to="/fleet/dashboard" replace />;
   }
   return <Navigate to="/admin/dashboard" replace />;
 };
@@ -132,6 +154,28 @@ const App: React.FC = () => {
                 <Route
                   key={mod.to}
                   path={mod.to.replace('/dispatcher/', '')}
+                  element={<Page />}
+                />
+              );
+            })}
+          </Route>
+
+          {/* Fleet suite */}
+          <Route
+            path="/fleet"
+            element={
+              <ProtectedRoute>
+                <FleetLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/fleet/dashboard" replace />} />
+            {FLEET_MODULES.map((mod) => {
+              const Page = BUILT_FLEET_PAGES[mod.to] ?? ModuleStub;
+              return (
+                <Route
+                  key={mod.to}
+                  path={mod.to.replace('/fleet/', '')}
                   element={<Page />}
                 />
               );
