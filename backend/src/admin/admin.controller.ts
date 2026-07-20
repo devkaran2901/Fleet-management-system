@@ -75,16 +75,8 @@ export class AdminController {
   // --- Dashboard ----------------------------------------------------------
 
   @Get('dashboard')
-  async dashboardSummary() {
-    try {
-      return await this.dashboard.summary();
-    } catch (err) {
-      return {
-        error: true,
-        message: err.message,
-        stack: err.stack,
-      };
-    }
+  dashboardSummary() {
+    return this.dashboard.summary();
   }
 
   @Get('dashboard/activity')
