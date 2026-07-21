@@ -1,4 +1,19 @@
 import api from './api';
+import type { Vehicle, Driver } from './dispatcherApi';
+
+export interface Route {
+  id: string;
+  code: string;
+  routeName: string;
+  origin: string;
+  destination: string;
+  distance: number;
+  eta: string;
+  stops: string; // JSON stringified array of stops
+  restrictions: string; // JSON stringified array of restrictions
+  createdAt: string;
+  updatedAt: string;
+}
 
 // --- Shared types -----------------------------------------------------------
 
@@ -487,6 +502,24 @@ export const adminApi = {
     unwrap<AuditEvent[]>(api.get('/admin/audit-events', { params })),
   verifyAuditChain: () => unwrap<ChainVerification>(api.get('/admin/audit-events/verify')),
   auditLineage: (id: string) => unwrap<AuditEvent[]>(api.get(`/admin/audit-events/${id}/lineage`)),
+
+  // Vehicles
+  vehicles: () => unwrap<Vehicle[]>(api.get('/admin/vehicles')),
+  createVehicle: (body: Partial<Vehicle>) => unwrap<Vehicle>(api.post('/admin/vehicles', body)),
+  updateVehicle: (id: string, body: Partial<Vehicle>) => unwrap<Vehicle>(api.patch(`/admin/vehicles/${id}`, body)),
+  deleteVehicle: (id: string) => unwrap<{ id: string }>(api.delete(`/admin/vehicles/${id}`)),
+
+  // Drivers
+  drivers: () => unwrap<Driver[]>(api.get('/admin/drivers')),
+  createDriver: (body: Partial<Driver>) => unwrap<Driver>(api.post('/admin/drivers', body)),
+  updateDriver: (id: string, body: Partial<Driver>) => unwrap<Driver>(api.patch(`/admin/drivers/${id}`, body)),
+  deleteDriver: (id: string) => unwrap<{ id: string }>(api.delete(`/admin/drivers/${id}`)),
+
+  // Routes
+  routes: () => unwrap<Route[]>(api.get('/admin/routes')),
+  createRoute: (body: Partial<Route>) => unwrap<Route>(api.post('/admin/routes', body)),
+  updateRoute: (id: string, body: Partial<Route>) => unwrap<Route>(api.patch(`/admin/routes/${id}`, body)),
+  deleteRoute: (id: string) => unwrap<{ id: string }>(api.delete(`/admin/routes/${id}`)),
 };
 
 /** Pulls the human-readable message out of a Nest error response. */

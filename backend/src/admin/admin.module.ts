@@ -15,6 +15,9 @@ import { CostCentersService } from './cost-centers.service';
 import { DelegationsService } from './delegations.service';
 import { PermissionsService } from './permissions.service';
 import { HealthService } from './health.service';
+import { VehiclesService } from './vehicles.service';
+import { DriversService } from './drivers.service';
+import { RoutesService } from './routes.service';
 
 @Module({
   imports: [PrismaModule, UserModule],
@@ -33,6 +36,9 @@ import { HealthService } from './health.service';
     DelegationsService,
     PermissionsService,
     HealthService,
+    VehiclesService,
+    DriversService,
+    RoutesService,
   ],
   exports: [AuditService],
 })

@@ -73,6 +73,20 @@ export interface Driver {
   site: string;
 }
 
+export interface Route {
+  id: string;
+  code: string;
+  routeName: string;
+  origin: string;
+  destination: string;
+  distance: number;
+  eta: string;
+  stops: string; // JSON stringified array of stops
+  restrictions: string; // JSON stringified array of restrictions
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Trip {
   id: string;
   tripId: string;
@@ -173,4 +187,11 @@ export const dispatcherApi = {
 
   // Reports
   reports: () => unwrap<ReportsSummary>(api.get('/dispatcher/reports')),
+
+  // Routes
+  routes: () => unwrap<Route[]>(api.get('/dispatcher/routes')),
+
+  // Updates for Fleet / Dispatcher connection
+  updateVehicle: (id: string, data: Partial<Vehicle>) => unwrap<Vehicle>(api.patch(`/dispatcher/vehicles/${id}`, data)),
+  updateDriver: (id: string, data: Partial<Driver>) => unwrap<Driver>(api.patch(`/dispatcher/drivers/${id}`, data)),
 };

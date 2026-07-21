@@ -41,6 +41,12 @@ import type { DelegationDto } from './delegations.service';
 import { PermissionsService } from './permissions.service';
 import { HealthService } from './health.service';
 import { UserService } from '../user/user.service';
+import { VehiclesService } from './vehicles.service';
+import type { VehicleDto } from './vehicles.service';
+import { DriversService } from './drivers.service';
+import type { DriverDto } from './drivers.service';
+import { RoutesService } from './routes.service';
+import type { RouteDto } from './routes.service';
 
 /** The JWT payload shape produced by JwtStrategy.validate. */
 interface JwtUser {
@@ -70,6 +76,9 @@ export class AdminController {
     private permissions: PermissionsService,
     private health: HealthService,
     private userService: UserService,
+    private vehiclesService: VehiclesService,
+    private driversService: DriversService,
+    private routesService: RoutesService,
   ) {}
 
   // --- Dashboard ----------------------------------------------------------
@@ -519,5 +528,98 @@ export class AdminController {
   @Get('audit-events/:id/lineage')
   auditLineage(@Param('id') id: string) {
     return this.audit.lineage(id);
+  }
+
+  // --- Vehicles -----------------------------------------------------------
+
+  @Get('vehicles')
+  listVehicles() {
+    return this.vehiclesService.findAll();
+  }
+
+  @Get('vehicles/:id')
+  getVehicle(@Param('id') id: string) {
+    return this.vehiclesService.findOne(id);
+  }
+
+  @Post('vehicles')
+  createVehicle(@Body() body: VehicleDto, @CurrentUser() user: JwtUser) {
+    return this.vehiclesService.create(body, actorOf(user));
+  }
+
+  @Patch('vehicles/:id')
+  updateVehicle(
+    @Param('id') id: string,
+    @Body() body: Partial<VehicleDto>,
+    @CurrentUser() user: JwtUser,
+  ) {
+    return this.vehiclesService.update(id, body, actorOf(user));
+  }
+
+  @Delete('vehicles/:id')
+  deleteVehicle(@Param('id') id: string, @CurrentUser() user: JwtUser) {
+    return this.vehiclesService.remove(id, actorOf(user));
+  }
+
+  // --- Drivers ------------------------------------------------------------
+
+  @Get('drivers')
+  listDrivers() {
+    return this.driversService.findAll();
+  }
+
+  @Get('drivers/:id')
+  getDriver(@Param('id') id: string) {
+    return this.driversService.findOne(id);
+  }
+
+  @Post('drivers')
+  createDriver(@Body() body: DriverDto, @CurrentUser() user: JwtUser) {
+    return this.driversService.create(body, actorOf(user));
+  }
+
+  @Patch('drivers/:id')
+  updateDriver(
+    @Param('id') id: string,
+    @Body() body: Partial<DriverDto>,
+    @CurrentUser() user: JwtUser,
+  ) {
+    return this.driversService.update(id, body, actorOf(user));
+  }
+
+  @Delete('drivers/:id')
+  deleteDriver(@Param('id') id: string, @CurrentUser() user: JwtUser) {
+    return this.driversService.remove(id, actorOf(user));
+  }
+
+  // --- Routes -------------------------------------------------------------
+
+  @Get('routes')
+  listRoutes() {
+    return this.routesService.findAll();
+  }
+
+  @Get('routes/:id')
+  getRoute(@Param('id') id: string) {
+    return this.routesService.findOne(id);
+  }
+
+  @Post('routes')
+  createRoute(@Body() body: RouteDto, @CurrentUser() user: JwtUser) {
+    return this.routesService.create(body, actorOf(user));
+  }
+
+  @Patch('routes/:id')
+  updateRoute(
+    @Param('id') id: string,
+    @Body() body: Partial<RouteDto>,
+    @CurrentUser() user: JwtUser,
+  ) {
+    return this.routesService.update(id, body, actorOf(user));
+  }
+
+  @Delete('routes/:id')
+  deleteRoute(@Param('id') id: string, @CurrentUser() user: JwtUser) {
+    return this.routesService.remove(id, actorOf(user));
   }
 }

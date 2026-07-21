@@ -53,9 +53,24 @@ export class DispatcherController {
     return this.dispatcherService.getVehicles();
   }
 
+  @Patch('vehicles/:id')
+  updateVehicle(@Param('id') id: string, @Body() body: any) {
+    return this.dispatcherService.updateVehicle(id, body);
+  }
+
   @Get('drivers')
   getDrivers() {
     return this.dispatcherService.getDrivers();
+  }
+
+  @Patch('drivers/:id')
+  updateDriver(@Param('id') id: string, @Body() body: any) {
+    return this.dispatcherService.updateDriver(id, body);
+  }
+
+  @Get('routes')
+  getRoutes() {
+    return this.dispatcherService.getRoutes();
   }
 
   @Get('trips')

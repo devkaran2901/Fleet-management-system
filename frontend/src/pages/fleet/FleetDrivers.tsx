@@ -4,47 +4,53 @@ import {
   Clock, Heart, Star, Ban
 } from 'lucide-react';
 import { Badge, Button, LoadingState, useToast } from '../../components/admin/ui';
+import { dispatcherApi } from '../../services/dispatcherApi';
+import type { Driver } from '../../services/dispatcherApi';
 import '../../styles/admin.css';
-
-// Exact mock data matching seed records
-const INITIAL_DRIVERS = [
-  { id: '1', name: 'Ramesh Kumar', license: 'DL-1420100098765', licenseType: 'Heavy Commercial', dutyHours: 4.5, restHours: 12.0, safetyScore: 92, status: 'Available', site: 'Delhi Hub', warnings: [] },
-  { id: '2', name: 'Suresh Singh', license: 'HR-2620120034567', licenseType: 'Heavy Commercial', dutyHours: 7.2, restHours: 2.5, safetyScore: 85, status: 'Available', site: 'Delhi Hub', warnings: ['Approaching max driving hours (Rule BR-DRV-05)'] },
-  { id: '3', name: 'Amit Patel', license: 'GJ-0120150067890', licenseType: 'Heavy Commercial', dutyHours: 0.0, restHours: 24.0, safetyScore: 95, status: 'Available', site: 'Jaipur Hub', warnings: [] },
-  { id: '4', name: 'Vijay Patil', license: 'MH-1220110011223', licenseType: 'Heavy Commercial', dutyHours: 6.0, restHours: 8.5, safetyScore: 78, status: 'On Duty', site: 'Mumbai Hub', warnings: [] },
-  { id: '5', name: 'Satnam Singh', license: 'PB-0220080055443', licenseType: 'Heavy Commercial', dutyHours: 3.0, restHours: 15.0, safetyScore: 98, status: 'Available', site: 'Delhi Hub', warnings: [] },
-  { id: '6', name: 'Rajesh Sharma', license: 'UP-1620140088997', licenseType: 'Heavy Commercial', dutyHours: 8.5, restHours: 0.5, safetyScore: 88, status: 'Suspended', site: 'Delhi Hub', warnings: ['Suspended: Multiple overspeed breaches'] },
-  { id: '7', name: 'Karan Johar', license: 'DL-0120160022334', licenseType: 'Heavy Commercial', dutyHours: 2.0, restHours: 10.0, safetyScore: 89, status: 'Available', site: 'Delhi Hub', warnings: [] },
-  { id: '8', name: 'Mohammad Ali', license: 'HR-5520130099887', licenseType: 'Heavy Commercial', dutyHours: 5.5, restHours: 4.0, safetyScore: 91, status: 'On Duty', site: 'Gurugram Hub', warnings: [] },
-  { id: '9', name: 'Vikram Rathore', license: 'RJ-1420170066554', licenseType: 'Heavy Commercial', dutyHours: 0.0, restHours: 36.0, safetyScore: 94, status: 'Off Duty', site: 'Jaipur Hub', warnings: [] },
-  { id: '10', name: 'Sunil Dutt', license: 'MH-4320180011335', licenseType: 'Heavy Commercial', dutyHours: 1.5, restHours: 14.0, safetyScore: 90, status: 'Available', site: 'Mumbai Hub', warnings: [] }
-];
 
 export const FleetDrivers: React.FC = () => {
   const { notify } = useToast();
-  const [drivers, setDrivers] = useState(INITIAL_DRIVERS);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDriver, setSelectedDriver] = useState<typeof INITIAL_DRIVERS[0] | null>(null);
+  const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
 
+  const load = async () => {
+    setLoading(true);
+    try {
+      const data = await dispatcherApi.drivers();
+      setDrivers(data);
+      if (selectedDriver) {
+        const updated = data.find(d => d.id === selectedDriver.id);
+        setSelectedDriver(updated || null);
+      }
+    } catch (err) {
+      notify('error', 'Could not load driver directory');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 200);
-    return () => clearTimeout(t);
+    void load();
   }, []);
 
-  const handleToggleSuspend = () => {
+  const handleToggleSuspend = async () => {
     if (!selectedDriver) return;
     const isSuspended = selectedDriver.status === 'Suspended';
     const newStatus = isSuspended ? 'Available' : 'Suspended';
     
-    setDrivers(prev => prev.map(d => d.id === selectedDriver.id ? { ...d, status: newStatus } : d));
-    setSelectedDriver(prev => prev ? { ...prev, status: newStatus } : null);
-    
-    notify(
-      newStatus === 'Suspended' ? 'error' : 'success',
-      `Driver ${selectedDriver.name} is now ${newStatus}`
-    );
+    try {
+      await dispatcherApi.updateDriver(selectedDriver.id, { status: newStatus });
+      notify(
+        newStatus === 'Suspended' ? 'error' : 'success',
+        `Driver ${selectedDriver.name} is now ${newStatus}`
+      );
+      await load();
+    } catch (err) {
+      notify('error', 'Could not update driver status');
+    }
   };
 
   const filteredDrivers = useMemo(() => {

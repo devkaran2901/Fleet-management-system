@@ -457,3 +457,20 @@ model ExceptionAlert {
   @@map("exception_alerts")
 }
 
+model Route {
+  id           String   @id @default(uuid())
+  code         String   @unique
+  routeName    String
+  origin       String
+  destination  String
+  distance     Float
+  eta          String
+  stops        Json     @default("[]") // Array of { name, geofence, seq }
+  restrictions Json     @default("[]") // Array of { type, value, notes }
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("routes")
+}
+
+
