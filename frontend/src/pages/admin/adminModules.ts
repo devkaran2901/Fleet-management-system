@@ -134,7 +134,7 @@ export const ADMIN_NAV: AdminGroup[] = [
         label: 'Vehicles',
         icon: Truck,
         service: 'M-01',
-        built: false,
+        built: true,
         summary: 'The vehicle master — registration, VIN, model, capacity, ownership.',
         planned: [
           'Vehicle master with registration number, VIN, model, capacity, fuel type and ownership',
@@ -148,7 +148,7 @@ export const ADMIN_NAV: AdminGroup[] = [
         label: 'Drivers',
         icon: UserCog,
         service: 'M-02',
-        built: false,
+        built: true,
         summary: 'The driver master — licences, eligibility and documents.',
         planned: [
           'Driver master: name, DL number, licence type, joining date',
@@ -162,7 +162,7 @@ export const ADMIN_NAV: AdminGroup[] = [
         label: 'Routes',
         icon: Route,
         service: 'M-03',
-        built: false,
+        built: true,
         summary: 'Corridors, stops, distances and restrictions.',
         planned: [
           'Route creation with origin/destination and intermediate stops',

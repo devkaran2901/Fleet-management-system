@@ -145,6 +145,7 @@ async function main() {
   await seedConnectors();
   await seedCostCenters();
   await seedDispatcherData();
+  await seedRoutes();
 
   console.log('Seeding finished.');
 }
@@ -661,6 +662,82 @@ async function seedDispatcherData() {
   }
 
   console.log('Dispatcher data seeded successfully.');
+}
+
+async function seedRoutes() {
+  console.log('Seeding route data...');
+  const routes = [
+    {
+      code: 'R-DEL-GGN',
+      routeName: 'Delhi Hub to Gurugram Hub',
+      origin: 'Delhi Hub',
+      destination: 'Gurugram Hub',
+      distance: 45.0,
+      eta: '1h 30m',
+      stops: JSON.stringify([
+        { name: 'Delhi Hub', seq: 1 },
+        { name: 'Gurugram Plaza', seq: 2 },
+        { name: 'Gurugram Hub', seq: 3 }
+      ]),
+      restrictions: JSON.stringify([
+        { type: 'No-entry', value: '08:00 - 11:00', notes: 'Heavy vehicles restricted' }
+      ])
+    },
+    {
+      code: 'R-GGN-JAI',
+      routeName: 'Gurugram Hub to Jaipur Hub',
+      origin: 'Gurugram Hub',
+      destination: 'Jaipur Hub',
+      distance: 225.0,
+      eta: '4h 45m',
+      stops: JSON.stringify([
+        { name: 'Gurugram Hub', seq: 1 },
+        { name: 'Shahpura Toll', seq: 2 },
+        { name: 'Jaipur Hub', seq: 3 }
+      ]),
+      restrictions: JSON.stringify([
+        { type: 'Height-limit', value: '4.5m', notes: 'Bypass overpass clearance limit' }
+      ])
+    },
+    {
+      code: 'R-MUM-PUN',
+      routeName: 'Mumbai Hub to Pune Depot',
+      origin: 'Mumbai Hub',
+      destination: 'Pune Depot',
+      distance: 150.0,
+      eta: '3h 30m',
+      stops: JSON.stringify([
+        { name: 'Mumbai Hub', seq: 1 },
+        { name: 'Lonavala Checkpoint', seq: 2 },
+        { name: 'Pune Depot', seq: 3 }
+      ]),
+      restrictions: JSON.stringify([])
+    },
+    {
+      code: 'R-DEL-JAI',
+      routeName: 'Delhi Hub to Jaipur Hub',
+      origin: 'Delhi Hub',
+      destination: 'Jaipur Hub',
+      distance: 260.0,
+      eta: '5h 15m',
+      stops: JSON.stringify([
+        { name: 'Delhi Hub', seq: 1 },
+        { name: 'Gurugram Toll', seq: 2 },
+        { name: 'Jaipur Hub', seq: 3 }
+      ]),
+      restrictions: JSON.stringify([])
+    }
+  ];
+
+  for (const r of routes) {
+    await prisma.route.upsert({
+      where: { code: r.code },
+      update: {},
+      create: r
+    });
+  }
+
+  console.log('Route data seeded successfully.');
 }
 
 main()

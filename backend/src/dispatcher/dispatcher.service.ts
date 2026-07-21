@@ -614,4 +614,42 @@ export class DispatcherService {
       ],
     };
   }
+
+  async updateVehicle(id: string, data: any) {
+    const existing = await this.prisma.vehicle.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException(`Vehicle ${id} not found`);
+
+    return this.prisma.vehicle.update({
+      where: { id },
+      data: {
+        ...(data.status !== undefined ? { status: data.status } : {}),
+        ...(data.utilization !== undefined ? { utilization: Number(data.utilization) } : {}),
+        ...(data.fuel !== undefined ? { fuel: Number(data.fuel) } : {}),
+        ...(data.currentLocation !== undefined ? { currentLocation: data.currentLocation } : {}),
+        ...(data.alerts !== undefined ? { alerts: typeof data.alerts === 'string' ? data.alerts : JSON.stringify(data.alerts) } : {}),
+      },
+    });
+  }
+
+  async updateDriver(id: string, data: any) {
+    const existing = await this.prisma.driver.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException(`Driver ${id} not found`);
+
+    return this.prisma.driver.update({
+      where: { id },
+      data: {
+        ...(data.status !== undefined ? { status: data.status } : {}),
+        ...(data.dutyHours !== undefined ? { dutyHours: Number(data.dutyHours) } : {}),
+        ...(data.restHours !== undefined ? { restHours: Number(data.restHours) } : {}),
+        ...(data.safetyScore !== undefined ? { safetyScore: Number(data.safetyScore) } : {}),
+        ...(data.warnings !== undefined ? { warnings: typeof data.warnings === 'string' ? data.warnings : JSON.stringify(data.warnings) } : {}),
+      },
+    });
+  }
+
+  async getRoutes() {
+    return this.prisma.route.findMany({
+      orderBy: { routeName: 'asc' },
+    });
+  }
 }

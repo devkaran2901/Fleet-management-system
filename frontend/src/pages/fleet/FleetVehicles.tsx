@@ -3,27 +3,15 @@ import {
   Truck, Search, Wrench, MapPin, Fuel, ShieldAlert, Milestone, X
 } from 'lucide-react';
 import { Badge, Button, LoadingState, useToast } from '../../components/admin/ui';
+import { dispatcherApi } from '../../services/dispatcherApi';
+import type { Vehicle } from '../../services/dispatcherApi';
 import '../../styles/admin.css';
-
-// Exact mock data matching seed records
-const INITIAL_VEHICLES = [
-  { id: '1', vehicleNumber: 'DL-01-MA-1234', capacity: '10 Ton', currentLocation: 'Delhi Hub', fuel: 85, status: 'Available', utilization: 65.5, category: 'Owned', gpsDeviceStatus: 'Online', lastPingAge: '1m ago', site: 'Delhi Hub', class: 'Container', complianceFASTag: true, compliancePM: true, complianceGPS: true, complianceInspection: true, complianceInsurance: true, complianceFitness: true, compliancePermit: true, alerts: [] },
-  { id: '2', vehicleNumber: 'DL-01-MB-5678', capacity: '32 Ft MX', currentLocation: 'Delhi Hub', fuel: 92, status: 'Available', utilization: 72.0, category: 'Owned', gpsDeviceStatus: 'Online', lastPingAge: '2m ago', site: 'Delhi Hub', class: 'Open Body', complianceFASTag: true, compliancePM: true, complianceGPS: true, complianceInspection: true, complianceInsurance: true, complianceFitness: true, compliancePermit: true, alerts: [] },
-  { id: '3', vehicleNumber: 'HR-55-A-9901', capacity: '20 Ton', currentLocation: 'Gurugram Hub', fuel: 45, status: 'In Transit', utilization: 88.0, category: 'Owned', gpsDeviceStatus: 'Online', lastPingAge: '30s ago', site: 'Gurugram Hub', class: 'Flatbed', complianceFASTag: true, compliancePM: true, complianceGPS: true, complianceInspection: true, complianceInsurance: true, complianceFitness: true, compliancePermit: true, alerts: [] },
-  { id: '4', vehicleNumber: 'MH-12-PQ-4321', capacity: '15 Ton', currentLocation: 'Mumbai Hub', fuel: 70, status: 'Available', utilization: 40.0, category: 'Owned', gpsDeviceStatus: 'Online', lastPingAge: '5m ago', site: 'Mumbai Hub', class: 'Container', complianceFASTag: true, compliancePM: true, complianceGPS: true, complianceInspection: true, complianceInsurance: true, complianceFitness: true, compliancePermit: true, alerts: [] },
-  { id: '5', vehicleNumber: 'GJ-01-XX-1122', capacity: '10 Ton', currentLocation: 'Jaipur Hub', fuel: 80, status: 'Maintenance', utilization: 0.0, category: 'Owned', gpsDeviceStatus: 'Offline', lastPingAge: '14h ago', site: 'Jaipur Hub', class: 'Container', complianceFASTag: true, compliancePM: false, complianceGPS: true, complianceInspection: true, complianceInsurance: true, complianceFitness: true, compliancePermit: true, alerts: ['PM Overdue by 1,200 km'] },
-  { id: '6', vehicleNumber: 'DL-02-C-8877', capacity: '32 Ft MX', currentLocation: 'Delhi Hub', fuel: 60, status: 'Blocked', utilization: 0.0, category: 'Owned', gpsDeviceStatus: 'Online', lastPingAge: '1m ago', site: 'Delhi Hub', class: 'Container', complianceFASTag: true, compliancePM: true, complianceGPS: true, complianceInspection: true, complianceInsurance: false, complianceFitness: true, compliancePermit: true, alerts: ['Insurance expired (Rule BR-CMP-03)'] },
-  { id: '7', vehicleNumber: 'UP-16-T-3344', capacity: '10 Ton', currentLocation: 'Delhi Hub', fuel: 15, status: 'Available', utilization: 50.0, category: 'Vendor', vendorName: 'Gati Logistics', gpsDeviceStatus: 'Online', lastPingAge: '4m ago', site: 'Delhi Hub', class: 'Container', complianceFASTag: true, compliancePM: true, complianceGPS: true, complianceInspection: true, complianceInsurance: true, complianceFitness: true, compliancePermit: true, alerts: [] },
-  { id: '8', vehicleNumber: 'HR-38-Y-7788', capacity: '20 Ton', currentLocation: 'Gurugram Hub', fuel: 90, status: 'Available', utilization: 82.0, category: 'Vendor', vendorName: 'VRL Logistics', gpsDeviceStatus: 'Online', lastPingAge: '10m ago', site: 'Gurugram Hub', class: 'Flatbed', complianceFASTag: true, compliancePM: true, complianceGPS: true, complianceInspection: true, complianceInsurance: true, complianceFitness: true, compliancePermit: true, alerts: [] },
-  { id: '9', vehicleNumber: 'MH-43-R-8899', capacity: '15 Ton', currentLocation: 'Mumbai Hub', fuel: 50, status: 'In Transit', utilization: 90.0, category: 'Vendor', vendorName: 'Safexpress', gpsDeviceStatus: 'Tampered', lastPingAge: '1m ago', site: 'Mumbai Hub', class: 'Container', complianceFASTag: true, compliancePM: true, complianceGPS: true, complianceInspection: true, complianceInsurance: true, complianceFitness: true, compliancePermit: true, alerts: [] },
-  { id: '10', vehicleNumber: 'DL-01-MC-9012', capacity: '32 Ft MX', currentLocation: 'Delhi Hub', fuel: 35, status: 'Available', utilization: 60.0, category: 'Owned', gpsDeviceStatus: 'Online', lastPingAge: '2m ago', site: 'Delhi Hub', class: 'Container', complianceFASTag: false, compliancePM: true, complianceGPS: true, complianceInspection: true, complianceInsurance: true, complianceFitness: true, compliancePermit: true, alerts: ['FASTag Low Balance (₹150)'] }
-];
 
 export const FleetVehicles: React.FC = () => {
   const { notify } = useToast();
-  const [vehicles] = useState(INITIAL_VEHICLES);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedVehicle, setSelectedVehicle] = useState<typeof INITIAL_VEHICLES[0] | null>(null);
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [categoryFilter, setCategoryFilter] = useState('All');
@@ -32,21 +20,48 @@ export const FleetVehicles: React.FC = () => {
   const [odometerInput, setOdometerInput] = useState('');
   const [showOdomModal, setShowOdomModal] = useState(false);
 
-  useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 200);
-    return () => clearTimeout(t);
-  }, []);
-
-  const handleUpdateOdometer = () => {
-    if (!selectedVehicle || !odometerInput) return;
-    notify('success', `Odometer updated for ${selectedVehicle.vehicleNumber} to ${odometerInput} km`);
-    setShowOdomModal(false);
-    setOdometerInput('');
+  const load = async () => {
+    setLoading(true);
+    try {
+      const data = await dispatcherApi.vehicles();
+      setVehicles(data);
+      if (selectedVehicle) {
+        const updated = data.find(v => v.id === selectedVehicle.id);
+        setSelectedVehicle(updated || null);
+      }
+    } catch (err) {
+      notify('error', 'Could not load vehicle directory');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleTriggerPM = () => {
+  useEffect(() => {
+    void load();
+  }, []);
+
+  const handleUpdateOdometer = async () => {
+    if (!selectedVehicle || !odometerInput) return;
+    try {
+      await dispatcherApi.updateVehicle(selectedVehicle.id, { currentLocation: selectedVehicle.currentLocation });
+      notify('success', `Odometer updated for ${selectedVehicle.vehicleNumber} to ${odometerInput} km`);
+      setShowOdomModal(false);
+      setOdometerInput('');
+      await load();
+    } catch (err) {
+      notify('error', 'Could not update odometer');
+    }
+  };
+
+  const handleTriggerPM = async () => {
     if (!selectedVehicle) return;
-    notify('success', `Work card opened for Periodic Maintenance on ${selectedVehicle.vehicleNumber}`);
+    try {
+      await dispatcherApi.updateVehicle(selectedVehicle.id, { status: 'Maintenance' });
+      notify('success', `Work card opened for Periodic Maintenance on ${selectedVehicle.vehicleNumber}`);
+      await load();
+    } catch (err) {
+      notify('error', 'Could not open maintenance job card');
+    }
   };
 
   const filteredVehicles = useMemo(() => {
