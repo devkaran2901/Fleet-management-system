@@ -257,14 +257,24 @@
   display: none;
 }
 
+/*
+ * Pinned to the top of the viewport while the page scrolls under it. The
+ * negative margins cancel .adm-main's padding so the bar's background spans the
+ * full width — otherwise content would show through the gutters beside it — and
+ * the padding puts the inner spacing back.
+ */
 .adm-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 800;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 16px;
+  margin: -24px -32px 24px;
+  padding: 16px 32px;
   border-bottom: 1px solid var(--border-soft);
-  padding-bottom: 16px;
-  margin-bottom: 24px;
+  background-color: var(--void);
 }
 
 .adm-crumbs {
@@ -1742,6 +1752,12 @@ textarea.adm-input {
 
   .adm-main {
     padding: 20px 16px 40px;
+  }
+
+  /* Bleed must track .adm-main's padding at this breakpoint. */
+  .adm-topbar {
+    margin: -20px -16px 20px;
+    padding: 14px 16px;
   }
 
   .adm-form-row {

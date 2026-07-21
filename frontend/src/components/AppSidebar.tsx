@@ -5,13 +5,14 @@ import { useAuth } from '../context/AuthContext';
 import { ADMIN_NAV, findGroup } from '../pages/admin/adminModules';
 import { DISPATCHER_NAV, findDispatcherGroup } from '../pages/dispatcher/dispatcherModules';
 import { FLEET_NAV, findFleetGroup } from '../pages/fleet/fleetModules';
+import { COMPLIANCE_NAV, findComplianceGroup } from '../pages/compliance/complianceModules';
 import '../styles/admin.css';
 
 const STORAGE_KEY = 'fms_admin_nav_collapsed';
 
 /**
  * The single navigation rail for the whole app. Dynamically switches between
- * ADMIN, DISPATCHER and FLEET menus based on route, ensuring perfect visual consistency.
+ * ADMIN, DISPATCHER, FLEET and COMPLIANCE menus based on route, ensuring perfect visual consistency.
  */
 export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = ({
   open,
@@ -23,13 +24,15 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
 
   const isDispatcher = location.pathname.startsWith('/dispatcher');
   const isFleet = location.pathname.startsWith('/fleet');
+  const isCompliance = location.pathname.startsWith('/compliance');
   
   const roles = user?.roles ?? [];
   const hasAdmin = roles.includes('ADMIN');
   const hasDispatcher = roles.includes('DISPATCHER');
   const hasFleetManager = roles.includes('FLEET_MANAGER') || roles.includes('FLEET');
+  const hasComplianceManager = roles.includes('COMPLIANCE_MANAGER');
 
-  // Determine which nav to show
+  // Determine which nav to show based on route + role
   let nav = ADMIN_NAV;
   let resolveGroup = findGroup;
 
@@ -40,18 +43,25 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
     } else if (isFleet) {
       nav = FLEET_NAV;
       resolveGroup = findFleetGroup;
+    } else if (isCompliance) {
+      nav = COMPLIANCE_NAV;
+      resolveGroup = findComplianceGroup;
     } else {
       nav = ADMIN_NAV;
       resolveGroup = findGroup;
     }
+  } else if (hasComplianceManager) {
+    // Compliance managers only ever see compliance nav
+    nav = COMPLIANCE_NAV;
+    resolveGroup = findComplianceGroup;
   } else if (hasFleetManager) {
+    // Fleet managers only ever see fleet nav — no compliance access
     nav = FLEET_NAV;
     resolveGroup = findFleetGroup;
   } else if (hasDispatcher) {
     nav = DISPATCHER_NAV;
     resolveGroup = findDispatcherGroup;
   } else {
-    // DRIVER or guest fallback
     nav = DISPATCHER_NAV;
     resolveGroup = findDispatcherGroup;
   }
@@ -87,7 +97,9 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
           style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 0 8px 0', border: 'none', background: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }} 
           onClick={() => {
             if (hasAdmin) {
-              navigate(isDispatcher ? '/dispatcher/dashboard' : (isFleet ? '/fleet/dashboard' : '/admin/dashboard'));
+              navigate(isDispatcher ? '/dispatcher/dashboard' : (isFleet ? '/fleet/dashboard' : (isCompliance ? '/compliance/dashboard' : '/admin/dashboard')));
+            } else if (hasComplianceManager) {
+              navigate('/compliance/dashboard');
             } else if (hasFleetManager) {
               navigate('/fleet/dashboard');
             } else {
@@ -102,53 +114,40 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
           </span>
         </div>
         
-        {/* Workspace Switcher */}
-        {(() => {
-          const roles = user?.roles ?? [];
-          const hasAdmin = roles.includes('ADMIN');
-          const hasDispatcher = roles.includes('DISPATCHER') || hasAdmin;
-          const hasFleetManager = roles.includes('FLEET_MANAGER') || hasAdmin;
-
-          // Only render switcher if user has access to more than 1 workspace
-          const workspaceCount = (hasAdmin ? 1 : 0) + 
-                                 (!hasAdmin && hasDispatcher ? 1 : 0) + 
-                                 (!hasAdmin && hasFleetManager ? 1 : 0);
-
-          if (hasAdmin || workspaceCount > 1) {
-            return (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
-                <span className="mono-label" style={{ fontSize: 8, color: 'var(--text-3)' }}>WORKSPACE</span>
-                <select 
-                  value={isDispatcher ? 'dispatcher' : (isFleet ? 'fleet' : 'admin')}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (val === 'admin') navigate('/admin/dashboard');
-                    else if (val === 'dispatcher') navigate('/dispatcher/dashboard');
-                    else if (val === 'fleet') navigate('/fleet/dashboard');
-                    onNavigate();
-                  }}
-                  style={{
-                    width: '100%',
-                    backgroundColor: 'var(--panel-2)',
-                    color: 'var(--text-1)',
-                    border: '1px solid var(--border-soft)',
-                    padding: '6px 8px',
-                    borderRadius: 6,
-                    fontSize: 11,
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    outline: 'none'
-                  }}
-                >
-                  {hasAdmin && <option value="admin">🔧 Admin Suite</option>}
-                  {hasDispatcher && <option value="dispatcher">⚡ Dispatcher Workspace</option>}
-                  {hasFleetManager && <option value="fleet">🚚 Fleet Manager Portal</option>}
-                </select>
-              </div>
-            );
-          }
-          return null;
-        })()}
+        {/* Workspace Switcher — only rendered for ADMIN (multi-portal) */}
+        {hasAdmin && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
+            <span className="mono-label" style={{ fontSize: 8, color: 'var(--text-3)' }}>WORKSPACE</span>
+            <select 
+              value={isDispatcher ? 'dispatcher' : (isFleet ? 'fleet' : (isCompliance ? 'compliance' : 'admin'))}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === 'admin') navigate('/admin/dashboard');
+                else if (val === 'dispatcher') navigate('/dispatcher/dashboard');
+                else if (val === 'fleet') navigate('/fleet/dashboard');
+                else if (val === 'compliance') navigate('/compliance/dashboard');
+                onNavigate();
+              }}
+              style={{
+                width: '100%',
+                backgroundColor: 'var(--panel-2)',
+                color: 'var(--text-1)',
+                border: '1px solid var(--border-soft)',
+                padding: '6px 8px',
+                borderRadius: 6,
+                fontSize: 11,
+                fontWeight: 500,
+                cursor: 'pointer',
+                outline: 'none'
+              }}
+            >
+              <option value="admin">🔧 Admin Suite</option>
+              <option value="dispatcher">⚡ Dispatcher Workspace</option>
+              <option value="fleet">🚚 Fleet Manager Portal</option>
+              <option value="compliance">⚖️ Compliance Portal</option>
+            </select>
+          </div>
+        )}
       </div>
 
       <nav className="adm-rail-nav">

@@ -16,7 +16,8 @@ async function main() {
     { name: 'ADMIN', description: 'System Administrator with full access' },
     { name: 'DISPATCHER', description: 'Fleet Dispatcher managing runs and drivers' },
     { name: 'DRIVER', description: 'Fleet Driver performing transport operations' },
-    { name: 'FLEET_MANAGER', description: 'Fleet Manager managing assets, compliance and maintenance' },
+    { name: 'FLEET_MANAGER', description: 'Fleet Manager managing assets and maintenance' },
+    { name: 'COMPLIANCE_MANAGER', description: 'Compliance Manager overseeing regulatory compliance, challans, insurance and incidents' },
   ];
 
   const dbRoles: Role[] = [];
@@ -109,6 +110,32 @@ async function main() {
     });
   }
   console.log(`Fleet Manager account ready: ${managerEmail}`);
+
+  // Seed compliance manager user
+  const complianceEmail = 'compliance@fleetos.com';
+  const complianceUser = await prisma.user.upsert({
+    where: { email: complianceEmail },
+    update: { password: hashedPassword, isActive: true },
+    create: {
+      email: complianceEmail,
+      password: hashedPassword,
+      firstName: 'Compliance',
+      lastName: 'Manager',
+      isActive: true,
+    },
+  });
+
+  const complianceRole = dbRoles.find((r) => r.name === 'COMPLIANCE_MANAGER');
+  if (complianceRole) {
+    await prisma.userRole.upsert({
+      where: {
+        userId_roleId: { userId: complianceUser.id, roleId: complianceRole.id },
+      },
+      update: {},
+      create: { userId: complianceUser.id, roleId: complianceRole.id },
+    });
+  }
+  console.log(`Compliance Manager account ready: ${complianceEmail}`);
 
   await seedOrgTree();
   await seedCapabilities(dbRoles);

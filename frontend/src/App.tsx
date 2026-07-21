@@ -47,6 +47,18 @@ import { FleetCompliance } from './pages/fleet/FleetCompliance';
 import { FleetMaintenance } from './pages/fleet/FleetMaintenance';
 import { FleetDevices } from './pages/fleet/FleetDevices';
 
+// Built Compliance modules
+import { ComplianceLayout } from './pages/compliance/ComplianceLayout';
+import { COMPLIANCE_MODULES } from './pages/compliance/complianceModules';
+import { ComplianceDashboard } from './pages/compliance/ComplianceDashboard';
+import { RenewalTasks } from './pages/compliance/RenewalTasks';
+import { OCRVerification } from './pages/compliance/OCRVerification';
+import { ChallanDashboard } from './pages/compliance/ChallanDashboard';
+import { ChallanWorkbench } from './pages/compliance/ChallanWorkbench';
+import { InsuranceClaims } from './pages/compliance/InsuranceClaims';
+import { Incident360 } from './pages/compliance/Incident360';
+import { ComplianceReports } from './pages/compliance/ComplianceReports';
+
 const BUILT_PAGES: Record<string, React.ComponentType> = {
   '/admin/dashboard': AdminDashboard,
   '/admin/org': OrgTree,
@@ -85,6 +97,20 @@ const BUILT_FLEET_PAGES: Record<string, React.ComponentType> = {
   '/fleet/devices': FleetDevices,
 };
 
+const BUILT_COMPLIANCE_PAGES: Record<string, React.ComponentType> = {
+  '/compliance/dashboard': ComplianceDashboard,
+  '/compliance/renewals/tasks': RenewalTasks,
+  '/compliance/renewals/ocr': OCRVerification,
+  '/compliance/challans/dashboard': ChallanDashboard,
+  '/compliance/challans/workbench': ChallanWorkbench,
+  '/compliance/insurance/policies': InsuranceClaims,
+  '/compliance/insurance/claims': InsuranceClaims,
+  '/compliance/insurance/claim-360': InsuranceClaims,
+  '/compliance/incidents/dashboard': Incident360,
+  '/compliance/incidents/360': Incident360,
+  '/compliance/reports': ComplianceReports,
+};
+
 const DashboardRedirect: React.FC = () => {
   const { user } = useAuth();
   if (user?.roles?.includes('ADMIN')) {
@@ -95,6 +121,9 @@ const DashboardRedirect: React.FC = () => {
   }
   if (user?.roles?.includes('FLEET_MANAGER') || user?.roles?.includes('FLEET')) {
     return <Navigate to="/fleet/dashboard" replace />;
+  }
+  if (user?.roles?.includes('COMPLIANCE_MANAGER')) {
+    return <Navigate to="/compliance/dashboard" replace />;
   }
   return <Navigate to="/admin/dashboard" replace />;
 };
@@ -176,6 +205,28 @@ const App: React.FC = () => {
                 <Route
                   key={mod.to}
                   path={mod.to.replace('/fleet/', '')}
+                  element={<Page />}
+                />
+              );
+            })}
+          </Route>
+
+          {/* Compliance suite (S-22 to S-26) */}
+          <Route
+            path="/compliance"
+            element={
+              <ProtectedRoute allowedRoles={['COMPLIANCE_MANAGER', 'ADMIN']}>
+                <ComplianceLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/compliance/dashboard" replace />} />
+            {COMPLIANCE_MODULES.map((mod) => {
+              const Page = BUILT_COMPLIANCE_PAGES[mod.to] ?? ModuleStub;
+              return (
+                <Route
+                  key={mod.to}
+                  path={mod.to.replace('/compliance/', '')}
                   element={<Page />}
                 />
               );

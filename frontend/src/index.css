@@ -79,7 +79,12 @@ body {
   color: var(--text-primary);
   font-family: var(--font-family);
   min-height: 100vh;
-  overflow-x: hidden;
+  /*
+   * `clip`, not `hidden`: `overflow-x: hidden` computes overflow-y to `auto`,
+   * which turns body into a scroll container and stops `position: sticky`
+   * descendants (the rail and the admin topbar) from ever sticking.
+   */
+  overflow-x: clip;
   -webkit-font-smoothing: antialiased;
 }
 
