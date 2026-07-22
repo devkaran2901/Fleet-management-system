@@ -32,7 +32,7 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
   const hasAdmin = roles.includes('ADMIN');
   const hasDispatcher = roles.includes('DISPATCHER');
   const hasFleetManager = roles.includes('FLEET_MANAGER') || roles.includes('FLEET');
-  const hasComplianceManager = roles.includes('COMPLIANCE_MANAGER');
+  const hasComplianceManager = roles.includes('COMPLIANCE_MANAGER') || roles.includes('COMPLIANCE') || roles.includes('S-22');
   const hasWorkshopManager = roles.includes('WORKSHOP_MANAGER') || roles.includes('R-06');
 
   // Determine which nav to show based on route + role

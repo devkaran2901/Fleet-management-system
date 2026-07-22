@@ -154,7 +154,7 @@ const DashboardRedirect: React.FC = () => {
   if (user?.roles?.includes('FLEET_MANAGER') || user?.roles?.includes('FLEET')) {
     return <Navigate to="/fleet/dashboard" replace />;
   }
-  if (user?.roles?.includes('COMPLIANCE_MANAGER')) {
+  if (user?.roles?.includes('COMPLIANCE_MANAGER') || user?.roles?.includes('COMPLIANCE') || user?.roles?.includes('S-22')) {
     return <Navigate to="/compliance/dashboard" replace />;
   }
   return <Navigate to="/admin/dashboard" replace />;
@@ -247,7 +247,7 @@ const App: React.FC = () => {
           <Route
             path="/compliance"
             element={
-              <ProtectedRoute allowedRoles={['COMPLIANCE_MANAGER', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['COMPLIANCE_MANAGER', 'COMPLIANCE', 'S-22', 'ADMIN']}>
                 <ComplianceLayout />
               </ProtectedRoute>
             }
