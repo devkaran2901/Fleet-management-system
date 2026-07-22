@@ -62,6 +62,18 @@ import { InsuranceClaims } from './pages/compliance/InsuranceClaims';
 import { Incident360 } from './pages/compliance/Incident360';
 import { ComplianceReports } from './pages/compliance/ComplianceReports';
 
+// Built Workshop modules (R-06)
+import { WorkshopLayout } from './pages/workshop/WorkshopLayout';
+import { WORKSHOP_MODULES } from './pages/workshop/workshopModules';
+import { WorkshopDashboard } from './pages/workshop/WorkshopDashboard';
+import { JobCards } from './pages/workshop/JobCards';
+import { WorkshopBoard } from './pages/workshop/WorkshopBoard';
+import { PMDueList } from './pages/workshop/PMDueList';
+import { Estimates } from './pages/workshop/Estimates';
+import { PartsDemand } from './pages/workshop/PartsDemand';
+import { MechanicRoster } from './pages/workshop/MechanicRoster';
+import { WorkshopReports } from './pages/workshop/WorkshopReports';
+
 const BUILT_PAGES: Record<string, React.ComponentType> = {
   '/admin/dashboard': AdminDashboard,
   '/admin/org': OrgTree,
@@ -117,10 +129,24 @@ const BUILT_COMPLIANCE_PAGES: Record<string, React.ComponentType> = {
   '/compliance/reports': ComplianceReports,
 };
 
+const BUILT_WORKSHOP_PAGES: Record<string, React.ComponentType> = {
+  '/workshop/dashboard': WorkshopDashboard,
+  '/workshop/job-cards': JobCards,
+  '/workshop/board': WorkshopBoard,
+  '/workshop/pm-due': PMDueList,
+  '/workshop/estimates': Estimates,
+  '/workshop/parts-demand': PartsDemand,
+  '/workshop/mechanics': MechanicRoster,
+  '/workshop/reports': WorkshopReports,
+};
+
 const DashboardRedirect: React.FC = () => {
   const { user } = useAuth();
   if (user?.roles?.includes('ADMIN')) {
     return <Navigate to="/admin/dashboard" replace />;
+  }
+  if (user?.roles?.includes('WORKSHOP_MANAGER') || user?.roles?.includes('R-06')) {
+    return <Navigate to="/workshop/dashboard" replace />;
   }
   if (user?.roles?.includes('DISPATCHER')) {
     return <Navigate to="/dispatcher/dashboard" replace />;
@@ -233,6 +259,28 @@ const App: React.FC = () => {
                 <Route
                   key={mod.to}
                   path={mod.to.replace('/compliance/', '')}
+                  element={<Page />}
+                />
+              );
+            })}
+          </Route>
+
+          {/* Workshop Manager suite (R-06) */}
+          <Route
+            path="/workshop"
+            element={
+              <ProtectedRoute allowedRoles={['WORKSHOP_MANAGER', 'R-06', 'ADMIN']}>
+                <WorkshopLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/workshop/dashboard" replace />} />
+            {WORKSHOP_MODULES.map((mod) => {
+              const Page = BUILT_WORKSHOP_PAGES[mod.to] ?? ModuleStub;
+              return (
+                <Route
+                  key={mod.to}
+                  path={mod.to.replace('/workshop/', '')}
                   element={<Page />}
                 />
               );

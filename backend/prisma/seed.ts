@@ -18,6 +18,7 @@ async function main() {
     { name: 'DRIVER', description: 'Fleet Driver performing transport operations' },
     { name: 'FLEET_MANAGER', description: 'Fleet Manager managing assets and maintenance' },
     { name: 'COMPLIANCE_MANAGER', description: 'Compliance Manager overseeing regulatory compliance, challans, insurance and incidents' },
+    { name: 'WORKSHOP_MANAGER', description: 'Workshop Manager managing job cards, bays, mechanics, estimates, and PM due list' },
   ];
 
   const dbRoles: Role[] = [];
@@ -136,6 +137,32 @@ async function main() {
     });
   }
   console.log(`Compliance Manager account ready: ${complianceEmail}`);
+
+  // Seed workshop manager user
+  const workshopEmail = 'workshop@fleetos.com';
+  const workshopUser = await prisma.user.upsert({
+    where: { email: workshopEmail },
+    update: { password: hashedPassword, isActive: true },
+    create: {
+      email: workshopEmail,
+      password: hashedPassword,
+      firstName: 'Workshop',
+      lastName: 'Manager',
+      isActive: true,
+    },
+  });
+
+  const workshopRole = dbRoles.find((r) => r.name === 'WORKSHOP_MANAGER');
+  if (workshopRole) {
+    await prisma.userRole.upsert({
+      where: {
+        userId_roleId: { userId: workshopUser.id, roleId: workshopRole.id },
+      },
+      update: {},
+      create: { userId: workshopUser.id, roleId: workshopRole.id },
+    });
+  }
+  console.log(`Workshop Manager account ready: ${workshopEmail}`);
 
   await seedOrgTree();
   await seedCapabilities(dbRoles);
@@ -738,6 +765,276 @@ async function seedRoutes() {
   }
 
   console.log('Route data seeded successfully.');
+
+  // Seed Workshop Manager Data (Bays, Mechanics, PM Schedules, Job Cards, Estimates, Parts Demands)
+  const bays = [
+    { name: 'Bay 01 - Heavy Repair', status: 'Busy', currentJobCardId: 'JC-2026-001', vehicleNumber: 'MH-12-AB-1234', mechanicName: 'Rajesh Sharma', estimatedFinish: '14:30 Today' },
+    { name: 'Bay 02 - Quick Service', status: 'Busy', currentJobCardId: 'JC-2026-002', vehicleNumber: 'DL-01-AX-9988', mechanicName: 'Sunil Kumar', estimatedFinish: '16:00 Today' },
+    { name: 'Bay 03 - Electrical & HVAC', status: 'Waiting Parts', currentJobCardId: 'JC-2026-003', vehicleNumber: 'KA-04-MN-5566', mechanicName: 'Vikram Singh', estimatedFinish: 'Tomorrow 11:00' },
+    { name: 'Bay 04 - PM Service', status: 'Available', currentJobCardId: null, vehicleNumber: null, mechanicName: null, estimatedFinish: null },
+    { name: 'Bay 05 - Transmission & Axle', status: 'QC', currentJobCardId: 'JC-2026-004', vehicleNumber: 'HR-26-DQ-3344', mechanicName: 'Amit Verma', estimatedFinish: 'Under QC' },
+    { name: 'Bay 06 - Inspection', status: 'Available', currentJobCardId: null, vehicleNumber: null, mechanicName: null, estimatedFinish: null },
+  ];
+
+  for (const bay of bays) {
+    await prisma.workshopBay.upsert({
+      where: { name: bay.name },
+      update: bay,
+      create: bay,
+    });
+  }
+
+  const mechanics = [
+    { name: 'Rajesh Sharma', skill: 'Engine Specialist', assignedBay: 'Bay 01 - Heavy Repair', status: 'Busy', productivity: 94 },
+    { name: 'Sunil Kumar', skill: 'General Tech', assignedBay: 'Bay 02 - Quick Service', status: 'Busy', productivity: 91 },
+    { name: 'Vikram Singh', skill: 'Electrical & HVAC', assignedBay: 'Bay 03 - Electrical & HVAC', status: 'On Break', productivity: 88 },
+    { name: 'Amit Verma', skill: 'Hydraulics & Transmission', assignedBay: 'Bay 05 - Transmission & Axle', status: 'Busy', productivity: 96 },
+    { name: 'Ramesh Patel', skill: 'Tyre & Suspension', assignedBay: 'Unassigned', status: 'Available', productivity: 89 },
+    { name: 'Praveen Yadav', skill: 'General Tech', assignedBay: 'Unassigned', status: 'Available', productivity: 92 },
+  ];
+
+  for (const m of mechanics) {
+    const existing = await prisma.workshopMechanic.findFirst({ where: { name: m.name } });
+    if (!existing) {
+      await prisma.workshopMechanic.create({ data: m });
+    }
+  }
+
+  const pmItems = [
+    { vehicleNumber: 'MH-12-AB-1234', currentOdometer: 145200, dueKm: 145000, dueDate: new Date('2026-07-22'), triggerType: 'KM', status: 'Overdue', maintenanceLock: true, maintenanceGrace: false },
+    { vehicleNumber: 'DL-01-AX-9988', currentOdometer: 98400, dueKm: 100000, dueDate: new Date('2026-07-24'), triggerType: 'KM', status: 'Due', maintenanceLock: false, maintenanceGrace: true },
+    { vehicleNumber: 'KA-04-MN-5566', currentOdometer: 210000, dueKm: 210000, dueDate: new Date('2026-07-20'), triggerType: 'Statutory', status: 'Grace', maintenanceLock: false, maintenanceGrace: true },
+    { vehicleNumber: 'HR-26-DQ-3344', currentOdometer: 75000, dueKm: 75000, dueDate: new Date('2026-07-22'), triggerType: 'Hours', status: 'Due', maintenanceLock: false, maintenanceGrace: true },
+    { vehicleNumber: 'TN-09-CB-7788', currentOdometer: 162000, dueKm: 160000, dueDate: new Date('2026-07-18'), triggerType: 'Condition', status: 'Lock', maintenanceLock: true, maintenanceGrace: false },
+  ];
+
+  for (const pm of pmItems) {
+    const existing = await prisma.pmSchedule.findFirst({ where: { vehicleNumber: pm.vehicleNumber } });
+    if (!existing) {
+      await prisma.pmSchedule.create({ data: pm });
+    }
+  }
+
+  const jobCards = [
+    {
+      jobCardNumber: 'JC-2026-001',
+      vehicleNumber: 'MH-12-AB-1234',
+      status: 'In Progress',
+      priority: 'CRITICAL',
+      bayName: 'Bay 01 - Heavy Repair',
+      mechanicName: 'Rajesh Sharma',
+      complaint: 'Severe engine knocking and oil pressure drop during highway transit.',
+      rootCause: 'Worn main bearing and clogged oil gallery pipe.',
+      odometer: 145200,
+      hours: 3840.5,
+      customer: 'Internal Logistics Line 1',
+      estimateTotal: 42500,
+      actualCost: 38000,
+      tasks: JSON.stringify([
+        { id: 'T-1', description: 'Engine cylinder head dismounting and inspection', mechanic: 'Rajesh Sharma', stdHours: 4, actualHours: 3.5, status: 'Completed' },
+        { id: 'T-2', description: 'Replace main bearing shell set and gasket', mechanic: 'Rajesh Sharma', stdHours: 6, actualHours: 4, status: 'In Progress' },
+      ]),
+      parts: JSON.stringify([
+        { partNumber: 'ENG-BRG-881', name: 'Main Bearing Set (Heavy Duty)', qty: 1, unitCost: 18500, totalCost: 18500, status: 'Issued' },
+        { partNumber: 'FLT-OIL-402', name: 'Spin-on Synthetic Oil Filter', qty: 2, unitCost: 1200, totalCost: 2400, status: 'Issued' },
+      ]),
+      outsideWork: JSON.stringify([
+        { vendor: 'Precision Crankshaft Reconditioning Ltd', reason: 'Crankshaft journal grinding & micro-polishing', estimate: 8500, status: 'Completed' }
+      ]),
+      qcChecklist: JSON.stringify([
+        { item: 'Torque specs on main cap bolts verified', passed: true, notes: 'Tightened to 180 Nm' },
+        { item: 'No leaks under 30-min idle run', passed: true, notes: 'Clean' }
+      ]),
+      qcStatus: 'Pending',
+      roadTestStatus: 'Pending',
+      roadTestNotes: 'Requires 15km loaded trail run before release.',
+      surveyorHeld: false,
+      warrantyClaimed: false,
+      auditTrail: JSON.stringify([
+        { action: 'Job Card Opened', user: 'workshop@fleetos.com', timestamp: '2026-07-21 09:00' },
+        { action: 'Moved to In Progress', user: 'workshop@fleetos.com', timestamp: '2026-07-21 10:15' }
+      ])
+    },
+    {
+      jobCardNumber: 'JC-2026-002',
+      vehicleNumber: 'DL-01-AX-9988',
+      status: 'Open',
+      priority: 'HIGH',
+      bayName: 'Bay 02 - Quick Service',
+      mechanicName: 'Sunil Kumar',
+      complaint: 'Scheduled 100K Service B PM Kit replacement & brake pad check.',
+      rootCause: 'Routine PM due interval reached.',
+      odometer: 98400,
+      hours: 2100.0,
+      customer: 'Express Parcel Fleet',
+      estimateTotal: 8500,
+      actualCost: 0,
+      tasks: JSON.stringify([
+        { id: 'T-1', description: 'Engine oil drain & refill with 15W40', mechanic: 'Sunil Kumar', stdHours: 1.5, actualHours: 0, status: 'Pending' },
+        { id: 'T-2', description: 'Brake liner thickness check & adjustment', mechanic: 'Sunil Kumar', stdHours: 1, actualHours: 0, status: 'Pending' }
+      ]),
+      parts: JSON.stringify([
+        { partNumber: 'PM-KIT-B200', name: 'Service B Filter & Fluid Kit', qty: 1, unitCost: 6500, totalCost: 6500, status: 'Reserved' }
+      ]),
+      outsideWork: JSON.stringify([]),
+      qcChecklist: JSON.stringify([]),
+      qcStatus: 'Pending',
+      roadTestStatus: 'Not Required',
+      surveyorHeld: false,
+      warrantyClaimed: false,
+      auditTrail: JSON.stringify([
+        { action: 'Auto-created from PM Due Engine', user: 'system', timestamp: '2026-07-22 08:00' }
+      ])
+    },
+    {
+      jobCardNumber: 'JC-2026-003',
+      vehicleNumber: 'KA-04-MN-5566',
+      status: 'Waiting Parts',
+      priority: 'MEDIUM',
+      bayName: 'Bay 03 - Electrical & HVAC',
+      mechanicName: 'Vikram Singh',
+      complaint: 'AC compressor failure and cabin climate controller fault.',
+      rootCause: 'AC clutch coil burnt out due to over-voltage spike.',
+      odometer: 210000,
+      hours: 5200.0,
+      customer: 'Cold Chain Logistics',
+      estimateTotal: 19200,
+      actualCost: 5200,
+      tasks: JSON.stringify([
+        { id: 'T-1', description: 'Dismount damaged AC compressor unit', mechanic: 'Vikram Singh', stdHours: 2, actualHours: 2, status: 'Completed' }
+      ]),
+      parts: JSON.stringify([
+        { partNumber: 'HVAC-CMP-990', name: 'Sanden Heavy Cooling Compressor', qty: 1, unitCost: 14000, totalCost: 14000, status: 'Backordered' }
+      ]),
+      outsideWork: JSON.stringify([]),
+      qcChecklist: JSON.stringify([]),
+      qcStatus: 'Pending',
+      roadTestStatus: 'Not Required',
+      surveyorHeld: false,
+      warrantyClaimed: true,
+      auditTrail: JSON.stringify([
+        { action: 'Moved to Waiting Parts', user: 'workshop@fleetos.com', timestamp: '2026-07-21 16:30' }
+      ])
+    },
+    {
+      jobCardNumber: 'JC-2026-004',
+      vehicleNumber: 'HR-26-DQ-3344',
+      status: 'QC',
+      priority: 'HIGH',
+      bayName: 'Bay 05 - Transmission & Axle',
+      mechanicName: 'Amit Verma',
+      complaint: 'Difficulty engaging 3rd and 4th gear, gear slippage under load.',
+      rootCause: 'Worn synchronizer rings and selector fork misalignment.',
+      odometer: 75000,
+      hours: 1850.0,
+      customer: 'North Zone Operations',
+      estimateTotal: 28000,
+      actualCost: 26500,
+      tasks: JSON.stringify([
+        { id: 'T-1', description: 'Gearbox overhaul & synchronizer kit fitment', mechanic: 'Amit Verma', stdHours: 8, actualHours: 7.5, status: 'Completed' }
+      ]),
+      parts: JSON.stringify([
+        { partNumber: 'GBX-SYN-340', name: '3rd/4th Gear Synchronizer Ring Set', qty: 1, unitCost: 16500, totalCost: 16500, status: 'Issued' }
+      ]),
+      outsideWork: JSON.stringify([]),
+      qcChecklist: JSON.stringify([
+        { item: 'Gear lever throw & shift engagement smooth', passed: true, notes: 'Verified on bench' },
+        { item: 'Transmission oil refill (75W90 API GL-5)', passed: true, notes: 'Refilled 8.5L' }
+      ]),
+      qcStatus: 'Pending',
+      roadTestStatus: 'Pending',
+      roadTestNotes: 'Requires road test up to 80 km/h with gear shifting verification.',
+      surveyorHeld: false,
+      warrantyClaimed: false,
+      auditTrail: JSON.stringify([
+        { action: 'Moved to QC Queue', user: 'workshop@fleetos.com', timestamp: '2026-07-22 11:00' }
+      ])
+    }
+  ];
+
+  for (const jc of jobCards) {
+    await prisma.jobCard.upsert({
+      where: { jobCardNumber: jc.jobCardNumber },
+      update: jc,
+      create: jc
+    });
+  }
+
+  const estimates = [
+    {
+      estimateNumber: 'EST-2026-001',
+      jobCardId: 'JC-2026-001',
+      vehicleNumber: 'MH-12-AB-1234',
+      labourCost: 12500,
+      partsCost: 20900,
+      outsideWorkCost: 8500,
+      tax: 6000,
+      totalAmount: 47900,
+      approvalStatus: 'Approved',
+      technicalApproval: 'Approved',
+      approvalTimeline: JSON.stringify([
+        { role: 'R-06 Workshop Manager', status: 'Submitted', timestamp: '2026-07-21 09:30' },
+        { role: 'R-07 Technical Engineer', status: 'Approved (Technical)', timestamp: '2026-07-21 10:00' },
+        { role: 'AF-05 Approval Authority', status: 'Approved', timestamp: '2026-07-21 10:12' }
+      ])
+    },
+    {
+      estimateNumber: 'EST-2026-002',
+      jobCardId: 'JC-2026-002',
+      vehicleNumber: 'DL-01-AX-9988',
+      labourCost: 2000,
+      partsCost: 6500,
+      outsideWorkCost: 0,
+      tax: 1530,
+      totalAmount: 10030,
+      approvalStatus: 'Approved', // Auto-approved as <= ₹10K threshold
+      technicalApproval: 'Approved',
+      approvalTimeline: JSON.stringify([
+        { role: 'R-06 Workshop Manager', status: 'Auto-Approved (Threshold <= ₹10K)', timestamp: '2026-07-22 08:00' }
+      ])
+    },
+    {
+      estimateNumber: 'EST-2026-003',
+      jobCardId: 'JC-2026-003',
+      vehicleNumber: 'KA-04-MN-5566',
+      labourCost: 4000,
+      partsCost: 14000,
+      outsideWorkCost: 0,
+      tax: 3240,
+      totalAmount: 21240,
+      approvalStatus: 'PendingApproval',
+      technicalApproval: 'Approved',
+      approvalTimeline: JSON.stringify([
+        { role: 'R-06 Workshop Manager', status: 'Submitted', timestamp: '2026-07-21 15:00' },
+        { role: 'R-07 Technical Engineer', status: 'Approved (Technical)', timestamp: '2026-07-21 15:30' },
+        { role: 'AF-05 Approval Authority', status: 'Pending Approval', timestamp: '2026-07-21 15:30' }
+      ])
+    }
+  ];
+
+  for (const est of estimates) {
+    await prisma.estimate.upsert({
+      where: { estimateNumber: est.estimateNumber },
+      update: est,
+      create: est
+    });
+  }
+
+  const partsDemands = [
+    { jobCardId: 'JC-2026-001', vehicleNumber: 'MH-12-AB-1234', partNumber: 'ENG-BRG-881', partName: 'Main Bearing Set (Heavy Duty)', quantityRequired: 1, quantityAvailable: 3, reservationStatus: 'Reserved', demandStatus: 'Fulfilled' },
+    { jobCardId: 'JC-2026-002', vehicleNumber: 'DL-01-AX-9988', partNumber: 'PM-KIT-B200', partName: 'Service B Filter & Fluid Kit', quantityRequired: 1, quantityAvailable: 8, reservationStatus: 'Reserved', demandStatus: 'Requested' },
+    { jobCardId: 'JC-2026-003', vehicleNumber: 'KA-04-MN-5566', partNumber: 'HVAC-CMP-990', partName: 'Sanden Heavy Cooling Compressor', quantityRequired: 1, quantityAvailable: 0, reservationStatus: 'Unreserved', demandStatus: 'Pending' },
+    { jobCardId: 'JC-2026-004', vehicleNumber: 'HR-26-DQ-3344', partNumber: 'GBX-SYN-340', partName: '3rd/4th Gear Synchronizer Ring Set', quantityRequired: 1, quantityAvailable: 2, reservationStatus: 'Reserved', demandStatus: 'Fulfilled' }
+  ];
+
+  for (const pd of partsDemands) {
+    const existing = await prisma.partsDemand.findFirst({ where: { jobCardId: pd.jobCardId, partNumber: pd.partNumber } });
+    if (!existing) {
+      await prisma.partsDemand.create({ data: pd });
+    }
+  }
+
+  console.log('Workshop Manager data seeded successfully.');
 }
 
 main()

@@ -473,4 +473,144 @@ model Route {
   @@map("routes")
 }
 
+// ---------------------------------------------------------------------------
+// R-06 Workshop Manager Models
+// ---------------------------------------------------------------------------
+
+model JobCard {
+  id             String   @id @default(uuid())
+  jobCardNumber  String   @unique
+  vehicleId      String?
+  vehicleNumber  String
+  status         String   @default("Draft") // Draft, Open, In Progress, Waiting Parts, QC, Road Test, Completed, Cost Posted
+  priority       String   @default("MEDIUM") // CRITICAL, HIGH, MEDIUM, LOW
+  bayId          String?
+  bayName        String?
+  mechanicId     String?
+  mechanicName   String?
+  complaint      String
+  rootCause      String?
+  odometer       Int      @default(0)
+  hours          Float    @default(0)
+  customer       String   @default("Internal Fleet")
+  estimateTotal  Float    @default(0)
+  actualCost     Float    @default(0)
+  tasks          Json     @default("[]") // Array of { id, description, mechanic, stdHours, actualHours, status }
+  parts          Json     @default("[]") // Array of { partNumber, name, qty, unitCost, totalCost, status }
+  outsideWork    Json     @default("[]") // Array of { vendor, reason, estimate, status }
+  qcChecklist    Json     @default("[]") // Array of { item, passed, notes }
+  qcStatus       String   @default("Pending") // Pending, Approved, Rejected
+  roadTestStatus String   @default("Not Required") // Not Required, Pending, Passed, Failed
+  roadTestNotes  String?
+  surveyorHeld   Boolean  @default(false)
+  warrantyClaimed Boolean @default(false)
+  auditTrail     Json     @default("[]")
+  createdDate    DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("job_cards")
+}
+
+model WorkshopBay {
+  id               String   @id @default(uuid())
+  name             String   @unique
+  status           String   @default("Available") // Available, Busy, Waiting Parts, QC
+  currentJobCardId String?
+  currentVehicleId String?
+  vehicleNumber    String?
+  mechanicId       String?
+  mechanicName     String?
+  estimatedFinish  String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("workshop_bays")
+}
+
+model WorkshopMechanic {
+  id               String   @id @default(uuid())
+  name             String
+  skill            String   // Engine Specialist, Electrical, Hydraulics, General Tech, HVAC
+  currentJobCardId String?
+  assignedBay      String?
+  status           String   @default("Available") // Available, Busy, On Break
+  productivity     Int      @default(90) // percentage
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("workshop_mechanics")
+}
+
+model PmSchedule {
+  id               String   @id @default(uuid())
+  vehicleId        String?
+  vehicleNumber    String
+  currentOdometer  Int
+  dueKm            Int
+  dueDate          DateTime
+  dueHours         Float    @default(0)
+  triggerType      String   // KM, Hours, Time, Condition, Statutory
+  status           String   @default("Normal") // Normal, Due, Overdue, Grace, Lock
+  slotNegotiation  Json     @default("{}") // { proposedSlot, confirmedSlot, status, arbitrationLog }
+  autoJobCardId    String?
+  maintenanceGrace Boolean  @default(true)
+  maintenanceLock  Boolean  @default(false)
+  overrideApproved Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("pm_schedules")
+}
+
+model Estimate {
+  id                String   @id @default(uuid())
+  estimateNumber    String   @unique
+  jobCardId         String
+  vehicleNumber     String
+  labourCost        Float    @default(0)
+  partsCost         Float    @default(0)
+  outsideWorkCost   Float    @default(0)
+  tax               Float    @default(0)
+  totalAmount       Float    @default(0)
+  approvalStatus    String   @default("Draft") // Draft, PendingApproval, Approved, Rejected, RevisionRequired
+  technicalApproval String   @default("Pending") // Pending, Approved, Rejected
+  approvalTimeline  Json     @default("[]")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("estimates")
+}
+
+model PartsDemand {
+  id                 String   @id @default(uuid())
+  jobCardId          String
+  vehicleNumber      String
+  partNumber         String
+  partName           String
+  quantityRequired   Int
+  quantityAvailable  Int
+  reservationStatus  String   @default("Unreserved") // Unreserved, Reserved, Partial
+  demandStatus       String   @default("Pending") // Pending, Requested, Fulfilled
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("parts_demands")
+}
+
+model OutsideWorkRequest {
+  id               String   @id @default(uuid())
+  jobCardId        String
+  vehicleNumber    String
+  vendor           String
+  reason           String
+  estimate         Float
+  approvalStatus   String   @default("Pending") // Pending, Approved, Rejected
+  completionStatus String   @default("In Progress") // In Progress, Completed, Cancelled
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("outside_work_requests")
+}
+
+
 

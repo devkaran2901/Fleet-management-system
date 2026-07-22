@@ -6,13 +6,14 @@ import { ADMIN_NAV, findGroup } from '../pages/admin/adminModules';
 import { DISPATCHER_NAV, findDispatcherGroup } from '../pages/dispatcher/dispatcherModules';
 import { FLEET_NAV, findFleetGroup } from '../pages/fleet/fleetModules';
 import { COMPLIANCE_NAV, findComplianceGroup } from '../pages/compliance/complianceModules';
+import { WORKSHOP_NAV, findWorkshopGroup } from '../pages/workshop/workshopModules';
 import '../styles/admin.css';
 
 const STORAGE_KEY = 'fms_admin_nav_collapsed';
 
 /**
  * The single navigation rail for the whole app. Dynamically switches between
- * ADMIN, DISPATCHER, FLEET and COMPLIANCE menus based on route, ensuring perfect visual consistency.
+ * ADMIN, DISPATCHER, FLEET, COMPLIANCE and WORKSHOP menus based on route, ensuring perfect visual consistency.
  */
 export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = ({
   open,
@@ -25,12 +26,14 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
   const isDispatcher = location.pathname.startsWith('/dispatcher');
   const isFleet = location.pathname.startsWith('/fleet');
   const isCompliance = location.pathname.startsWith('/compliance');
+  const isWorkshop = location.pathname.startsWith('/workshop');
   
   const roles = user?.roles ?? [];
   const hasAdmin = roles.includes('ADMIN');
   const hasDispatcher = roles.includes('DISPATCHER');
   const hasFleetManager = roles.includes('FLEET_MANAGER') || roles.includes('FLEET');
   const hasComplianceManager = roles.includes('COMPLIANCE_MANAGER');
+  const hasWorkshopManager = roles.includes('WORKSHOP_MANAGER') || roles.includes('R-06');
 
   // Determine which nav to show based on route + role
   let nav = ADMIN_NAV;
@@ -46,10 +49,16 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
     } else if (isCompliance) {
       nav = COMPLIANCE_NAV;
       resolveGroup = findComplianceGroup;
+    } else if (isWorkshop) {
+      nav = WORKSHOP_NAV;
+      resolveGroup = findWorkshopGroup;
     } else {
       nav = ADMIN_NAV;
       resolveGroup = findGroup;
     }
+  } else if (hasWorkshopManager || isWorkshop) {
+    nav = WORKSHOP_NAV;
+    resolveGroup = findWorkshopGroup;
   } else if (hasComplianceManager) {
     // Compliance managers only ever see compliance nav
     nav = COMPLIANCE_NAV;
@@ -97,7 +106,9 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
           style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 0 8px 0', border: 'none', background: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }} 
           onClick={() => {
             if (hasAdmin) {
-              navigate(isDispatcher ? '/dispatcher/dashboard' : (isFleet ? '/fleet/dashboard' : (isCompliance ? '/compliance/dashboard' : '/admin/dashboard')));
+              navigate(isDispatcher ? '/dispatcher/dashboard' : (isFleet ? '/fleet/dashboard' : (isCompliance ? '/compliance/dashboard' : (isWorkshop ? '/workshop/dashboard' : '/admin/dashboard'))));
+            } else if (hasWorkshopManager) {
+              navigate('/workshop/dashboard');
             } else if (hasComplianceManager) {
               navigate('/compliance/dashboard');
             } else if (hasFleetManager) {
@@ -119,13 +130,14 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
             <span className="mono-label" style={{ fontSize: 8, color: 'var(--text-3)' }}>WORKSPACE</span>
             <select 
-              value={isDispatcher ? 'dispatcher' : (isFleet ? 'fleet' : (isCompliance ? 'compliance' : 'admin'))}
+              value={isDispatcher ? 'dispatcher' : (isFleet ? 'fleet' : (isCompliance ? 'compliance' : (isWorkshop ? 'workshop' : 'admin')))}
               onChange={(e) => {
                 const val = e.target.value;
                 if (val === 'admin') navigate('/admin/dashboard');
                 else if (val === 'dispatcher') navigate('/dispatcher/dashboard');
                 else if (val === 'fleet') navigate('/fleet/dashboard');
                 else if (val === 'compliance') navigate('/compliance/dashboard');
+                else if (val === 'workshop') navigate('/workshop/dashboard');
                 onNavigate();
               }}
               style={{
@@ -145,6 +157,7 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
               <option value="dispatcher">⚡ Dispatcher Workspace</option>
               <option value="fleet">🚚 Fleet Manager Portal</option>
               <option value="compliance">⚖️ Compliance Portal</option>
+              <option value="workshop">🛠️ Workshop Manager Portal</option>
             </select>
           </div>
         )}
