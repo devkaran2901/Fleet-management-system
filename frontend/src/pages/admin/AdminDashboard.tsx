@@ -140,6 +140,63 @@ export const AdminDashboard: React.FC = () => {
         </div>
       </Panel>
 
+      {/* Admin Direct Switch Portal */}
+      <Panel title="Admin Direct Switch Portal" subtitle="Directly access any operational workspace with administrative permissions" className="adm-quick-panel">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 12 }}>
+          {[
+            { name: 'Compliance Portal', icon: '⚖️', desc: 'Statutory compliance, challans & insurance claims', path: '/compliance/dashboard', badge: 'S-22', color: '#16a34a' },
+            { name: 'Dispatcher Workspace', icon: '⚡', desc: 'Active runs, driver assignment & indents', path: '/dispatcher/dashboard', badge: 'P-11', color: '#d97706' },
+            { name: 'Fleet Manager Portal', icon: '🚚', desc: 'Vehicle master, telematics & health', path: '/fleet/dashboard', badge: 'S-01', color: '#0891b2' },
+            { name: 'Workshop Portal', icon: '🛠️', desc: 'Job cards, maintenance board & parts demand', path: '/workshop/dashboard', badge: 'R-06', color: '#9333ea' },
+            { name: 'Admin Suite', icon: '🔧', desc: 'System governance, roles & integrations', path: '/admin/dashboard', badge: 'S-35', color: '#2563eb' },
+          ].map((portal) => (
+            <div
+              key={portal.path}
+              onClick={() => navigate(portal.path)}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                padding: '14px 16px',
+                backgroundColor: 'var(--panel-2)',
+                border: '1px solid var(--border-soft)',
+                borderRadius: 10,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = portal.color;
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = `0 6px 16px ${portal.color}22`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--border-soft)';
+                e.currentTarget.style.transform = 'none';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <span style={{ fontSize: 22 }}>{portal.icon}</span>
+                  <span className="mono-label" style={{ fontSize: 9, padding: '2px 6px', background: 'var(--panel-1)', border: '1px solid var(--border-soft)', borderRadius: 4, color: portal.color }}>
+                    {portal.badge}
+                  </span>
+                </div>
+                <h4 style={{ margin: '0 0 4px 0', fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>
+                  {portal.name}
+                </h4>
+                <p style={{ margin: 0, fontSize: 11, color: 'var(--text-3)', lineHeight: 1.4 }}>
+                  {portal.desc}
+                </p>
+              </div>
+              <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 600, color: portal.color }}>
+                <span>Launch Portal</span> →
+              </div>
+            </div>
+          ))}
+        </div>
+      </Panel>
+
       <div className="adm-metric-groups">
         <Panel title="Users" subtitle="Identity and access" className="adm-metric-panel">
           <div className="adm-metric-grid">
