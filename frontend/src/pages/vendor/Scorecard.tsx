@@ -58,8 +58,8 @@ export const Scorecard: React.FC = () => {
       <div
         className="vp-card"
         style={{
-          background: 'linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(139,92,246,0.08) 100%)',
-          border: '1px solid rgba(16,185,129,0.35)',
+          backgroundColor: 'var(--panel-2)',
+          border: '1px solid var(--border-soft)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',

@@ -45,7 +45,7 @@ export const ProfileKYC: React.FC = () => {
       </div>
 
       {/* Profile Banner */}
-      <div className="vp-card" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(0,0,0,0))', border: '1px solid rgba(16,185,129,0.3)' }}>
+      <div className="vp-card" style={{ backgroundColor: 'var(--panel-2)', border: '1px solid var(--border-soft)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <div style={{
             width: 72, height: 72, borderRadius: 16, background: 'var(--vendor-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center',

@@ -30,8 +30,8 @@ export const VendorDashboard: React.FC = () => {
       <div
         className="vp-card"
         style={{
-          background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(15, 23, 42, 0.8) 100%)',
-          border: '1px solid rgba(16, 185, 129, 0.3)',
+          backgroundColor: 'var(--panel-2)',
+          border: '1px solid var(--border-soft)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',

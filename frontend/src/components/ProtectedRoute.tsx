@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { VelocityLogo } from './VelocityLogo';
 
 interface ProtectedRouteProps {
   children: React.ReactElement;
@@ -22,11 +23,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
           <b className="spinner" style={{ borderTopColor: 'transparent', borderColor: 'var(--primary)', width: '32px', height: '32px', borderWidth: '3px' }} />
-          <div className="wordmark">
-            <span className="argo-mark" aria-hidden="true" />
-            Argo<span>Logics</span>
-          </div>
-          <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px' }}>Restoring ArgoLogics session...</div>
+          <VelocityLogo height={40} />
+          <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px' }}>Restoring Traverse session...</div>
         </div>
       </div>
     );

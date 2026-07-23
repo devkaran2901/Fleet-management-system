@@ -144,7 +144,7 @@ export const Payments: React.FC = () => {
       </div>
 
       {/* Deduction Breakdown Note */}
-      <div className="vp-card" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.06), rgba(0,0,0,0))' }}>
+      <div className="vp-card" style={{ backgroundColor: 'var(--panel-2)', border: '1px solid var(--border-soft)' }}>
         <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
           <TrendingUp size={18} color="var(--vendor-accent)" /> Deduction Policy — FY 2026–27
         </h3>

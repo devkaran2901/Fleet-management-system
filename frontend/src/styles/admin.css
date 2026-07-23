@@ -1563,8 +1563,8 @@ textarea.adm-input {
 .adm-modal-backdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(3px);
+  background-color: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1574,7 +1574,7 @@ textarea.adm-input {
 }
 
 .adm-modal {
-  background-color: var(--panel);
+  background-color: var(--panel, #14171b);
   border: 1px solid var(--border);
   border-radius: 16px;
   width: 100%;
@@ -1582,7 +1582,8 @@ textarea.adm-input {
   max-height: 88vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75);
+  opacity: 1;
   animation: adm-rise 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 

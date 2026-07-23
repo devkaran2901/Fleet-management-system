@@ -9,6 +9,7 @@ import { COMPLIANCE_NAV, findComplianceGroup } from '../pages/compliance/complia
 import { WORKSHOP_NAV, findWorkshopGroup } from '../pages/workshop/workshopModules';
 import { FINANCE_NAV, findFinanceGroup } from '../pages/finance/financeModules';
 import { VENDOR_NAV, findVendorGroup } from '../pages/vendor/vendorModules';
+import { VelocityLogo } from './VelocityLogo';
 import '../styles/admin.css';
 
 const STORAGE_KEY = 'fms_admin_nav_collapsed';
@@ -31,7 +32,7 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
   const isWorkshop = location.pathname.startsWith('/workshop');
   const isFinance = location.pathname.startsWith('/finance');
   const isVendor = location.pathname.startsWith('/vendor');
-  
+
   const roles = user?.roles ?? [];
   const hasAdmin = roles.includes('ADMIN');
   const hasDispatcher = roles.includes('DISPATCHER');
@@ -117,9 +118,9 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
   return (
     <aside className={`adm-rail ${open ? 'is-open' : ''}`}>
       <div className="adm-rail-brand-container" style={{ padding: '0 16px 12px 16px', borderBottom: '1px solid var(--border-soft)', marginBottom: 8 }}>
-        <div 
-          className="adm-rail-brand" 
-          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 0 8px 0', border: 'none', background: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }} 
+        <div
+          className="adm-rail-brand"
+          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 0 8px 0', border: 'none', background: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }}
           onClick={() => {
             if (hasAdmin) {
               navigate(isDispatcher ? '/dispatcher/dashboard' : (isFleet ? '/fleet/dashboard' : (isCompliance ? '/compliance/dashboard' : (isWorkshop ? '/workshop/dashboard' : (isFinance ? '/finance/dashboard' : (isVendor ? '/vendor/dashboard' : '/admin/dashboard'))))));
@@ -139,17 +140,14 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
             onNavigate();
           }}
         >
-          <span className="argo-mark" aria-hidden="true" />
-          <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)' }}>
-            Argo<span style={{ color: 'var(--green)' }}>Logics</span>
-          </span>
+          <VelocityLogo height={32} textColor="var(--text-1)" />
         </div>
-        
+
         {/* Workspace Switcher — only rendered for ADMIN (multi-portal) */}
         {hasAdmin && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
             <span className="mono-label" style={{ fontSize: 8, color: 'var(--text-3)' }}>WORKSPACE</span>
-            <select 
+            <select
               value={isDispatcher ? 'dispatcher' : (isFleet ? 'fleet' : (isCompliance ? 'compliance' : (isWorkshop ? 'workshop' : (isFinance ? 'finance' : (isVendor ? 'vendor' : 'admin')))))}
               onChange={(e) => {
                 const val = e.target.value;
@@ -214,8 +212,7 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
                       to={mod.to}
                       onClick={onNavigate}
                       className={({ isActive }) =>
-                        `adm-rail-link ${isActive ? 'is-active' : ''} ${
-                          !mod.built ? 'is-stub' : ''
+                        `adm-rail-link ${isActive ? 'is-active' : ''} ${!mod.built ? 'is-stub' : ''
                         }`
                       }
                     >

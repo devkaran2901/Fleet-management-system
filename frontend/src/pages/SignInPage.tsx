@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { VelocityLogo } from '../components/VelocityLogo';
 
 type Vehicle = 'truck' | 'van' | 'car' | 'scooter';
 
@@ -20,8 +21,6 @@ function useCount(target: number, duration = 1500) {
   }, [target, duration]);
   return value;
 }
-
-const Logo = () => <span className="argo-mark" aria-hidden="true" />;
 
 function RoadScene() {
   const traffic: { type: Vehicle; lane: number; duration: number; begin: string }[] = [
@@ -84,11 +83,11 @@ export function SignInPage() {
 
   return <main className="argo-login"><section className="argo-card">
     <aside className="argo-stage">
-      <div className="stage-intro"><div className="brand-row"><div className="wordmark"><Logo />Argo<span>Logics</span></div><div className="live-chip"><i /> LIVE FLEET FEED</div></div><h1>Every vehicle, every destination, one live view.</h1><p>Sign in to track your fleet across every route in real time and keep each delivery on schedule.</p></div>
+      <div className="stage-intro"><div className="brand-row"><div className="wordmark"><VelocityLogo height={38} textColor="#F2F3F4" /></div><div className="live-chip"><i /> LIVE FLEET FEED</div></div><h1>Every vehicle, every destination, one live view.</h1><p>Sign in to track your fleet across every route in real time and keep each delivery on schedule.</p></div>
       <RoadScene /><Ticker /><Stats />
     </aside>
     <section className="login-panel"><div className="form-wrap">
-      <div className="eyebrow"><i /> Fleet management system</div><h2>Welcome back</h2><p className="new-user">Sign in to your ArgoLogics fleet workspace.</p>
+      <div className="eyebrow"><i /> Fleet management system</div><h2>Welcome back</h2><p className="new-user">Sign in to your Traverse fleet workspace.</p>
       {error && <p className="form-error" role="alert">{error}</p>}
       <form onSubmit={submit}>
         <label>Work email<input type="email" placeholder="name@company.com" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>

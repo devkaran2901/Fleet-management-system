@@ -3,6 +3,7 @@
    ========================================================================== */
 
 :root {
+  --panel-1: var(--panel, #14171b);
   --vendor-accent: #10b981;
   --vendor-accent-hover: #059669;
   --vendor-accent-light: rgba(16, 185, 129, 0.12);
@@ -429,8 +430,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(4px);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -440,15 +441,16 @@
 }
 
 .vp-modal {
-  background: var(--panel-1);
-  border: 1px solid var(--border-soft);
+  background-color: var(--panel, #14171b);
+  border: 1px solid var(--border);
   border-radius: 16px;
   width: 100%;
   max-width: 620px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75);
   padding: 24px;
+  opacity: 1;
   animation: vp-slide-in-right 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
