@@ -71,7 +71,7 @@ export const FleetLayout: React.FC = () => {
               >
                 <span className="pulsing-dot" />
                 <span className="mono-label" style={{ fontSize: 9, color: 'var(--text-1)' }}>
-                  S-01 FLEET MANAGER PORTAL
+                  FLEET MANAGER PORTAL
                 </span>
               </div>
               <button

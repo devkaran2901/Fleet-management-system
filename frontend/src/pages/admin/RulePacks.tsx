@@ -217,7 +217,7 @@ export const RulePacks: React.FC = () => {
     <>
       <div className="adm-page-head">
         <div>
-          <span className="adm-spec-chip mono-label">M-21 · Compliance Suite</span>
+          <span className="adm-spec-chip mono-label">Compliance Suite</span>
           <h1 className="adm-page-title">
             <FileStack size={22} color="var(--green)" /> Rule Packs
           </h1>

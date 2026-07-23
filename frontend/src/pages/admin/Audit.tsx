@@ -126,7 +126,7 @@ export const Audit: React.FC = () => {
     <>
       <div className="adm-page-head">
         <div>
-          <span className="adm-spec-chip mono-label">P-05 · Audit</span>
+          <span className="adm-spec-chip mono-label">Audit</span>
           <h1 className="adm-page-title">
             <ScrollText size={22} color="var(--green)" /> Audit Explorer
           </h1>

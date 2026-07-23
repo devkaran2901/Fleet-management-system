@@ -36,7 +36,7 @@ export const Reports: React.FC = () => {
     <>
       <div className="adm-page-head">
         <div>
-          <span className="adm-spec-chip mono-label">P-18 · Dispatch Analysis</span>
+          <span className="adm-spec-chip mono-label">Dispatch Analysis</span>
           <h1 className="adm-page-title">
             <BarChart3 size={22} color="var(--green)" /> Operations Reports
           </h1>

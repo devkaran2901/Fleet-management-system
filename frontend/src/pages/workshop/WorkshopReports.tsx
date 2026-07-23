@@ -33,17 +33,17 @@ export const WorkshopReports: React.FC = () => {
       {/* Header */}
       <div>
         <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0, color: 'var(--text-1)' }}>
-          Workshop Operational Reports (R-06)
+          Workshop Operational Reports
         </h2>
         <p style={{ fontSize: 13, color: 'var(--text-3)', margin: '4px 0 0 0' }}>
-          Specific performance, costing accuracy, downtime & warranty recovery reports for R-06 Workshop Manager.
+          Specific performance, costing accuracy, downtime & warranty recovery reports for Workshop Manager.
         </p>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
         {/* Report 1: Downtime by Vehicle */}
         <Panel
-          title="1. Downtime by Vehicle (KPI-08)"
+          title="1. Downtime by Vehicle"
           subtitle="Total hours out-of-service from shop check-in to QC release"
         >
           <table className="adm-table" style={{ fontSize: 12 }}>
@@ -72,7 +72,7 @@ export const WorkshopReports: React.FC = () => {
 
         {/* Report 2: Job Cost vs Estimate */}
         <Panel
-          title="2. Job Cost vs Estimate (KPI-35)"
+          title="2. Job Cost vs Estimate"
           subtitle="Estimate accuracy comparison & cost variance"
         >
           <table className="adm-table" style={{ fontSize: 12 }}>

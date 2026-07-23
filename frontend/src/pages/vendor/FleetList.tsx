@@ -82,7 +82,7 @@ export const FleetList: React.FC = () => {
       <div className="vp-page-header">
         <div>
           <div className="vp-page-title">
-            <Truck color="var(--vendor-accent)" /> My Fleet & Documents (UI Spec V-03)
+            <Truck color="var(--vendor-accent)" /> My Fleet & Documents
           </div>
           <div className="vp-page-subtitle">
             Manage your fleet registry, track document compliance (RC, Insurance, Fitness, Permit, PUC, AIS-140), and monitor T-30/T-15/T-7 expiry alerts.

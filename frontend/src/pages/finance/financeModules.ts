@@ -48,7 +48,7 @@ export const FINANCE_NAV: FinanceGroup[] = [
         icon: PieChart,
         service: 'R-14',
         built: true,
-        summary: 'Budget monitoring, commitments, AF-11 exceptions, and cost-center variance analysis.',
+        summary: 'Budget monitoring, commitments, budget exceptions, and cost-center variance analysis.',
       },
       {
         to: '/finance/vendor-bills',
@@ -56,7 +56,7 @@ export const FINANCE_NAV: FinanceGroup[] = [
         icon: Receipt,
         service: 'R-14',
         built: true,
-        summary: '3-Way match verification, rate engine escalation, detention, penalties, and AF-07 approval.',
+        summary: '3-Way match verification, rate engine escalation, detention, penalties, and bill approval.',
       },
       {
         to: '/finance/customer-invoices',
@@ -93,7 +93,7 @@ export const FINANCE_NAV: FinanceGroup[] = [
         icon: CheckSquare,
         service: 'R-14',
         built: true,
-        summary: 'Financial approval queue for AF-07 (Vendor Bills) and AF-11 (Budget Exceptions).',
+        summary: 'Financial approval queue for Vendor Bills and Budget Exceptions.',
       },
     ],
   },

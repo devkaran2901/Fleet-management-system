@@ -102,7 +102,7 @@ export const TripManagement: React.FC = () => {
     <>
       <div className="adm-page-head">
         <div>
-          <span className="adm-spec-chip mono-label">P-13 · Trip Execution</span>
+          <span className="adm-spec-chip mono-label">Trip Execution</span>
           <h1 className="adm-page-title">
             <Route size={22} color="var(--green)" /> Trip Management
           </h1>

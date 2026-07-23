@@ -153,7 +153,7 @@ export const AdminVehicles: React.FC = () => {
     <>
       <div className="adm-page-head">
         <div>
-          <span className="adm-spec-chip mono-label">M-01 · Vehicles Portal</span>
+          <span className="adm-spec-chip mono-label">Vehicles Portal</span>
           <h1 className="adm-page-title">
             <Truck size={22} color="var(--green)" /> Vehicles
           </h1>

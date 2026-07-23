@@ -151,7 +151,7 @@ export const NotificationPolicies: React.FC = () => {
     <>
       <div className="adm-page-head">
         <div>
-          <span className="adm-spec-chip mono-label">P-03 · Notifications</span>
+          <span className="adm-spec-chip mono-label">Notifications</span>
           <h1 className="adm-page-title">
             <Bell size={22} color="var(--green)" /> Notification Policies
           </h1>

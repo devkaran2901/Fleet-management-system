@@ -188,7 +188,7 @@ export const Integrations: React.FC = () => {
     <>
       <div className="adm-page-head">
         <div>
-          <span className="adm-spec-chip mono-label">P-06 · Integration &amp; Import</span>
+          <span className="adm-spec-chip mono-label">Integration &amp; Import</span>
           <h1 className="adm-page-title">
             <Plug size={22} color="var(--green)" /> Integration Hub
           </h1>

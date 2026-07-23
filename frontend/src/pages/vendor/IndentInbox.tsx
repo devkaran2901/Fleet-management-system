@@ -148,7 +148,7 @@ export const IndentInbox: React.FC = () => {
       <div className="vp-page-header">
         <div>
           <div className="vp-page-title">
-            <Inbox color="var(--vendor-accent)" /> Indent Inbox (UI Spec V-01)
+            <Inbox color="var(--vendor-accent)" /> Indent Inbox
           </div>
           <div className="vp-page-subtitle">
             Respond to freight indents from customers before acceptance countdown timer expires.

@@ -58,7 +58,7 @@ export const PartsDemand: React.FC = () => {
           Parts Demand Queue
         </h2>
         <p style={{ fontSize: 13, color: 'var(--text-3)', margin: '4px 0 0 0' }}>
-          Issue & reserve parts strictly against Job Cards (BR-MNT-06). Stock inventory management belongs to R-23 Store Keeper.
+          Issue & reserve parts strictly against Job Cards. Stock inventory management belongs to Store Keeper.
         </p>
       </div>
 

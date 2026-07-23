@@ -71,7 +71,7 @@ export const WorkshopLayout: React.FC = () => {
               >
                 <span className="pulsing-dot" style={{ backgroundColor: '#f59e0b' }} />
                 <span className="mono-label" style={{ fontSize: 9, color: 'var(--text-1)' }}>
-                  R-06 WORKSHOP MANAGER PORTAL
+                  WORKSHOP MANAGER PORTAL
                 </span>
               </div>
               <button

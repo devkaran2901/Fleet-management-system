@@ -43,7 +43,7 @@ export const Scorecard: React.FC = () => {
       <div className="vp-page-header">
         <div>
           <div className="vp-page-title">
-            <Award color="var(--vendor-accent)" /> Vendor Scorecard (UI Spec V-05)
+            <Award color="var(--vendor-accent)" /> Vendor Scorecard
           </div>
           <div className="vp-page-subtitle">
             Performance analytics, KPI breakdown, historical trend and business share allocation.

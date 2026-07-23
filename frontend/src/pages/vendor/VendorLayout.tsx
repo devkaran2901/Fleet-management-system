@@ -79,7 +79,7 @@ export const VendorLayout: React.FC = () => {
               >
                 <span className="pulsing-dot" style={{ backgroundColor: 'var(--vendor-accent)' }} />
                 <span className="mono-label" style={{ fontSize: 9, color: 'var(--vendor-accent)', fontWeight: 700 }}>
-                  V-00 VENDOR FLEET PORTAL
+                  VENDOR FLEET PORTAL
                 </span>
               </div>
 

@@ -92,7 +92,7 @@ export const PlacementTracker: React.FC = () => {
       <div className="vp-page-header">
         <div>
           <div className="vp-page-title">
-            <CheckCircle color="var(--vendor-accent)" /> Placement Tracker (UI Spec V-02)
+            <CheckCircle color="var(--vendor-accent)" /> Placement Tracker
           </div>
           <div className="vp-page-subtitle">
             Track every accepted indent through the 10-stage lifecycle, resolve compliance holds, and handle vehicle/driver replacements.

@@ -48,7 +48,7 @@ export const DriverAssignment: React.FC = () => {
     <>
       <div className="adm-page-head">
         <div>
-          <span className="adm-spec-chip mono-label">P-15 · Driver Operations</span>
+          <span className="adm-spec-chip mono-label">Driver Operations</span>
           <h1 className="adm-page-title">
             <UserCog size={22} color="var(--green)" /> Drivers
           </h1>
