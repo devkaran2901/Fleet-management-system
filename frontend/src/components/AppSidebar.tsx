@@ -8,13 +8,14 @@ import { FLEET_NAV, findFleetGroup } from '../pages/fleet/fleetModules';
 import { COMPLIANCE_NAV, findComplianceGroup } from '../pages/compliance/complianceModules';
 import { WORKSHOP_NAV, findWorkshopGroup } from '../pages/workshop/workshopModules';
 import { FINANCE_NAV, findFinanceGroup } from '../pages/finance/financeModules';
+import { VENDOR_NAV, findVendorGroup } from '../pages/vendor/vendorModules';
 import '../styles/admin.css';
 
 const STORAGE_KEY = 'fms_admin_nav_collapsed';
 
 /**
  * The single navigation rail for the whole app. Dynamically switches between
- * ADMIN, DISPATCHER, FLEET, COMPLIANCE, WORKSHOP and FINANCE menus based on route, ensuring perfect visual consistency.
+ * ADMIN, DISPATCHER, FLEET, COMPLIANCE, WORKSHOP, FINANCE and VENDOR menus based on route.
  */
 export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = ({
   open,
@@ -29,6 +30,7 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
   const isCompliance = location.pathname.startsWith('/compliance');
   const isWorkshop = location.pathname.startsWith('/workshop');
   const isFinance = location.pathname.startsWith('/finance');
+  const isVendor = location.pathname.startsWith('/vendor');
   
   const roles = user?.roles ?? [];
   const hasAdmin = roles.includes('ADMIN');
@@ -37,6 +39,7 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
   const hasComplianceManager = roles.includes('COMPLIANCE_MANAGER') || roles.includes('COMPLIANCE') || roles.includes('S-22');
   const hasWorkshopManager = roles.includes('WORKSHOP_MANAGER') || roles.includes('R-06');
   const hasFinanceManager = roles.includes('FINANCE_MANAGER') || roles.includes('R-14');
+  const hasVendor = roles.includes('VENDOR') || isVendor;
 
   // Determine which nav to show based on route + role
   let nav = ADMIN_NAV;
@@ -58,6 +61,9 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
     } else if (isFinance) {
       nav = FINANCE_NAV;
       resolveGroup = findFinanceGroup;
+    } else if (isVendor) {
+      nav = VENDOR_NAV;
+      resolveGroup = findVendorGroup;
     } else {
       nav = ADMIN_NAV;
       resolveGroup = findGroup;
@@ -65,15 +71,16 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
   } else if (hasFinanceManager || isFinance) {
     nav = FINANCE_NAV;
     resolveGroup = findFinanceGroup;
+  } else if (hasVendor || isVendor) {
+    nav = VENDOR_NAV;
+    resolveGroup = findVendorGroup;
   } else if (hasWorkshopManager || isWorkshop) {
     nav = WORKSHOP_NAV;
     resolveGroup = findWorkshopGroup;
   } else if (hasComplianceManager) {
-    // Compliance managers only ever see compliance nav
     nav = COMPLIANCE_NAV;
     resolveGroup = findComplianceGroup;
   } else if (hasFleetManager) {
-    // Fleet managers only ever see fleet nav — no compliance access
     nav = FLEET_NAV;
     resolveGroup = findFleetGroup;
   } else if (hasDispatcher) {
@@ -115,9 +122,11 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
           style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 0 8px 0', border: 'none', background: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }} 
           onClick={() => {
             if (hasAdmin) {
-              navigate(isDispatcher ? '/dispatcher/dashboard' : (isFleet ? '/fleet/dashboard' : (isCompliance ? '/compliance/dashboard' : (isWorkshop ? '/workshop/dashboard' : (isFinance ? '/finance/dashboard' : '/admin/dashboard')))));
+              navigate(isDispatcher ? '/dispatcher/dashboard' : (isFleet ? '/fleet/dashboard' : (isCompliance ? '/compliance/dashboard' : (isWorkshop ? '/workshop/dashboard' : (isFinance ? '/finance/dashboard' : (isVendor ? '/vendor/dashboard' : '/admin/dashboard'))))));
             } else if (hasFinanceManager) {
               navigate('/finance/dashboard');
+            } else if (hasVendor) {
+              navigate('/vendor/dashboard');
             } else if (hasWorkshopManager) {
               navigate('/workshop/dashboard');
             } else if (hasComplianceManager) {
@@ -141,7 +150,7 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
             <span className="mono-label" style={{ fontSize: 8, color: 'var(--text-3)' }}>WORKSPACE</span>
             <select 
-              value={isDispatcher ? 'dispatcher' : (isFleet ? 'fleet' : (isCompliance ? 'compliance' : (isWorkshop ? 'workshop' : (isFinance ? 'finance' : 'admin'))))}
+              value={isDispatcher ? 'dispatcher' : (isFleet ? 'fleet' : (isCompliance ? 'compliance' : (isWorkshop ? 'workshop' : (isFinance ? 'finance' : (isVendor ? 'vendor' : 'admin')))))}
               onChange={(e) => {
                 const val = e.target.value;
                 if (val === 'admin') navigate('/admin/dashboard');
@@ -150,6 +159,7 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
                 else if (val === 'compliance') navigate('/compliance/dashboard');
                 else if (val === 'workshop') navigate('/workshop/dashboard');
                 else if (val === 'finance') navigate('/finance/dashboard');
+                else if (val === 'vendor') navigate('/vendor/dashboard');
                 onNavigate();
               }}
               style={{
@@ -171,6 +181,7 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
               <option value="compliance">⚖️ Compliance Portal</option>
               <option value="workshop">🛠️ Workshop Manager Portal</option>
               <option value="finance">💼 Finance Manager Portal</option>
+              <option value="vendor">🤝 Vendor Portal</option>
             </select>
           </div>
         )}
@@ -195,31 +206,26 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
                 />
               </button>
 
-              <div className={`adm-rail-collapse ${isCollapsed ? 'is-collapsed' : ''}`}>
-                <ul className="adm-rail-links" aria-hidden={isCollapsed}>
-                  {group.modules.map((mod) => (
-                    <li key={mod.to}>
-                      <NavLink
-                        to={mod.to}
-                        onClick={onNavigate}
-                        title={mod.summary}
-                        tabIndex={isCollapsed ? -1 : undefined}
-                        className={({ isActive }) =>
-                          `adm-rail-link ${isActive ? 'is-active' : ''} ${mod.built ? '' : 'is-stub'}`
-                        }
-                      >
-                        <mod.icon size={15} />
-                        <span>{mod.label}</span>
-                        {!mod.built && (
-                          <span className="adm-rail-count" title="Not built yet">
-                            soon
-                          </span>
-                        )}
-                      </NavLink>
-                    </li>
+              {!isCollapsed && (
+                <div className="adm-rail-group-modules">
+                  {group.modules.map((mod: any) => (
+                    <NavLink
+                      key={mod.to}
+                      to={mod.to}
+                      onClick={onNavigate}
+                      className={({ isActive }) =>
+                        `adm-rail-link ${isActive ? 'is-active' : ''} ${
+                          !mod.built ? 'is-stub' : ''
+                        }`
+                      }
+                    >
+                      <mod.icon size={15} />
+                      <span className="adm-rail-title">{mod.label || mod.title}</span>
+                      {(mod.badge || mod.service) && <span className="adm-rail-count">{mod.badge || mod.service}</span>}
+                    </NavLink>
                   ))}
-                </ul>
-              </div>
+                </div>
+              )}
             </div>
           );
         })}
@@ -228,32 +234,32 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
       <div className="adm-rail-foot">
         <div className="adm-avatar">{initials}</div>
         <div style={{ flexGrow: 1, minWidth: 0 }}>
-          <span
-            style={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: 'var(--text-1)',
-              display: 'block',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}
-          >
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {user?.firstName} {user?.lastName}
-          </span>
-          <span style={{ fontSize: 10, color: 'var(--text-3)' }}>
-            {user?.roles?.[0] ?? 'USER'} · Delhi
-          </span>
+          </div>
+          <div style={{ fontSize: 10, color: 'var(--text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {user?.roles?.join(', ')}
+          </div>
         </div>
         <button
-          className="adm-icon-btn"
           onClick={() => {
             logout();
             navigate('/login');
           }}
-          title="Log out"
+          title="Sign Out"
+          style={{
+            border: 'none',
+            background: 'none',
+            color: 'var(--text-3)',
+            cursor: 'pointer',
+            padding: 4,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 4,
+          }}
         >
-          <LogOut size={15} />
+          <LogOut size={16} />
         </button>
       </div>
     </aside>

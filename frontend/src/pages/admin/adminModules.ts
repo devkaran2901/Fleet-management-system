@@ -203,8 +203,8 @@ export const ADMIN_NAV: AdminGroup[] = [
         label: 'Vendors',
         icon: Building2,
         service: 'M-06',
-        built: false,
-        summary: 'Vendor profiles, KYC and ratings.',
+        built: true,
+        summary: 'Vendor profiles, KYC document empanelment and user account provisioning.',
         planned: [
           'Vendor profile with KYC and document store',
           'Vendor rating feeding the allocation rules in Rule Packs',
