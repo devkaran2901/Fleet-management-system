@@ -7,13 +7,14 @@ import { DISPATCHER_NAV, findDispatcherGroup } from '../pages/dispatcher/dispatc
 import { FLEET_NAV, findFleetGroup } from '../pages/fleet/fleetModules';
 import { COMPLIANCE_NAV, findComplianceGroup } from '../pages/compliance/complianceModules';
 import { WORKSHOP_NAV, findWorkshopGroup } from '../pages/workshop/workshopModules';
+import { VENDOR_NAV, findVendorGroup } from '../pages/vendor/vendorModules';
 import '../styles/admin.css';
 
 const STORAGE_KEY = 'fms_admin_nav_collapsed';
 
 /**
  * The single navigation rail for the whole app. Dynamically switches between
- * ADMIN, DISPATCHER, FLEET, COMPLIANCE and WORKSHOP menus based on route, ensuring perfect visual consistency.
+ * ADMIN, DISPATCHER, FLEET, COMPLIANCE, WORKSHOP and VENDOR menus based on route.
  */
 export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = ({
   open,
@@ -27,6 +28,7 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
   const isFleet = location.pathname.startsWith('/fleet');
   const isCompliance = location.pathname.startsWith('/compliance');
   const isWorkshop = location.pathname.startsWith('/workshop');
+  const isVendor = location.pathname.startsWith('/vendor');
   
   const roles = user?.roles ?? [];
   const hasAdmin = roles.includes('ADMIN');
@@ -34,6 +36,7 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
   const hasFleetManager = roles.includes('FLEET_MANAGER') || roles.includes('FLEET');
   const hasComplianceManager = roles.includes('COMPLIANCE_MANAGER') || roles.includes('COMPLIANCE') || roles.includes('S-22');
   const hasWorkshopManager = roles.includes('WORKSHOP_MANAGER') || roles.includes('R-06');
+  const hasVendor = roles.includes('VENDOR') || isVendor;
 
   // Determine which nav to show based on route + role
   let nav = ADMIN_NAV;
@@ -52,19 +55,23 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
     } else if (isWorkshop) {
       nav = WORKSHOP_NAV;
       resolveGroup = findWorkshopGroup;
+    } else if (isVendor) {
+      nav = VENDOR_NAV;
+      resolveGroup = findVendorGroup;
     } else {
       nav = ADMIN_NAV;
       resolveGroup = findGroup;
     }
+  } else if (hasVendor || isVendor) {
+    nav = VENDOR_NAV;
+    resolveGroup = findVendorGroup;
   } else if (hasWorkshopManager || isWorkshop) {
     nav = WORKSHOP_NAV;
     resolveGroup = findWorkshopGroup;
   } else if (hasComplianceManager) {
-    // Compliance managers only ever see compliance nav
     nav = COMPLIANCE_NAV;
     resolveGroup = findComplianceGroup;
   } else if (hasFleetManager) {
-    // Fleet managers only ever see fleet nav — no compliance access
     nav = FLEET_NAV;
     resolveGroup = findFleetGroup;
   } else if (hasDispatcher) {

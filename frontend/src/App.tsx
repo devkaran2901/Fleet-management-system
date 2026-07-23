@@ -8,6 +8,28 @@ import { AdminLayout } from './pages/admin/AdminLayout';
 import { ADMIN_MODULES } from './pages/admin/adminModules';
 import { ModuleStub } from './pages/admin/ModuleStub';
 
+// Vendor Portal suite
+import { VendorLayout } from './pages/vendor/VendorLayout';
+import { VendorDashboard } from './pages/vendor/VendorDashboard';
+import { IndentInbox } from './pages/vendor/IndentInbox';
+import { PlacementTracker } from './pages/vendor/PlacementTracker';
+import { FleetList } from './pages/vendor/FleetList';
+import { VehicleDetails } from './pages/vendor/VehicleDetails';
+import { VehicleDocumentManagement } from './pages/vendor/VehicleDocumentManagement';
+import { DriverList } from './pages/vendor/DriverList';
+import { DriverDetails } from './pages/vendor/DriverDetails';
+import { DriverVerification } from './pages/vendor/DriverVerification';
+import { ComplianceCenter } from './pages/vendor/ComplianceCenter';
+import { BillsList } from './pages/vendor/BillsList';
+import { BillSubmission } from './pages/vendor/BillSubmission';
+import { BillDetails } from './pages/vendor/BillDetails';
+import { Payments } from './pages/vendor/Payments';
+import { Scorecard } from './pages/vendor/Scorecard';
+import { ProfileKYC } from './pages/vendor/ProfileKYC';
+import { NotificationsCenter } from './pages/vendor/NotificationsCenter';
+import { VendorTripTracking } from './pages/vendor/VendorTripTracking';
+import { VendorSettings } from './pages/vendor/VendorSettings';
+
 // Built admin modules
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { OrgTree } from './pages/admin/OrgTree';
@@ -144,6 +166,9 @@ const DashboardRedirect: React.FC = () => {
   const { user } = useAuth();
   if (user?.roles?.includes('ADMIN')) {
     return <Navigate to="/admin/dashboard" replace />;
+  }
+  if (user?.roles?.includes('VENDOR')) {
+    return <Navigate to="/vendor/dashboard" replace />;
   }
   if (user?.roles?.includes('WORKSHOP_MANAGER') || user?.roles?.includes('R-06')) {
     return <Navigate to="/workshop/dashboard" replace />;
@@ -285,6 +310,37 @@ const App: React.FC = () => {
                 />
               );
             })}
+          </Route>
+
+          {/* Vendor Portal suite */}
+          <Route
+            path="/vendor"
+            element={
+              <ProtectedRoute allowedRoles={['VENDOR', 'ADMIN']}>
+                <VendorLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/vendor/dashboard" replace />} />
+            <Route path="dashboard" element={<VendorDashboard />} />
+            <Route path="indents" element={<IndentInbox />} />
+            <Route path="placements" element={<PlacementTracker />} />
+            <Route path="trips" element={<VendorTripTracking />} />
+            <Route path="fleet" element={<FleetList />} />
+            <Route path="fleet/:id" element={<VehicleDetails />} />
+            <Route path="fleet/documents" element={<VehicleDocumentManagement />} />
+            <Route path="drivers" element={<DriverList />} />
+            <Route path="drivers/:id" element={<DriverDetails />} />
+            <Route path="drivers/verification" element={<DriverVerification />} />
+            <Route path="compliance" element={<ComplianceCenter />} />
+            <Route path="bills" element={<BillsList />} />
+            <Route path="bills/new" element={<BillSubmission />} />
+            <Route path="bills/:id" element={<BillDetails />} />
+            <Route path="payments" element={<Payments />} />
+            <Route path="scorecard" element={<Scorecard />} />
+            <Route path="profile" element={<ProfileKYC />} />
+            <Route path="notifications" element={<NotificationsCenter />} />
+            <Route path="settings" element={<VendorSettings />} />
           </Route>
 
           {/* Landing page redirects */}
