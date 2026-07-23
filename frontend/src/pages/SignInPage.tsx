@@ -33,14 +33,14 @@ function RoadScene() {
   return <div className="road-scene" aria-label="Live fleet traffic visualization">
     <svg viewBox="0 0 640 300" preserveAspectRatio="none" role="img">
       <defs>
-        <filter id="softShadow"><feGaussianBlur in="SourceAlpha" stdDeviation="2"/><feOffset dy="2"/><feComponentTransfer><feFuncA type="linear" slope=".35"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-        <g id="truck" filter="url(#softShadow)"><ellipse cx="32" cy="17" rx="29" ry="3" fill="#050609" opacity=".45"/><rect x="0" y="-12" width="41" height="20" rx="2" fill="#e9e9df"/><path d="M42-7h12l6 7v8H42z" fill="#59616a"/><path d="M47-6h6l3 5h-9z" fill="#27404c"/><path d="M8-8l4-6 4 6z" fill="#3fde79"/><text x="17" y="1" fill="#314238" fontSize="5" fontWeight="700">ARGO</text><circle cx="13" cy="10" r="5" fill="#20262d"/><circle cx="13" cy="10" r="2" fill="#b7bec1"/><circle cx="49" cy="10" r="5" fill="#20262d"/><circle cx="49" cy="10" r="2" fill="#b7bec1"/><circle cx="32" cy="10" r="5" fill="#20262d"/><circle cx="32" cy="10" r="2" fill="#b7bec1"/></g>
-        <g id="van" filter="url(#softShadow)"><ellipse cx="22" cy="15" rx="21" ry="3" fill="#050609" opacity=".45"/><path d="M1-9h31l8 8v9H1z" fill="#dce1d6"/><path d="M28-7h5l5 6h-10z" fill="#315061"/><path d="M8-6l3-5 3 5z" fill="#3fde79"/><text x="15" y="0" fill="#334438" fontSize="4.5" fontWeight="700">ARGO</text><circle cx="10" cy="10" r="5" fill="#20262d"/><circle cx="10" cy="10" r="2" fill="#bec4c3"/><circle cx="31" cy="10" r="5" fill="#20262d"/><circle cx="31" cy="10" r="2" fill="#bec4c3"/></g>
-        <g id="car" filter="url(#softShadow)"><ellipse cx="20" cy="13" rx="19" ry="3" fill="#050609" opacity=".4"/><path d="M1 3l4-9h23l8 9v5H1z" fill="#8d969e"/><path d="M9-5h15l5 6H5z" fill="#354956"/><circle cx="9" cy="9" r="4" fill="#1c2025"/><circle cx="29" cy="9" r="4" fill="#1c2025"/><path d="M34 2h2v3h-2z" fill="#f2b441"/></g>
-        <g id="scooter" filter="url(#softShadow)"><ellipse cx="16" cy="12" rx="15" ry="2.5" fill="#050609" opacity=".4"/><circle cx="7" cy="8" r="4" fill="#1d2229"/><circle cx="26" cy="8" r="4" fill="#1d2229"/><path d="M7 5h15l3-10h2l-2 11H14l-4-5z" fill="#9fa7a6"/><circle cx="17" cy="-6" r="5" fill="#b8a28e"/><path d="M14-2h8l4 6H13z" fill="#4d8b62"/><circle cx="23" cy="0" r="2" fill="#3fde79"/></g>
+        <filter id="softShadow"><feGaussianBlur in="SourceAlpha" stdDeviation="2" /><feOffset dy="2" /><feComponentTransfer><feFuncA type="linear" slope=".35" /></feComponentTransfer><feMerge><feMergeNode /><feMergeNode in="SourceGraphic" /></feMerge></filter>
+        <g id="truck" filter="url(#softShadow)"><ellipse cx="32" cy="17" rx="29" ry="3" fill="#050609" opacity=".45" /><rect x="0" y="-12" width="41" height="20" rx="2" fill="#e9e9df" /><path d="M42-7h12l6 7v8H42z" fill="#59616a" /><path d="M47-6h6l3 5h-9z" fill="#27404c" /><path d="M8-8l4-6 4 6z" fill="#3fde79" /><text x="17" y="1" fill="#314238" fontSize="5" fontWeight="700">ARGO</text><circle cx="13" cy="10" r="5" fill="#20262d" /><circle cx="13" cy="10" r="2" fill="#b7bec1" /><circle cx="49" cy="10" r="5" fill="#20262d" /><circle cx="49" cy="10" r="2" fill="#b7bec1" /><circle cx="32" cy="10" r="5" fill="#20262d" /><circle cx="32" cy="10" r="2" fill="#b7bec1" /></g>
+        <g id="van" filter="url(#softShadow)"><ellipse cx="22" cy="15" rx="21" ry="3" fill="#050609" opacity=".45" /><path d="M1-9h31l8 8v9H1z" fill="#dce1d6" /><path d="M28-7h5l5 6h-10z" fill="#315061" /><path d="M8-6l3-5 3 5z" fill="#3fde79" /><text x="15" y="0" fill="#334438" fontSize="4.5" fontWeight="700">ARGO</text><circle cx="10" cy="10" r="5" fill="#20262d" /><circle cx="10" cy="10" r="2" fill="#bec4c3" /><circle cx="31" cy="10" r="5" fill="#20262d" /><circle cx="31" cy="10" r="2" fill="#bec4c3" /></g>
+        <g id="car" filter="url(#softShadow)"><ellipse cx="20" cy="13" rx="19" ry="3" fill="#050609" opacity=".4" /><path d="M1 3l4-9h23l8 9v5H1z" fill="#8d969e" /><path d="M9-5h15l5 6H5z" fill="#354956" /><circle cx="9" cy="9" r="4" fill="#1c2025" /><circle cx="29" cy="9" r="4" fill="#1c2025" /><path d="M34 2h2v3h-2z" fill="#f2b441" /></g>
+        <g id="scooter" filter="url(#softShadow)"><ellipse cx="16" cy="12" rx="15" ry="2.5" fill="#050609" opacity=".4" /><circle cx="7" cy="8" r="4" fill="#1d2229" /><circle cx="26" cy="8" r="4" fill="#1d2229" /><path d="M7 5h15l3-10h2l-2 11H14l-4-5z" fill="#9fa7a6" /><circle cx="17" cy="-6" r="5" fill="#b8a28e" /><path d="M14-2h8l4 6H13z" fill="#4d8b62" /><circle cx="23" cy="0" r="2" fill="#3fde79" /></g>
       </defs>
-      <rect x="0" y="87" width="640" height="126" fill="#2a2e34"/><rect x="0" y="92" width="640" height="8" fill="#545a60"/><rect x="0" y="200" width="640" height="8" fill="#545a60"/><path d="M0 105H640M0 195H640" stroke="#e4e4d8" strokeWidth="1.5" opacity=".8"/><path d="M0 150H640" stroke="#d9dcd8" strokeWidth="2" strokeDasharray="18 16" opacity=".9"/>
-      {[['165','HUB 01','#3fde79','0s'], ['360','HUB 02','#4fc3e8','-.8s'], ['530','HUB 03','#f2b441','-1.6s']].map(([x, label, color, begin]) => <g key={x}><path d={`M${x} 74v145`} stroke={color} strokeWidth="1" strokeDasharray="3 6" opacity=".5"/><text x={x} y="66" textAnchor="middle" fill={color} fontSize="9" fontFamily="monospace">{label}</text><circle cx={x} cy="150" r="4" fill="none" stroke={color}><animate attributeName="r" values="3;11;3" dur="2.4s" begin={begin} repeatCount="indefinite"/><animate attributeName="opacity" values="1;0;1" dur="2.4s" begin={begin} repeatCount="indefinite"/></circle></g>)}
+      <rect x="0" y="87" width="640" height="126" fill="#2a2e34" /><rect x="0" y="92" width="640" height="8" fill="#545a60" /><rect x="0" y="200" width="640" height="8" fill="#545a60" /><path d="M0 105H640M0 195H640" stroke="#e4e4d8" strokeWidth="1.5" opacity=".8" /><path d="M0 150H640" stroke="#d9dcd8" strokeWidth="2" strokeDasharray="18 16" opacity=".9" />
+      {[['165', 'HUB 01', '#3fde79', '0s'], ['360', 'HUB 02', '#4fc3e8', '-.8s'], ['530', 'HUB 03', '#f2b441', '-1.6s']].map(([x, label, color, begin]) => <g key={x}><path d={`M${x} 74v145`} stroke={color} strokeWidth="1" strokeDasharray="3 6" opacity=".5" /><text x={x} y="66" textAnchor="middle" fill={color} fontSize="9" fontFamily="monospace">{label}</text><circle cx={x} cy="150" r="4" fill="none" stroke={color}><animate attributeName="r" values="3;11;3" dur="2.4s" begin={begin} repeatCount="indefinite" /><animate attributeName="opacity" values="1;0;1" dur="2.4s" begin={begin} repeatCount="indefinite" /></circle></g>)}
       {traffic.map((vehicle, index) => <use key={index} href={`#${vehicle.type}`} transform={`translate(-70 ${vehicle.lane})`}><animateMotion path="M-10 0 H720" dur={`${vehicle.duration}s`} begin={vehicle.begin} repeatCount="indefinite" /></use>)}
     </svg>
   </div>;
@@ -102,12 +102,11 @@ export function SignInPage() {
           <span>⚡ Fast Access Demo Accounts</span>
           <span style={{ fontSize: 9, color: '#16a34a', fontWeight: 600, background: '#dff7e8', padding: '2px 6px', borderRadius: 4 }}>Click to Auto-fill</span>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 6 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginBottom: 6 }}>
           {[
             { role: 'Administrator', email: 'admin@fleetos.com', pass: 'password123', icon: '🔧' },
             { role: 'Finance Manager', email: 'finance@fleetos.com', pass: 'password123', icon: '💼' },
             { role: 'Compliance Manager', email: 'compliance@fleetos.com', pass: 'password123', icon: '⚖️' },
-            { role: 'Vendor Portal', email: 'vendor@fleetos.com', pass: 'password123', icon: '🏭' },
           ].map((acc) => (
             <button
               key={acc.email}
@@ -163,6 +162,7 @@ export function SignInPage() {
             { role: 'Dispatcher', email: 'dispatcher@fleetos.com', pass: 'password123', icon: '⚡' },
             { role: 'Fleet Manager', email: 'manager@fleetos.com', pass: 'password123', icon: '🚚' },
             { role: 'Workshop Manager', email: 'workshop@fleetos.com', pass: 'password123', icon: '🛠️' },
+            { role: 'Vendor Portal', email: 'vendor@fleetos.com', pass: 'password123', icon: '🏭' },
           ].map((acc) => (
             <button
               key={acc.email}
