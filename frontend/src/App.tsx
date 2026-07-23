@@ -49,6 +49,7 @@ import { SystemHealth } from './pages/admin/SystemHealth';
 import { AdminVehicles } from './pages/admin/Vehicles';
 import { AdminDrivers } from './pages/admin/Drivers';
 import { AdminRoutes } from './pages/admin/Routes';
+import { AdminVendors } from './pages/admin/AdminVendors';
 
 // Built dispatcher modules
 import { DispatcherLayout } from './pages/dispatcher/DispatcherLayout';
@@ -115,6 +116,7 @@ const BUILT_PAGES: Record<string, React.ComponentType> = {
   '/admin/vehicles': AdminVehicles,
   '/admin/drivers': AdminDrivers,
   '/admin/routes': AdminRoutes,
+  '/admin/vendors': AdminVendors,
 };
 
 const BUILT_DISPATCHER_PAGES: Record<string, React.ComponentType> = {

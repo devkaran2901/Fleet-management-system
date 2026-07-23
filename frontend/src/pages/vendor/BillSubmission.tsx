@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, ArrowLeft, Upload, AlertTriangle, CheckCircle, Truck, MapPin } from 'lucide-react';
 import '../../styles/vendor.css';
+import { initialBills, initialPayments } from './vendorDataStore';
+import type { Bill } from './vendorDataStore';
 
 const TRIP_OPTIONS = [
   { id: 'TRIP-4020', route: 'Bhiwandi -> Chakan', vehicle: 'MH-12-PQ-9988', driver: 'Ramesh Kumar', contractRate: 48500, distanceKm: 165 },
@@ -37,7 +39,49 @@ export const BillSubmission: React.FC = () => {
     setTimeout(() => {
       setSubmitting(false);
       setSubmitted(true);
-    }, 1200);
+
+      const billId = `BILL-${Math.floor(8805 + Math.random() * 90)}`;
+      const statusVal: Bill['status'] = hasDeviation ? 'Deviation Found' : 'Approved';
+
+      const newBill: Bill = {
+        id: billId,
+        tripId: trip?.id || 'TRIP-4020',
+        customer: 'Amazon Transportation India',
+        vehicleNumber: trip?.vehicle || 'MH-12-PQ-9988',
+        driverName: trip?.driver || 'Ramesh Kumar',
+        route: trip?.route || 'Bhiwandi -> Chakan',
+        contractRate: trip?.contractRate || 48500,
+        distanceKm: trip?.distanceKm || 165,
+        expectedAmount: trip?.contractRate || 48500,
+        submittedAmount: submittedNum,
+        difference: deviation,
+        status: statusVal,
+        verificationRemarks: hasDeviation
+          ? `Deviation detected: Billed amount ₹${submittedNum.toLocaleString()} vs contract rate ₹${(trip?.contractRate || 0).toLocaleString()}. Reason: ${deviationReason}`
+          : 'Phase 13 Auto-Verified: Billed amount matched contract rate exactly.',
+        podUploaded: true,
+        invoicePdfUploaded: true,
+        submissionDate: new Date().toISOString().split('T')[0],
+      };
+
+      initialBills.unshift(newBill);
+
+      // Phase 15: If auto-approved, release payment record into Vendor Payments
+      if (statusVal === 'Approved') {
+        initialPayments.unshift({
+          id: `PAY-${Math.floor(1004 + Math.random() * 90)}`,
+          billNumber: billId,
+          customer: 'Amazon Transportation India',
+          status: 'Scheduled',
+          grossAmount: submittedNum,
+          debitNotes: 0,
+          tdsAmount: Math.round(submittedNum * 0.02),
+          netPayable: Math.round(submittedNum * 0.98),
+          payoutDate: new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0],
+          referenceNumber: `UTR-AUTO-${Math.floor(10000000 + Math.random() * 90000000)}`,
+        });
+      }
+    }, 1000);
   };
 
   if (submitted) {

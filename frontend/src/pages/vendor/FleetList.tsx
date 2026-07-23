@@ -55,9 +55,10 @@ export const FleetList: React.FC = () => {
       },
     };
     setVehicles([created, ...vehicles]);
+    initialVehicles.unshift(created);
     setShowAddModal(false);
     setNewReg('');
-    alert(`Vehicle ${created.registrationNumber} added to fleet!`);
+    alert(`Vehicle ${created.registrationNumber} added to vendor fleet! Initial documents verified as Valid.`);
   };
 
   const handleRemove = (id: string, reg: string) => {

@@ -12,7 +12,7 @@ import {
   MapPin,
   Calendar,
 } from 'lucide-react';
-import { initialIndents, initialVehicles, initialDrivers } from './vendorDataStore';
+import { initialIndents, initialVehicles, initialDrivers, initialPlacements } from './vendorDataStore';
 import type { Indent } from './vendorDataStore';
 import '../../styles/vendor.css';
 
@@ -98,7 +98,7 @@ export const IndentInbox: React.FC = () => {
       // allowed if passes
     }
 
-    // Mark as accepted
+    // Mark as accepted and push to placement tracker
     if (selectedIndentForAccept) {
       setIndents((prev) =>
         prev.map((i) =>
@@ -112,8 +112,24 @@ export const IndentInbox: React.FC = () => {
             : i,
         ),
       );
+
+      // Phase 9: Sync to Placement Tracker
+      initialPlacements.unshift({
+        id: `PLC-${Math.floor(500 + Math.random() * 90)}`,
+        indentId: selectedIndentForAccept.id,
+        customer: selectedIndentForAccept.customer,
+        route: selectedIndentForAccept.route,
+        status: 'Approved',
+        vehicleNumber: veh?.registrationNumber || 'KA-01-AB-1234',
+        driverName: drv?.name || 'Suresh Yadav',
+        driverPhone: drv?.phone || '+91 98220 11223',
+        documentStatus: 'Valid',
+        complianceHold: false,
+        reportingTime: selectedIndentForAccept.reportingTime,
+      });
+
       setSelectedIndentForAccept(null);
-      alert(`Indent ${selectedIndentForAccept.id} successfully accepted! Placement created in Placement Tracker.`);
+      alert(`Indent ${selectedIndentForAccept.id} successfully accepted! Placement Approved in Placement Tracker.`);
     }
   };
 

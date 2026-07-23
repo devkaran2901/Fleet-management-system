@@ -10,6 +10,7 @@ import {
   Badge, Button, EmptyState, ErrorState, LoadingState, Modal, Panel, Select, useToast
 } from '../../components/admin/ui';
 import '../../styles/admin.css';
+import { initialIndents } from '../vendor/vendorDataStore';
 
 export const DispatcherDashboard: React.FC = () => {
   const { notify } = useToast();
@@ -214,7 +215,24 @@ export const DispatcherDashboard: React.FC = () => {
     setSubmittingAction(true);
     try {
       await dispatcherApi.vendorSpill(selectedRequestId, selectedVendorName);
-      notify('success', `Spilled request ${selectedRequestId} to vendor ${selectedVendorName}`);
+      
+      // Phase 5 & 6: Create Indent in Vendor Portal Data Store
+      const newIndentId = `IND-${Math.floor(9020 + Math.random() * 80)}`;
+      initialIndents.unshift({
+        id: newIndentId,
+        customer: `Spilled: ${selectedRequestId}`,
+        route: 'Delhi (SGTN) -> Jaipur (VKI)',
+        pickupLocation: 'Hub 04, SGTN Delhi',
+        deliveryLocation: 'VKI Industrial Area, Jaipur',
+        vehicleTypeRequired: '32 FT Multi-Axle Container',
+        capacityRequired: '18 MT',
+        reportingTime: 'Today at 18:00 PM',
+        expectedTripValue: 45000,
+        remainingSeconds: 3600,
+        status: 'AWAITING',
+      });
+
+      notify('success', `Spilled request ${selectedRequestId} to vendor ${selectedVendorName}. Indent ${newIndentId} created!`);
       setVendorModalOpen(false);
       setSelectedRequestId(null);
       await loadData(true);

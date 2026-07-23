@@ -1,3 +1,44 @@
+export interface EmpanelledVendor {
+  id: string;
+  vendorCode: string;
+  name: string;
+  gstin: string;
+  pan: string;
+  address: string;
+  contactPerson: string;
+  phone: string;
+  email: string;
+  bankName: string;
+  bankAccount: string;
+  ifsc: string;
+  status: 'Draft' | 'Pending Verification' | 'Empanelled' | 'Rejected';
+  kycDocuments: {
+    gstCertificate: boolean;
+    panCard: boolean;
+    companyRegistration: boolean;
+    cancelledCheque: boolean;
+    addressProof: boolean;
+    insurance: boolean;
+  };
+  rejectionReason?: string;
+  createdAt: string;
+  empanelledAt?: string;
+}
+
+export interface VendorUser {
+  id: string;
+  vendorId: string;
+  vendorName: string;
+  fullName: string;
+  email: string;
+  username: string;
+  role: 'Owner' | 'Operations' | 'Billing';
+  status: 'Active' | 'Pending First Login';
+  temporaryPassword?: string;
+  isFirstLogin: boolean;
+  createdAt: string;
+}
+
 export interface Indent {
   id: string;
   customer: string;
@@ -418,3 +459,109 @@ export const initialPayments: PaymentItem[] = [
     netPayable: 60760,
   },
 ];
+
+export const initialVendors: EmpanelledVendor[] = [
+  {
+    id: 'VND-101',
+    vendorCode: 'VND-ABC-01',
+    name: 'ABC Transport Pvt Ltd',
+    gstin: '27AAACA1234A1Z5',
+    pan: 'AAACA1234A',
+    address: 'Plot 42, Transport Nagar, Bhiwandi, Thane, MH',
+    contactPerson: 'Rakesh Sharma',
+    phone: '+91 98200 88990',
+    email: 'ops@abctransport.com',
+    bankName: 'HDFC Bank',
+    bankAccount: '50200012345678',
+    ifsc: 'HDFC0000123',
+    status: 'Empanelled',
+    kycDocuments: {
+      gstCertificate: true,
+      panCard: true,
+      companyRegistration: true,
+      cancelledCheque: true,
+      addressProof: true,
+      insurance: true,
+    },
+    createdAt: '2026-06-15',
+    empanelledAt: '2026-06-18',
+  },
+  {
+    id: 'VND-102',
+    vendorCode: 'VND-VRL-02',
+    name: 'VRL Logistics Network',
+    gstin: '29AAACV9876V1Z2',
+    pan: 'AAACV9876V',
+    address: 'Hub 12, Hosur Road, Electronic City, Bengaluru, KA',
+    contactPerson: 'Siddharth Rao',
+    phone: '+91 98450 11223',
+    email: 'contact@vrllogistics.com',
+    bankName: 'ICICI Bank',
+    bankAccount: '000405011982',
+    ifsc: 'ICIC0000004',
+    status: 'Empanelled',
+    kycDocuments: {
+      gstCertificate: true,
+      panCard: true,
+      companyRegistration: true,
+      cancelledCheque: true,
+      addressProof: true,
+      insurance: true,
+    },
+    createdAt: '2026-06-20',
+    empanelledAt: '2026-06-22',
+  },
+  {
+    id: 'VND-103',
+    vendorCode: 'VND-EXP-03',
+    name: 'Express Freight Solutions',
+    gstin: '07AAACE5544E1Z9',
+    pan: 'AAACE5544E',
+    address: 'Sanjay Gandhi Transport Nagar, Delhi',
+    contactPerson: 'Vikram Singh',
+    phone: '+91 98110 55443',
+    email: 'vikram@expressfreight.in',
+    bankName: 'Axis Bank',
+    bankAccount: '9180200334411',
+    ifsc: 'UTIB0000210',
+    status: 'Pending Verification',
+    kycDocuments: {
+      gstCertificate: true,
+      panCard: true,
+      companyRegistration: true,
+      cancelledCheque: true,
+      addressProof: false,
+      insurance: true,
+    },
+    createdAt: '2026-07-20',
+  },
+];
+
+export const initialVendorUsers: VendorUser[] = [
+  {
+    id: 'VU-201',
+    vendorId: 'VND-101',
+    vendorName: 'ABC Transport Pvt Ltd',
+    fullName: 'Rakesh Sharma (Owner)',
+    email: 'owner@abctransport.com',
+    username: 'vendor.owner123',
+    role: 'Owner',
+    status: 'Active',
+    isFirstLogin: false,
+    createdAt: '2026-06-18',
+  },
+  {
+    id: 'VU-202',
+    vendorId: 'VND-101',
+    vendorName: 'ABC Transport Pvt Ltd',
+    fullName: 'Amit Verma (Operations)',
+    email: 'ops@abctransport.com',
+    username: 'vendor.ops123',
+    role: 'Operations',
+    status: 'Pending First Login',
+    temporaryPassword: 'Temp@Password123',
+    isFirstLogin: true,
+    createdAt: '2026-06-19',
+  },
+];
+

@@ -102,11 +102,11 @@ export function SignInPage() {
           <span>⚡ Fast Access Demo Accounts</span>
           <span style={{ fontSize: 9, color: '#16a34a', fontWeight: 600, background: '#dff7e8', padding: '2px 6px', borderRadius: 4 }}>Click to Auto-fill</span>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6, marginBottom: 6 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginBottom: 6 }}>
           {[
-                        { role: 'Administrator', email: 'admin@fleetos.com', pass: 'password123', icon: '🔧' },
-
-            { role: 'Compliance Manager', email: 'compliance@fleetos.com', pass: 'password123', icon: '⚖️' },
+            { role: 'Administrator', email: 'admin@fleetos.com', pass: 'password123', icon: '🔧' },
+            { role: 'Compliance Mgr', email: 'compliance@fleetos.com', pass: 'password123', icon: '⚖️' },
+            { role: 'Vendor Portal', email: 'vendor@fleetos.com', pass: 'password123', icon: '🏭' },
           ].map((acc) => (
             <button
               key={acc.email}

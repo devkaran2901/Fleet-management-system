@@ -13,6 +13,7 @@ export const VendorLayout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [railOpen, setRailOpen] = useState(false);
+  const [showFirstLoginModal, setShowFirstLoginModal] = useState(false);
 
   const [theme, setTheme] = useState<'light' | 'dark'>(
     () => (localStorage.getItem('theme') as 'light' | 'dark') || 'dark',
@@ -105,6 +106,15 @@ export const VendorLayout: React.FC = () => {
 
               <button
                 className="adm-icon-btn"
+                onClick={() => setShowFirstLoginModal(true)}
+                title="Phase 2 First Login Security Prompt"
+                style={{ padding: '4px 8px', fontSize: 11, width: 'auto', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--vendor-warning)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 6, fontWeight: 700 }}
+              >
+                🔐 First Login Security
+              </button>
+
+              <button
+                className="adm-icon-btn"
                 onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
                 title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
               >
@@ -125,6 +135,61 @@ export const VendorLayout: React.FC = () => {
           <div className="adm-page" key={location.pathname}>
             <Outlet />
           </div>
+
+          {/* Phase 2: First Login Password Change Modal */}
+          {showFirstLoginModal && (
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 2000 }}>
+              <div style={{ background: 'var(--panel-1)', border: '1px solid var(--border-soft)', borderRadius: 14, width: '100%', maxWidth: 480, padding: 24 }}>
+                <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-1)', marginBottom: 6 }}>
+                  Welcome to FleetOS — First Login Setup
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 16 }}>
+                  User account provisioned by Admin. You are logged in with temporary password <code style={{ color: 'var(--amber)' }}>Temp@Password123</code>.
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
+                  <div>
+                    <label style={{ fontSize: 12, color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>New Permanent Password *</label>
+                    <input
+                      type="password"
+                      placeholder="Enter new password (min 8 chars)"
+                      style={{ width: '100%', padding: '8px 12px', background: 'var(--panel-2)', border: '1px solid var(--border-soft)', borderRadius: 6, color: 'var(--text-1)', fontSize: 13 }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 12, color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>Confirm New Password *</label>
+                    <input
+                      type="password"
+                      placeholder="Confirm new password"
+                      style={{ width: '100%', padding: '8px 12px', background: 'var(--panel-2)', border: '1px solid var(--border-soft)', borderRadius: 6, color: 'var(--text-1)', fontSize: 13 }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                    <input type="checkbox" id="terms" defaultChecked />
+                    <label htmlFor="terms" style={{ fontSize: 12, color: 'var(--text-1)' }}>I accept the FleetOS Vendor Partner Terms of Service & SLA requirements.</label>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+                  <button
+                    onClick={() => setShowFirstLoginModal(false)}
+                    style={{ padding: '8px 16px', background: 'var(--panel-2)', border: '1px solid var(--border-soft)', borderRadius: 6, color: 'var(--text-1)', cursor: 'pointer' }}
+                  >
+                    Remind Later
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowFirstLoginModal(false);
+                      alert('Password successfully updated! First login setup complete (Phase 2).');
+                    }}
+                    style={{ padding: '8px 20px', background: 'var(--vendor-accent)', color: '#000', fontWeight: 700, border: 'none', borderRadius: 6, cursor: 'pointer' }}
+                  >
+                    Update Password & Proceed
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </ToastProvider>

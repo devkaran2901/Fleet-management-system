@@ -36,9 +36,10 @@ export const DriverList: React.FC = () => {
       },
     };
     setDrivers([created, ...drivers]);
+    initialDrivers.unshift(created);
     setShowAddModal(false);
     setNewName(''); setNewLic(''); setNewPhone('');
-    alert(`Driver ${created.name} added and sent to Verification Workbench!`);
+    alert(`Driver ${created.name} added to roster and sent to Verification Workbench!`);
   };
 
   const filteredDrivers = drivers.filter((d) => {

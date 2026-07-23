@@ -19,6 +19,7 @@ async function main() {
     { name: 'FLEET_MANAGER', description: 'Fleet Manager managing assets and maintenance' },
     { name: 'COMPLIANCE_MANAGER', description: 'Compliance Manager overseeing regulatory compliance, challans, insurance and incidents' },
     { name: 'WORKSHOP_MANAGER', description: 'Workshop Manager managing job cards, bays, mechanics, estimates, and PM due list' },
+    { name: 'VENDOR', description: 'External Vendor / Transport Partner accessing the Vendor Portal' },
   ];
 
   const dbRoles: Role[] = [];
@@ -163,6 +164,32 @@ async function main() {
     });
   }
   console.log(`Workshop Manager account ready: ${workshopEmail}`);
+
+  // Seed demo vendor user (ABC Transport Pvt Ltd)
+  const vendorEmail = 'vendor@fleetos.com';
+  const vendorUser = await prisma.user.upsert({
+    where: { email: vendorEmail },
+    update: { password: hashedPassword, isActive: true },
+    create: {
+      email: vendorEmail,
+      password: hashedPassword,
+      firstName: 'ABC Transport',
+      lastName: 'Pvt Ltd',
+      isActive: true,
+    },
+  });
+
+  const vendorRole = dbRoles.find((r) => r.name === 'VENDOR');
+  if (vendorRole) {
+    await prisma.userRole.upsert({
+      where: {
+        userId_roleId: { userId: vendorUser.id, roleId: vendorRole.id },
+      },
+      update: {},
+      create: { userId: vendorUser.id, roleId: vendorRole.id },
+    });
+  }
+  console.log(`Vendor (demo) account ready: ${vendorEmail}`);
 
   await seedOrgTree();
   await seedCapabilities(dbRoles);
