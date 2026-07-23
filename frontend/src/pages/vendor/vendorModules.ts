@@ -45,7 +45,7 @@ export const VENDOR_NAV: VendorNavGroup[] = [
       },
       {
         to: '/vendor/scorecard',
-        label: 'Vendor Scorecard (V-05)',
+        label: 'Vendor Scorecard',
         icon: Award,
         service: 'V-05',
         built: true,
@@ -58,7 +58,7 @@ export const VENDOR_NAV: VendorNavGroup[] = [
     modules: [
       {
         to: '/vendor/indents',
-        label: 'Indent Inbox (V-01)',
+        label: 'Indent Inbox',
         icon: Inbox,
         service: 'V-01',
         built: true,
@@ -66,7 +66,7 @@ export const VENDOR_NAV: VendorNavGroup[] = [
       },
       {
         to: '/vendor/placements',
-        label: 'Placement Tracker (V-02)',
+        label: 'Placement Tracker',
         icon: Truck,
         service: 'V-02',
         built: true,
@@ -87,7 +87,7 @@ export const VENDOR_NAV: VendorNavGroup[] = [
     modules: [
       {
         to: '/vendor/fleet',
-        label: 'My Fleet & Docs (V-03)',
+        label: 'My Fleet & Docs',
         icon: Truck,
         service: 'V-03',
         built: true,
@@ -95,7 +95,7 @@ export const VENDOR_NAV: VendorNavGroup[] = [
       },
       {
         to: '/vendor/drivers',
-        label: 'Drivers Roster (V-06)',
+        label: 'Drivers Roster',
         icon: Users,
         service: 'V-06',
         built: true,
@@ -124,7 +124,7 @@ export const VENDOR_NAV: VendorNavGroup[] = [
     modules: [
       {
         to: '/vendor/bills',
-        label: 'Bills Workbench (V-04)',
+        label: 'Bills Workbench',
         icon: FileText,
         service: 'V-04',
         built: true,

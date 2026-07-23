@@ -65,7 +65,7 @@ export const Estimates: React.FC = () => {
       if (est.approvalStatus === 'Approved') {
         notify('success', `Estimate ${est.estimateNumber} Auto-Approved (≤ ₹10,000 threshold)`);
       } else {
-        notify('info', `Estimate ${est.estimateNumber} Submitted for AF-05 Approval (> ₹10,000 threshold)`);
+        notify('info', `Estimate ${est.estimateNumber} Submitted for Approval (> ₹10,000 threshold)`);
       }
 
       setCreateOpen(false);
@@ -80,7 +80,7 @@ export const Estimates: React.FC = () => {
       await workshopApi.updateEstimate(est.id, {
         approvalStatus: 'PendingApproval',
       });
-      notify('info', `Estimate ${est.estimateNumber} re-submitted for AF-05 approval after revision/threshold breach`);
+      notify('info', `Estimate ${est.estimateNumber} re-submitted for approval after revision/threshold breach`);
       fetchEstimates();
     } catch (err: any) {
       notify('error', err?.message || 'Failed to re-submit estimate');
@@ -111,7 +111,7 @@ export const Estimates: React.FC = () => {
             Maintenance Estimate Builder
           </h2>
           <p style={{ fontSize: 13, color: 'var(--text-3)', margin: '4px 0 0 0' }}>
-            Labour, Parts, Outside Work breakdown with AF-05 threshold auto-approvals (≤ ₹10K) and R-07 technical sign-off.
+            Labour, Parts, Outside Work breakdown with threshold auto-approvals (≤ ₹10K) and technical sign-off.
           </p>
         </div>
         <Button variant="primary" icon={<Plus size={14} />} onClick={() => setCreateOpen(true)}>
@@ -133,8 +133,8 @@ export const Estimates: React.FC = () => {
                 <th>Outside Work (₹)</th>
                 <th>Taxes (18%)</th>
                 <th>Total Estimate (₹)</th>
-                <th>Technical (R-07)</th>
-                <th>AF-05 Status</th>
+                <th>Technical Approval</th>
+                <th>Approval Status</th>
                 <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
@@ -186,7 +186,7 @@ export const Estimates: React.FC = () => {
                 <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--text-1)' }}>₹{viewEst.totalAmount.toLocaleString()}</div>
               </div>
               <div>
-                <span className="mono-label" style={{ fontSize: 9 }}>AF-05 RULE APPLIED</span>
+                <span className="mono-label" style={{ fontSize: 9 }}>APPROVAL RULE APPLIED</span>
                 <div>
                   {viewEst.totalAmount <= 10000 ? (
                     <Badge tone="green">≤ ₹10K Auto Approval</Badge>

@@ -42,7 +42,7 @@ export const Approvals: React.FC = () => {
   const handleApprove = async (id: string) => {
     try {
       setSubmitting(true);
-      await financeApi.approveFinancialApproval(id, approveComment || 'Approved by R-14 Finance Manager');
+      await financeApi.approveFinancialApproval(id, approveComment || 'Approved by Finance Manager');
       notify('success', 'Approval granted successfully');
       setSelectedApproval(null);
       setApproveComment('');

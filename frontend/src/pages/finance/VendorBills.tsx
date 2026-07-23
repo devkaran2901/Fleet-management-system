@@ -57,7 +57,7 @@ export const VendorBills: React.FC = () => {
     try {
       setSubmitting(true);
       await financeApi.approveVendorBill(id);
-      notify('success', 'Vendor bill approved per AF-07 and pushed to Payment Queue');
+      notify('success', 'Vendor bill approved and pushed to Payment Queue');
       loadBills();
       if (selectedBill?.id === id) {
         setSelectedBill(null);
@@ -106,7 +106,7 @@ export const VendorBills: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, color: 'var(--text-1)' }}>
-            Vendor Bills & 3-Way Match (AF-07)
+            Vendor Bills & 3-Way Match
           </h1>
           <p style={{ fontSize: 13, color: 'var(--text-3)', margin: '4px 0 0 0' }}>
             Verification, expected vs billed rate engine, tolerance checks (±0.5% / ₹500), and deviation queue.
@@ -136,7 +136,7 @@ export const VendorBills: React.FC = () => {
             <option value="">All Statuses</option>
             <option value="Pending">Pending</option>
             <option value="Verified">Verified</option>
-            <option value="Approved">Approved (AF-07)</option>
+            <option value="Approved">Approved</option>
             <option value="Rejected">Rejected</option>
             <option value="Paid">Paid</option>
           </Select>
@@ -256,7 +256,7 @@ export const VendorBills: React.FC = () => {
                               onClick={() => handleApproveAF07(b.id)}
                               disabled={submitting}
                             >
-                              Approve (AF-07)
+                              Approve
                             </Button>
                           )}
                           {b.status !== 'Approved' && b.status !== 'Rejected' && (
@@ -293,7 +293,7 @@ export const VendorBills: React.FC = () => {
               <Button variant="ghost" onClick={() => setSelectedBill(null)}>Close</Button>
               {selectedBill.status !== 'Approved' && (
                 <Button variant="primary" icon={<CheckCircle2 size={14} />} onClick={() => handleApproveAF07(selectedBill.id)} disabled={submitting}>
-                  Approve (AF-07)
+                  Approve
                 </Button>
               )}
             </div>
@@ -412,7 +412,7 @@ export const VendorBills: React.FC = () => {
             {/* Approval Timeline */}
             <div>
               <h4 style={{ fontSize: 13, fontWeight: 600, margin: '0 0 8px 0', color: 'var(--text-1)' }}>
-                AF-07 Approval Timeline & Audit Chain
+                Approval Timeline & Audit Chain
               </h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {(parseJson(selectedBill.approvalTimelineJson) || []).map((tl: any, idx: number) => (

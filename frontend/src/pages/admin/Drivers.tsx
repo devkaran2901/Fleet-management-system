@@ -146,7 +146,7 @@ export const AdminDrivers: React.FC = () => {
     <>
       <div className="adm-page-head">
         <div>
-          <span className="adm-spec-chip mono-label">M-02 · Drivers Portal</span>
+          <span className="adm-spec-chip mono-label">Drivers Portal</span>
           <h1 className="adm-page-title">
             <UserCog size={22} color="var(--green)" /> Drivers
           </h1>

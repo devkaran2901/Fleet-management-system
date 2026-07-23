@@ -77,7 +77,7 @@ export const DispatcherLayout: React.FC = () => {
               >
                 <span className="pulsing-dot" />
                 <span className="mono-label" style={{ fontSize: 9, color: 'var(--text-1)' }}>
-                  P-11 DISPATCH WORKSPACE
+                  DISPATCH WORKSPACE
                 </span>
               </div>
               <button

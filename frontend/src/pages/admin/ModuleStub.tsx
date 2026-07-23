@@ -39,7 +39,7 @@ export const ModuleStub: React.FC = () => {
       <div className="adm-page-head">
         <div>
           <span className="adm-spec-chip mono-label">
-            {mod.service} · {group?.label}
+            {group?.label}
           </span>
           <h1 className="adm-page-title">
             <mod.icon size={22} color="var(--text-3)" /> {mod.label}

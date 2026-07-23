@@ -470,8 +470,8 @@ export const JobCards: React.FC = () => {
               <div>
                 <span className="mono-label" style={{ fontSize: 9 }}>APPROVALS & GATES</span>
                 <div style={{ fontSize: 12, marginTop: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <div>AF-05 Estimate Approval: <Badge tone="green">Approved</Badge></div>
-                  <div>R-07 Technical Parallel Approval: <Badge tone="green">Passed</Badge></div>
+                  <div>Estimate Approval: <Badge tone="green">Approved</Badge></div>
+                  <div>Technical Parallel Approval: <Badge tone="green">Passed</Badge></div>
                   <div>QC Sign-off: <Badge tone={viewCard.qcStatus === 'Approved' ? 'green' : 'amber'}>{viewCard.qcStatus}</Badge></div>
                   <div>Road Test Gate: <Badge tone={viewCard.roadTestStatus === 'Passed' ? 'green' : 'grey'}>{viewCard.roadTestStatus}</Badge></div>
                 </div>

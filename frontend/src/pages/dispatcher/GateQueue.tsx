@@ -101,7 +101,7 @@ export const GateQueue: React.FC = () => {
     <>
       <div className="adm-page-head">
         <div>
-          <span className="adm-spec-chip mono-label">P-14 · Yard &amp; Gate</span>
+          <span className="adm-spec-chip mono-label">Yard &amp; Gate</span>
           <h1 className="adm-page-title">
             <DoorOpen size={22} color="var(--green)" /> Gate Queue
           </h1>

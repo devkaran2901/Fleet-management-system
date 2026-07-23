@@ -159,7 +159,7 @@ export const Roles: React.FC = () => {
     <>
       <div className="adm-page-head">
         <div>
-          <span className="adm-spec-chip mono-label">P-01 · Identity, RBAC &amp; Org</span>
+          <span className="adm-spec-chip mono-label">Identity, RBAC &amp; Org</span>
           <h1 className="adm-page-title">
             <ShieldCheck size={22} color="var(--green)" /> Role Builder
           </h1>

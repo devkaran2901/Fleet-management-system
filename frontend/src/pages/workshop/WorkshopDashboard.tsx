@@ -60,7 +60,7 @@ export const WorkshopDashboard: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0, color: 'var(--text-1)' }}>
-            Workshop Manager Workspace (R-06)
+            Workshop Manager Workspace
           </h2>
           <p style={{ fontSize: 13, color: 'var(--text-3)', margin: '4px 0 0 0' }}>
             Real-time shop floor overview: bay allocation, job card throughput, parts demand & QC gates.
@@ -141,7 +141,7 @@ export const WorkshopDashboard: React.FC = () => {
       </div>
 
       {/* Role Workspace KPIs (PRD Specific Metrics) */}
-      <Panel title="Workshop Efficiency Metrics (PRD KPIs)" padded>
+      <Panel title="Workshop Efficiency Metrics" padded>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
           <div style={{ backgroundColor: 'var(--panel-2)', padding: 12, borderRadius: 8, border: '1px solid var(--border-soft)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--text-3)', fontSize: 12 }}>
@@ -318,7 +318,7 @@ export const WorkshopDashboard: React.FC = () => {
         {/* Widget 3: Estimate Approval Queue */}
         <Panel
           title="3. Estimate Approval Queue"
-          subtitle="Estimates pending AF-05 / technical sign-off"
+          subtitle="Estimates pending approval & technical sign-off"
           actions={
             <Button variant="ghost" size="sm" onClick={() => navigate('/workshop/estimates')}>
               View Estimates

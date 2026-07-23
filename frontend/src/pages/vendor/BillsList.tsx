@@ -40,7 +40,7 @@ export const BillsList: React.FC = () => {
       <div className="vp-page-header">
         <div>
           <div className="vp-page-title">
-            <FileText color="var(--vendor-accent)" /> Bills Workbench (UI Spec V-04)
+            <FileText color="var(--vendor-accent)" /> Bills Workbench
           </div>
           <div className="vp-page-subtitle">
             Manage all freight invoices from draft through submission, verification, deviation resolution, and final payment.

@@ -72,7 +72,7 @@ export const PMDueList: React.FC = () => {
         confirmedSlot,
         notes: negotiationNotes,
       });
-      notify('success', `Slot negotiation recorded with Dispatcher (R-04) for ${slotNegotiateItem.vehicleNumber}`);
+      notify('success', `Slot negotiation recorded with Dispatcher for ${slotNegotiateItem.vehicleNumber}`);
       setSlotNegotiateItem(null);
       fetchPmSchedules();
     } catch (err: any) {
@@ -82,12 +82,12 @@ export const PMDueList: React.FC = () => {
 
   const handleOverrideSubmit = async () => {
     if (!overrideItem || !overrideReason) {
-      notify('error', 'Please provide justification reason for AF-05 override');
+      notify('error', 'Please provide justification reason for override');
       return;
     }
     try {
       await workshopApi.requestPmOverride(overrideItem.id, overrideReason);
-      notify('success', `Maintenance Lock overridden via AF-05 for ${overrideItem.vehicleNumber}`);
+      notify('success', `Maintenance Lock overridden for ${overrideItem.vehicleNumber}`);
       setOverrideItem(null);
       fetchPmSchedules();
     } catch (err: any) {
@@ -195,7 +195,7 @@ export const PMDueList: React.FC = () => {
                         )}
                         {pm.maintenanceLock && (
                           <Button variant="danger" size="sm" icon={<Unlock size={12} />} onClick={() => setOverrideItem(pm)}>
-                            AF-05 Override
+                            PM Lock Override
                           </Button>
                         )}
                       </div>
@@ -233,7 +233,7 @@ export const PMDueList: React.FC = () => {
             </div>
 
             <div style={{ border: '1px solid var(--border-soft)', padding: 12, borderRadius: 6 }}>
-              <span className="mono-label" style={{ fontSize: 9, color: 'var(--text-3)' }}>RECORDED ARBITRATION (R-06 ↔ R-04 DISPATCHER)</span>
+              <span className="mono-label" style={{ fontSize: 9, color: 'var(--text-3)' }}>RECORDED ARBITRATION (WORKSHOP ↔ DISPATCHER)</span>
               <p style={{ fontSize: 12, margin: '6px 0 0 0', color: 'var(--text-1)' }}>
                 Slot negotiation logs establish transparent accountability between workshop slot availability and dispatch fleet allocation commitments.
               </p>
@@ -245,28 +245,23 @@ export const PMDueList: React.FC = () => {
       {/* --- Recorded Slot Negotiation Modal --- */}
       {slotNegotiationModal(slotNegotiateItem, setSlotNegotiateItem, proposedSlot, setProposedSlot, confirmedSlot, setConfirmedSlot, negotiationNotes, setNegotiationNotes, handleSlotNegotiateSubmit)}
 
-      {/* --- AF-05 Override Modal --- */}
+      {/* --- Override Modal --- */}
       {overrideItem && (
-        <Modal open title={`AF-05 PM Lock Override — ${overrideItem.vehicleNumber}`} onClose={() => setOverrideItem(null)}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', padding: 12, borderRadius: 6, border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-              <strong style={{ color: '#ef4444' }}>Maintenance Lock Override (BR-MNT-01)</strong>
-              <p style={{ fontSize: 12, margin: '4px 0 0 0', color: 'var(--text-1)' }}>
-                Vehicle has passed maintenance grace. Overriding will unblock Dispatcher allocation. Overriding requires AF-05 approval authorization.
-              </p>
+        <Modal open title={`PM Lock Override — ${overrideItem.vehicleNumber}`} onClose={() => setOverrideItem(null)}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ fontSize: 13, color: 'var(--text-2)' }}>
+              Vehicle has passed maintenance grace. Overriding will unblock Dispatcher allocation. Overriding requires approval authorization.
             </div>
-
-            <Field label="Override Justification & Next Slot Commitment">
-              <Input
-                placeholder="Enter justification (e.g. Critical customer shipment commit, PM rescheduled for tomorrow 08:00)"
-                value={overrideReason}
-                onChange={(e) => setOverrideReason(e.target.value)}
-              />
-            </Field>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 10 }}>
+            <textarea
+              className="adm-input"
+              rows={3}
+              placeholder="Enter technical justification reason for override..."
+              value={overrideReason}
+              onChange={(e) => setOverrideReason(e.target.value)}
+            />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <Button variant="ghost" onClick={() => setOverrideItem(null)}>Cancel</Button>
-              <Button variant="danger" onClick={handleOverrideSubmit}>Submit AF-05 Override</Button>
+              <Button variant="danger" onClick={handleOverrideSubmit}>Submit Override</Button>
             </div>
           </div>
         </Modal>
@@ -311,7 +306,7 @@ function slotNegotiationModal(
     <Modal open title={`Recorded Slot Negotiation — ${item.vehicleNumber}`} onClose={() => setItem(null)}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
-          Record arbitration between Workshop Manager (R-06) and Fleet Dispatcher (R-04) for vehicle release.
+          Record arbitration between Workshop Manager and Fleet Dispatcher for vehicle release.
         </p>
 
         <Field label="Proposed Workshop Slot">

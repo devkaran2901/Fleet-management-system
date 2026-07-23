@@ -145,7 +145,7 @@ export const AdminRoutes: React.FC = () => {
     <>
       <div className="adm-page-head">
         <div>
-          <span className="adm-spec-chip mono-label">M-08 · Route Management</span>
+          <span className="adm-spec-chip mono-label">Route Management</span>
           <h1 className="adm-page-title">
             <RouteIcon size={22} color="var(--green)" /> Routes
           </h1>

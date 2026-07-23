@@ -68,7 +68,7 @@ export const SystemHealth: React.FC = () => {
     <>
       <div className="adm-page-head">
         <div>
-          <span className="adm-spec-chip mono-label">P-08 · Monitoring</span>
+          <span className="adm-spec-chip mono-label">Monitoring</span>
           <h1 className="adm-page-title">
             <Cpu size={22} color="var(--green)" /> System Health
           </h1>

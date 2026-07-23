@@ -104,7 +104,7 @@ export const Budget: React.FC = () => {
             <option value="">All Statuses</option>
             <option value="Normal">Normal</option>
             <option value="Warning">Warning</option>
-            <option value="Exception">Exception (AF-11)</option>
+            <option value="Exception">Exception</option>
           </Select>
 
           {(monthFilter || costCenterFilter || departmentFilter || statusFilter) && (

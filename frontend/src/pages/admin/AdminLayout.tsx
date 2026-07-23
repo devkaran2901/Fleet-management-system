@@ -71,7 +71,7 @@ export const AdminLayout: React.FC = () => {
               >
                 <span className="pulsing-dot" />
                 <span className="mono-label" style={{ fontSize: 9, color: 'var(--text-1)' }}>
-                  S-35 ADMIN SUITE
+                  ADMIN SUITE
                 </span>
               </div>
               <button

@@ -80,7 +80,7 @@ export const ExceptionCenter: React.FC = () => {
     <>
       <div className="adm-page-head">
         <div>
-          <span className="adm-spec-chip mono-label">P-17 · Telematics Exceptions</span>
+          <span className="adm-spec-chip mono-label">Telematics Exceptions</span>
           <h1 className="adm-page-title">
             <AlertTriangle size={22} color="var(--red)" /> Exception Center
           </h1>

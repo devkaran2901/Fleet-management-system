@@ -218,7 +218,7 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
                     >
                       <mod.icon size={15} />
                       <span className="adm-rail-title">{mod.label || mod.title}</span>
-                      {(mod.badge || mod.service) && <span className="adm-rail-count">{mod.badge || mod.service}</span>}
+                      {mod.badge && !/^[A-Z]{1,3}-\d{2}/.test(mod.badge) && <span className="adm-rail-count">{mod.badge}</span>}
                     </NavLink>
                   ))}
                 </div>

@@ -193,7 +193,7 @@ export const ApprovalFlows: React.FC = () => {
     <>
       <div className="adm-page-head">
         <div>
-          <span className="adm-spec-chip mono-label">P-02 · Approvals Engine</span>
+          <span className="adm-spec-chip mono-label">Approvals Engine</span>
           <h1 className="adm-page-title">
             <GitBranch size={22} color="var(--green)" /> Approval Flows
           </h1>

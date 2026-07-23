@@ -109,7 +109,7 @@ export const AdminDashboard: React.FC = () => {
     <>
       <div className="adm-page-head">
         <div>
-          <span className="adm-spec-chip mono-label">S-35 · Admin suite</span>
+          <span className="adm-spec-chip mono-label">Admin suite</span>
           <h1 className="adm-page-title">
             <LayoutDashboard size={22} color="var(--green)" /> Dashboard
           </h1>
@@ -144,11 +144,11 @@ export const AdminDashboard: React.FC = () => {
       <Panel title="Admin Direct Switch Portal" subtitle="Directly access any operational workspace with administrative permissions" className="adm-quick-panel">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 12 }}>
           {[
-            { name: 'Compliance Portal', icon: '⚖️', desc: 'Statutory compliance, challans & insurance claims', path: '/compliance/dashboard', badge: 'S-22', color: '#16a34a' },
-            { name: 'Dispatcher Workspace', icon: '⚡', desc: 'Active runs, driver assignment & indents', path: '/dispatcher/dashboard', badge: 'P-11', color: '#d97706' },
-            { name: 'Fleet Manager Portal', icon: '🚚', desc: 'Vehicle master, telematics & health', path: '/fleet/dashboard', badge: 'S-01', color: '#0891b2' },
-            { name: 'Workshop Portal', icon: '🛠️', desc: 'Job cards, maintenance board & parts demand', path: '/workshop/dashboard', badge: 'R-06', color: '#9333ea' },
-            { name: 'Admin Suite', icon: '🔧', desc: 'System governance, roles & integrations', path: '/admin/dashboard', badge: 'S-35', color: '#2563eb' },
+            { name: 'Compliance Portal', icon: '⚖️', desc: 'Statutory compliance, challans & insurance claims', path: '/compliance/dashboard', badge: '', color: '#16a34a' },
+            { name: 'Dispatcher Workspace', icon: '⚡', desc: 'Active runs, driver assignment & indents', path: '/dispatcher/dashboard', badge: '', color: '#d97706' },
+            { name: 'Fleet Manager Portal', icon: '🚚', desc: 'Vehicle master, telematics & health', path: '/fleet/dashboard', badge: '', color: '#0891b2' },
+            { name: 'Workshop Portal', icon: '🛠️', desc: 'Job cards, maintenance board & parts demand', path: '/workshop/dashboard', badge: '', color: '#9333ea' },
+            { name: 'Admin Suite', icon: '🔧', desc: 'System governance, roles & integrations', path: '/admin/dashboard', badge: '', color: '#2563eb' },
           ].map((portal) => (
             <div
               key={portal.path}

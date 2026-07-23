@@ -70,7 +70,7 @@ export const FinanceLayout: React.FC = () => {
               >
                 <span className="pulsing-dot" style={{ backgroundColor: '#10b981' }} />
                 <span className="mono-label" style={{ fontSize: 9, color: 'var(--text-1)' }}>
-                  R-14 FINANCE MANAGER PORTAL
+                  FINANCE MANAGER PORTAL
                 </span>
               </div>
               <button

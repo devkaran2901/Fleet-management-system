@@ -57,7 +57,7 @@ export const DriverList: React.FC = () => {
       <div className="vp-page-header">
         <div>
           <div className="vp-page-title">
-            <Users color="var(--vendor-accent)" /> Driver Management (UI Spec V-06)
+            <Users color="var(--vendor-accent)" /> Driver Management
           </div>
           <div className="vp-page-subtitle">
             Manage your driver roster, monitor Driving License (DL), Aadhaar, Medical Certs, and track background verification states.

@@ -76,7 +76,7 @@ export const WORKSHOP_NAV: WorkshopGroup[] = [
         icon: Calculator,
         service: 'R-06',
         built: true,
-        summary: 'Estimate Builder with AF-05 threshold rules and parallel technical approval.',
+        summary: 'Estimate Builder with threshold rules and parallel technical approval.',
       },
       {
         to: '/workshop/parts-demand',

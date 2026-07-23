@@ -156,7 +156,7 @@ export const TransportRequests: React.FC = () => {
     <>
       <div className="adm-page-head">
         <div>
-          <span className="adm-spec-chip mono-label">P-12 · Transport Demands</span>
+          <span className="adm-spec-chip mono-label">Transport Demands</span>
           <h1 className="adm-page-title">
             <ClipboardList size={22} color="var(--green)" /> Transport Requests
           </h1>

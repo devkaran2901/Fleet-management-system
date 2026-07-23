@@ -182,7 +182,7 @@ export const FinanceExports: React.FC = () => {
                 Entity Type to Export
               </label>
               <Select value={entityType} onChange={(e) => setEntityType(e.target.value)}>
-                <option value="General Ledger Recharges">General Ledger Recharges (BP-27)</option>
+                <option value="General Ledger Recharges">General Ledger Recharges</option>
                 <option value="AP Invoices">Accounts Payable (AP) Invoices</option>
                 <option value="AR Invoices">Accounts Receivable (AR) Invoices</option>
                 <option value="Driver Payroll">Driver Trip Payroll</option>

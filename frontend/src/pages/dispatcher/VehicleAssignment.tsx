@@ -53,7 +53,7 @@ export const VehicleAssignment: React.FC = () => {
     <>
       <div className="adm-page-head">
         <div>
-          <span className="adm-spec-chip mono-label">P-16 · Vehicle Fleet</span>
+          <span className="adm-spec-chip mono-label">Vehicle Fleet</span>
           <h1 className="adm-page-title">
             <Truck size={22} color="var(--green)" /> Vehicles
           </h1>

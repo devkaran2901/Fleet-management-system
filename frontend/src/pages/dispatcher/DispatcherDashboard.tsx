@@ -269,7 +269,7 @@ export const DispatcherDashboard: React.FC = () => {
     <>
       <div className="adm-page-head" style={{ marginBottom: 12 }}>
         <div>
-          <span className="adm-spec-chip mono-label">P-11 · Dispatch Board</span>
+          <span className="adm-spec-chip mono-label">Dispatch Board</span>
           <h1 className="adm-page-title">
             <LayoutDashboard size={22} color="var(--green)" /> Dispatch Workspace
           </h1>

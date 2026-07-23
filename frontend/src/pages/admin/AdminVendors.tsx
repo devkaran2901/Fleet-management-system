@@ -187,7 +187,7 @@ export const AdminVendors: React.FC = () => {
               <Building2 size={22} />
             </div>
             <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, color: 'var(--text-1)' }}>
-              Vendor Management & Empanelment Pipeline (M-06)
+              Vendor Management & Empanelment Pipeline
             </h1>
           </div>
           <p style={{ fontSize: 13, color: 'var(--text-2)', margin: 0, maxWidth: 780 }}>

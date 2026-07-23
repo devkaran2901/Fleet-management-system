@@ -52,10 +52,10 @@ export const FinanceDashboard: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, color: 'var(--text-1)' }}>
-            Finance Workspace (R-14)
+            Finance Workspace
           </h1>
           <p style={{ fontSize: 13, color: 'var(--text-3)', margin: '4px 0 0 0' }}>
-            Budget commitments, payment governance, financial approvals (AF-07/AF-11), and cost traceability.
+            Budget commitments, payment governance, financial approvals, and cost traceability.
           </p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
