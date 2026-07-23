@@ -7,9 +7,10 @@ import { UserModule } from './user/user.module';
 import { AdminModule } from './admin/admin.module';
 import { DispatcherModule } from './dispatcher/dispatcher.module';
 import { WorkshopModule } from './workshop/workshop.module';
+import { FinanceModule } from './finance/finance.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, UserModule, AdminModule, DispatcherModule, WorkshopModule],
+  imports: [PrismaModule, AuthModule, UserModule, AdminModule, DispatcherModule, WorkshopModule, FinanceModule],
   controllers: [AppController],
   providers: [AppService],
 })

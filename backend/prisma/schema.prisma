@@ -612,5 +612,163 @@ model OutsideWorkRequest {
   @@map("outside_work_requests")
 }
 
+// ---------------------------------------------------------------------------
+// R-14 Finance Manager Models
+// ---------------------------------------------------------------------------
 
+model Budget {
+  id               String   @id @default(uuid())
+  budgetId         String   @unique
+  costCenter       String
+  department       String
+  month            String
+  budgetAmount     Float    @default(0)
+  actualAmount     Float    @default(0)
+  committedAmount  Float    @default(0)
+  variance         Float    @default(0)
+  percentage       Float    @default(0)
+  status           String   @default("Normal") // Normal, Warning, Exception
+  costCentersJson  Json     @default("[]")
+  monthlyTrendJson Json     @default("[]")
+  historyJson      Json     @default("[]")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
+  @@map("budgets")
+}
+
+model VendorBill {
+  id                   String   @id @default(uuid())
+  billNumber           String   @unique
+  vendor               String
+  tripReference        String
+  contract             String
+  expectedAmount       Float    @default(0)
+  billedAmount         Float    @default(0)
+  tolerance            Float    @default(0)
+  deviation            Float    @default(0)
+  tax                  Float    @default(0)
+  status               String   @default("Pending") // Pending, Verified, Approved, Rejected, Paid
+  autoMatchStatus      String   @default("Matched") // Matched, Mismatch, ManualReview
+  expectedVsBilledJson Json     @default("{}")
+  toleranceCheckJson   Json     @default("{}")
+  deviationQueueJson   Json     @default("{}")
+  debitNotesJson       Json     @default("[]")
+  taxSummaryJson       Json     @default("{}")
+  rateComputationJson  Json     @default("{}")
+  dieselEscalationJson Json     @default("{}")
+  detentionJson        Json     @default("{}")
+  penaltiesJson        Json     @default("{}")
+  approvalTimelineJson Json     @default("[]")
+  auditTrailJson       Json     @default("[]")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@map("vendor_bills")
+}
+
+model CustomerInvoice {
+  id                String   @id @default(uuid())
+  invoiceNumber     String   @unique
+  customer          String
+  tripsJson         Json     @default("[]")
+  invoiceAmount     Float    @default(0)
+  gst               Float    @default(0)
+  invoiceDate       DateTime @default(now())
+  status            String   @default("Draft") // Draft, Approved, Released, Cancelled
+  paymentStatus     String   @default("Unpaid") // Unpaid, Partial, Paid, Disputed
+  podTriggerJson    Json     @default("{}")
+  annexureJson      Json     @default("{}")
+  disputedLinesJson Json     @default("[]")
+  gstFieldsJson     Json     @default("{}")
+  auditTrailJson    Json     @default("[]")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("customer_invoices")
+}
+
+model PaymentRun {
+  id                   String   @id @default(uuid())
+  batchNumber          String   @unique
+  vendor               String
+  amount               Float    @default(0)
+  paymentMode          String   @default("Bank Transfer") // Bank Transfer, UPI Batch, FASTag, Fuel Card
+  approval             String   @default("Pending Maker") // Pending Maker, Pending Checker, Approved, Released, Rejected
+  status               String   @default("Queued") // Queued, Processing, Released, Failed
+  releaseDate          DateTime @default(now())
+  billsIncludedJson    Json     @default("[]")
+  bankStatusJson       Json     @default("{}")
+  paymentQueueJson     Json     @default("{}")
+  makerCheckerJson     Json     @default("{}")
+  upiBatchJson         Json     @default("{}")
+  vendorPaymentsJson   Json     @default("[]")
+  fastagLedgerJson     Json     @default("{}")
+  fuelCardLedgerJson   Json     @default("{}")
+  approvalTimelineJson Json     @default("[]")
+  releaseStatusJson    Json     @default("{}")
+  auditTrailJson       Json     @default("[]")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@map("payment_runs")
+}
+
+model DriverSettlement {
+  id                      String   @id @default(uuid())
+  driverName              String
+  driverId                String?
+  tripId                  String
+  advance                 Float    @default(0)
+  expense                 Float    @default(0)
+  bhatta                  Float    @default(0)
+  recovery                Float    @default(0)
+  incentive               Float    @default(0)
+  settlement              Float    @default(0)
+  status                  String   @default("Draft") // Draft, Approved, Disputed, Paid
+  settlementDraftJson     Json     @default("{}")
+  disputeStatusJson       Json     @default("{}")
+  payrollExportStatusJson Json     @default("{}")
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@map("driver_settlements")
+}
+
+model FinancialApproval {
+  id                   String   @id @default(uuid())
+  approvalNumber       String   @unique
+  flowCode             String // AF-07, AF-11
+  flowName             String // Vendor Bill Approval, Budget Exception
+  entityType           String // Vendor Bill, Budget
+  entityId             String
+  entityRef            String
+  amount               Float    @default(0)
+  requestedBy          String
+  approver             String?
+  status               String   @default("Pending") // Pending, Approved, Rejected
+  reason               String?
+  budgetCommitmentJson Json     @default("{}")
+  timelineJson         Json     @default("[]")
+  historyJson          Json     @default("[]")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@map("financial_approvals")
+}
+
+model ErpExport {
+  id          String   @id @default(uuid())
+  exportNumber String   @unique
+  entityType  String // General Ledger, AP Invoices, AR Invoices, Driver Payroll
+  format      String // SAP, Oracle, Tally, Excel, CSV, PDF
+  recordCount Int      @default(0)
+  amountTotal Float    @default(0)
+  status      String   @default("Completed") // Completed, Failed, In Progress
+  exportedBy  String
+  historyJson Json     @default("[]")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("erp_exports")
+}

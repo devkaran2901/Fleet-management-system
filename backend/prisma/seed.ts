@@ -19,6 +19,7 @@ async function main() {
     { name: 'FLEET_MANAGER', description: 'Fleet Manager managing assets and maintenance' },
     { name: 'COMPLIANCE_MANAGER', description: 'Compliance Manager overseeing regulatory compliance, challans, insurance and incidents' },
     { name: 'WORKSHOP_MANAGER', description: 'Workshop Manager managing job cards, bays, mechanics, estimates, and PM due list' },
+    { name: 'FINANCE_MANAGER', description: 'Finance Manager overseeing budgets, vendor bills, customer invoices, payment runs, approvals, and ERP exports' },
   ];
 
   const dbRoles: Role[] = [];
@@ -111,6 +112,32 @@ async function main() {
     });
   }
   console.log(`Fleet Manager account ready: ${managerEmail}`);
+
+  // Seed finance manager user
+  const financeEmail = 'finance@fleetos.com';
+  const financeUser = await prisma.user.upsert({
+    where: { email: financeEmail },
+    update: { password: hashedPassword, isActive: true },
+    create: {
+      email: financeEmail,
+      password: hashedPassword,
+      firstName: 'Finance',
+      lastName: 'Manager',
+      isActive: true,
+    },
+  });
+
+  const financeRole = dbRoles.find((r) => r.name === 'FINANCE_MANAGER');
+  if (financeRole) {
+    await prisma.userRole.upsert({
+      where: {
+        userId_roleId: { userId: financeUser.id, roleId: financeRole.id },
+      },
+      update: {},
+      create: { userId: financeUser.id, roleId: financeRole.id },
+    });
+  }
+  console.log(`Finance Manager account ready: ${financeEmail}`);
 
   // Seed compliance manager user
   const complianceEmail = 'compliance@fleetos.com';
@@ -1035,6 +1062,451 @@ async function seedRoutes() {
   }
 
   console.log('Workshop Manager data seeded successfully.');
+
+  // Seed Finance Manager Portal (R-14) Data
+  const budgets = [
+    {
+      budgetId: 'BDG-2026-POL-DELHI',
+      costCenter: 'CC-101',
+      department: 'POL Fuel Logistics',
+      month: '2026-07',
+      budgetAmount: 4500000,
+      actualAmount: 3820000,
+      committedAmount: 450000,
+      variance: 230000,
+      percentage: 94.8,
+      status: 'Normal',
+      costCentersJson: JSON.stringify([
+        { head: 'High Speed Diesel (HSD)', allocated: 3500000, actual: 3100000, committed: 350000, variance: 50000 },
+        { head: 'AdBlue / DEF Refill', allocated: 600000, actual: 520000, committed: 70000, variance: 100000 },
+        { head: 'Lubricants & Grease', allocated: 400000, actual: 200000, committed: 30000, variance: 170000 }
+      ]),
+      monthlyTrendJson: JSON.stringify([
+        { month: 'Apr 2026', budget: 4200000, actual: 3950000 },
+        { month: 'May 2026', budget: 4300000, actual: 4100000 },
+        { month: 'Jun 2026', budget: 4400000, actual: 4250000 },
+        { month: 'Jul 2026', budget: 4500000, actual: 3820000 }
+      ]),
+      historyJson: JSON.stringify([
+        { date: '2026-07-01', event: 'Monthly Budget Allocated', amount: 4500000, user: 'System' },
+        { date: '2026-07-15', event: 'Fuel Card Auto-Commitment', amount: 350000, user: 'Finance Auto Engine' }
+      ])
+    },
+    {
+      budgetId: 'BDG-2026-MAINT-NCR',
+      costCenter: 'CC-102',
+      department: 'Fleet Workshop & Repairs',
+      month: '2026-07',
+      budgetAmount: 1800000,
+      actualAmount: 1650000,
+      committedAmount: 320000,
+      variance: -170000,
+      percentage: 109.4,
+      status: 'Exception',
+      costCentersJson: JSON.stringify([
+        { head: 'Engine Overhaul Parts', allocated: 800000, actual: 850000, committed: 150000, variance: -200000 },
+        { head: 'Tyre Replacements', allocated: 600000, actual: 500000, committed: 120000, variance: -20000 },
+        { head: 'Outside Vendor Jobs', allocated: 400000, actual: 300000, committed: 50000, variance: 50000 }
+      ]),
+      monthlyTrendJson: JSON.stringify([
+        { month: 'Apr 2026', budget: 1600000, actual: 1550000 },
+        { month: 'May 2026', budget: 1700000, actual: 1680000 },
+        { month: 'Jun 2026', budget: 1750000, actual: 1720000 },
+        { month: 'Jul 2026', budget: 1800000, actual: 1650000 }
+      ]),
+      historyJson: JSON.stringify([
+        { date: '2026-07-01', event: 'Monthly Budget Allocated', amount: 1800000, user: 'System' },
+        { date: '2026-07-18', event: 'AF-11 Budget Exception Flagged (>10% variance)', amount: 170000, user: 'R-14 Finance Engine' }
+      ])
+    },
+    {
+      budgetId: 'BDG-2026-HIRE-NORTH',
+      costCenter: 'CC-103',
+      department: 'Market Hired Vehicles',
+      month: '2026-07',
+      budgetAmount: 2500000,
+      actualAmount: 2100000,
+      committedAmount: 280000,
+      variance: 120000,
+      percentage: 95.2,
+      status: 'Warning',
+      costCentersJson: JSON.stringify([
+        { head: 'Market Container Hire', allocated: 1800000, actual: 1550000, committed: 200000, variance: 50000 },
+        { head: 'Spot Vendor Freights', allocated: 700000, actual: 550000, committed: 80000, variance: 70000 }
+      ]),
+      monthlyTrendJson: JSON.stringify([
+        { month: 'Apr 2026', budget: 2200000, actual: 2150000 },
+        { month: 'May 2026', budget: 2300000, actual: 2280000 },
+        { month: 'Jun 2026', budget: 2400000, actual: 2350000 },
+        { month: 'Jul 2026', budget: 2500000, actual: 2100000 }
+      ]),
+      historyJson: JSON.stringify([
+        { date: '2026-07-01', event: 'Monthly Budget Allocated', amount: 2500000, user: 'System' }
+      ])
+    }
+  ];
+
+  for (const b of budgets) {
+    await prisma.budget.upsert({
+      where: { budgetId: b.budgetId },
+      update: b,
+      create: b
+    });
+  }
+
+  const vendorBills = [
+    {
+      billNumber: 'VBN-2026-8801',
+      vendor: 'Mahalaxmi Transport Services',
+      tripReference: 'TRIP-DEL-MUM-4091',
+      contract: 'CNT-2025-VEND-09',
+      expectedAmount: 145000,
+      billedAmount: 145200,
+      tolerance: 0.14,
+      deviation: 200,
+      tax: 7260,
+      status: 'Verified',
+      autoMatchStatus: 'Matched',
+      expectedVsBilledJson: JSON.stringify({
+        baseFreight: { expected: 125000, billed: 125000 },
+        dieselEscalation: { expected: 12000, billed: 12000 },
+        detention: { expected: 8000, billed: 8200 },
+        penalties: { expected: 0, billed: 0 }
+      }),
+      toleranceCheckJson: JSON.stringify({ thresholdPercent: 0.5, thresholdAmount: 500, passed: true }),
+      deviationQueueJson: JSON.stringify({ inQueue: false }),
+      debitNotesJson: JSON.stringify([]),
+      taxSummaryJson: JSON.stringify({ type: 'GTA RCM 5%', gstAmount: 7260, tdsSection: '194C', tdsRate: '2%', tdsAmount: 2904 }),
+      rateComputationJson: JSON.stringify({ ratePerKm: 42, agreedKm: 1420, contractType: 'Fixed Route + Index Escalation' }),
+      dieselEscalationJson: JSON.stringify({ baseDieselPrice: 89.5, currentDieselPrice: 94.2, escalationAmount: 12000 }),
+      detentionJson: JSON.stringify({ freeHours: 24, actualDetentionHours: 32, ratePerHour: 1000, detentionAmount: 8200 }),
+      penaltiesJson: JSON.stringify({ SLA: 'On-Time', penaltyApplied: 0 }),
+      approvalTimelineJson: JSON.stringify([
+        { step: '3-Way Auto Match', status: 'Passed (Tolerance ±0.5%)', timestamp: '2026-07-21 11:00' },
+        { step: 'AF-07 Vendor Bill Approval', status: 'Pending R-14 Signoff', timestamp: '2026-07-21 11:05' }
+      ]),
+      auditTrailJson: JSON.stringify([
+        { user: 'Vendor Portal Upload', action: 'Bill Submitted', timestamp: '2026-07-21 10:45' },
+        { user: '3-Way Matcher', action: 'Auto-Matched to TRIP-DEL-MUM-4091', timestamp: '2026-07-21 11:00' }
+      ])
+    },
+    {
+      billNumber: 'VBN-2026-8802',
+      vendor: 'Express Logistics Corp',
+      tripReference: 'TRIP-DEL-BLR-8922',
+      contract: 'CNT-2025-VEND-14',
+      expectedAmount: 180000,
+      billedAmount: 198000,
+      tolerance: 10.0,
+      deviation: 18000,
+      tax: 9900,
+      status: 'Pending',
+      autoMatchStatus: 'Mismatch',
+      expectedVsBilledJson: JSON.stringify({
+        baseFreight: { expected: 160000, billed: 172000 },
+        dieselEscalation: { expected: 10000, billed: 14000 },
+        detention: { expected: 10000, billed: 12000 },
+        penalties: { expected: 0, billed: 0 }
+      }),
+      toleranceCheckJson: JSON.stringify({ thresholdPercent: 0.5, thresholdAmount: 500, passed: false }),
+      deviationQueueJson: JSON.stringify({ inQueue: true, code: 'DEV-OVERBILL-HIGH', reason: 'Billed amount exceeds tolerance threshold by ₹17,500' }),
+      debitNotesJson: JSON.stringify([{ noteNumber: 'DN-2026-004', amount: 12000, status: 'Draft Debit Note Prepared' }]),
+      taxSummaryJson: JSON.stringify({ type: 'GTA FCM 12%', gstAmount: 9900, tdsSection: '194C', tdsRate: '2%', tdsAmount: 3960 }),
+      rateComputationJson: JSON.stringify({ ratePerKm: 48, agreedKm: 2150, contractType: 'Kilometer Based' }),
+      dieselEscalationJson: JSON.stringify({ baseDieselPrice: 89.5, currentDieselPrice: 95.0, escalationAmount: 14000 }),
+      detentionJson: JSON.stringify({ freeHours: 24, actualDetentionHours: 36, ratePerHour: 1000, detentionAmount: 12000 }),
+      penaltiesJson: JSON.stringify({ SLA: 'Late Arrival 6 Hrs', penaltyApplied: 2000 }),
+      approvalTimelineJson: JSON.stringify([
+        { step: '3-Way Auto Match', status: 'Failed (Tolerance Exceeded)', timestamp: '2026-07-22 09:15' },
+        { step: 'R-12 Deviation Review', status: 'Under Negotiation', timestamp: '2026-07-22 09:30' },
+        { step: 'AF-07 Vendor Bill Approval', status: 'On Hold', timestamp: '2026-07-22 09:30' }
+      ]),
+      auditTrailJson: JSON.stringify([
+        { user: 'Vendor Portal Upload', action: 'Bill Submitted', timestamp: '2026-07-22 08:30' },
+        { user: 'Auto-Match Engine', action: 'Tolerance Check Failed (10.0% > 0.5%)', timestamp: '2026-07-22 09:15' }
+      ])
+    },
+    {
+      billNumber: 'VBN-2026-8803',
+      vendor: 'Shree Ram Freight Carriers',
+      tripReference: 'TRIP-AMD-CCU-3321',
+      contract: 'CNT-2025-VEND-03',
+      expectedAmount: 210000,
+      billedAmount: 210000,
+      tolerance: 0.0,
+      deviation: 0,
+      tax: 10500,
+      status: 'Approved',
+      autoMatchStatus: 'Matched',
+      expectedVsBilledJson: JSON.stringify({
+        baseFreight: { expected: 190000, billed: 190000 },
+        dieselEscalation: { expected: 15000, billed: 15000 },
+        detention: { expected: 5000, billed: 5000 }
+      }),
+      toleranceCheckJson: JSON.stringify({ thresholdPercent: 0.5, thresholdAmount: 500, passed: true }),
+      deviationQueueJson: JSON.stringify({ inQueue: false }),
+      debitNotesJson: JSON.stringify([]),
+      taxSummaryJson: JSON.stringify({ type: 'GTA RCM 5%', gstAmount: 10500, tdsSection: '194C', tdsRate: '2%', tdsAmount: 4200 }),
+      rateComputationJson: JSON.stringify({ ratePerKm: 44, agreedKm: 1980, contractType: 'Fixed Route' }),
+      dieselEscalationJson: JSON.stringify({ baseDieselPrice: 89.5, currentDieselPrice: 94.0, escalationAmount: 15000 }),
+      detentionJson: JSON.stringify({ freeHours: 24, actualDetentionHours: 29, ratePerHour: 1000, detentionAmount: 5000 }),
+      penaltiesJson: JSON.stringify({ SLA: 'On-Time', penaltyApplied: 0 }),
+      approvalTimelineJson: JSON.stringify([
+        { step: '3-Way Auto Match', status: 'Passed', timestamp: '2026-07-20 14:00' },
+        { step: 'AF-07 Vendor Bill Approval', status: 'Approved by R-14 Finance Manager', timestamp: '2026-07-20 16:30' }
+      ]),
+      auditTrailJson: JSON.stringify([
+        { user: 'R-14 Finance Manager', action: 'Approved Bill VBN-2026-8803', timestamp: '2026-07-20 16:30' }
+      ])
+    }
+  ];
+
+  for (const vb of vendorBills) {
+    await prisma.vendorBill.upsert({
+      where: { billNumber: vb.billNumber },
+      update: vb,
+      create: vb
+    });
+  }
+
+  const customerInvoices = [
+    {
+      invoiceNumber: 'INV-2026-9001',
+      customer: 'Flipkart India Pvt Ltd',
+      tripsJson: JSON.stringify(['TRIP-DEL-MUM-4091', 'TRIP-DEL-MUM-4095']),
+      invoiceAmount: 385000,
+      gst: 46200,
+      invoiceDate: new Date('2026-07-15'),
+      status: 'Approved',
+      paymentStatus: 'Unpaid',
+      podTriggerJson: JSON.stringify({ podVerified: true, verifiedAt: '2026-07-14 18:20', verifiedBy: 'P-11 Dispatcher' }),
+      annexureJson: JSON.stringify({ totalKm: 2840, weightTons: 38.5, ratePerTonKm: 3.5, fuelPriceIndex: 94.2 }),
+      disputedLinesJson: JSON.stringify([]),
+      gstFieldsJson: JSON.stringify({ hsnSac: '996511', gstType: 'FCM 12%', cgst: 23100, sgst: 23100 }),
+      auditTrailJson: JSON.stringify([
+        { user: 'POD Engine', action: 'POD Auto-Verification Completed', timestamp: '2026-07-14 18:20' },
+        { user: 'Billing Clerk', action: 'Draft Invoice Generated', timestamp: '2026-07-15 10:00' },
+        { user: 'R-14 Finance Manager', action: 'Invoice Approved for Release', timestamp: '2026-07-15 14:30' }
+      ])
+    },
+    {
+      invoiceNumber: 'INV-2026-9002',
+      customer: 'Amazon Transportation Services',
+      tripsJson: JSON.stringify(['TRIP-DEL-BLR-8922']),
+      invoiceAmount: 240000,
+      gst: 28800,
+      invoiceDate: new Date('2026-07-18'),
+      status: 'Released',
+      paymentStatus: 'Partial',
+      podTriggerJson: JSON.stringify({ podVerified: true, verifiedAt: '2026-07-17 19:40', verifiedBy: 'P-11 Dispatcher' }),
+      annexureJson: JSON.stringify({ totalKm: 2150, weightTons: 22.0, ratePerTonKm: 4.8, fuelPriceIndex: 95.0 }),
+      disputedLinesJson: JSON.stringify([{ lineNo: 2, item: 'Unloading Detention', claimed: 12000, accepted: 8000, status: 'Disputed ₹4,000' }]),
+      gstFieldsJson: JSON.stringify({ hsnSac: '996511', gstType: 'FCM 12%', igst: 28800 }),
+      auditTrailJson: JSON.stringify([
+        { user: 'R-14 Finance Manager', action: 'Invoice Released to Customer Portal', timestamp: '2026-07-18 11:00' }
+      ])
+    }
+  ];
+
+  for (const ci of customerInvoices) {
+    await prisma.customerInvoice.upsert({
+      where: { invoiceNumber: ci.invoiceNumber },
+      update: ci,
+      create: ci
+    });
+  }
+
+  const paymentRuns = [
+    {
+      batchNumber: 'PAY-BATCH-2026-071',
+      vendor: 'Mahalaxmi Transport Services',
+      amount: 450000,
+      paymentMode: 'Bank Transfer',
+      approval: 'Pending Checker',
+      status: 'Queued',
+      releaseDate: new Date('2026-07-24'),
+      billsIncludedJson: JSON.stringify(['VBN-2026-8801', 'VBN-2026-8798']),
+      bankStatusJson: JSON.stringify({ bank: 'HDFC Bank Enterprise AP', accountNo: 'XXXX-XXXX-4491', ifsc: 'HDFC0000128' }),
+      paymentQueueJson: JSON.stringify({ queuedAt: '2026-07-21 17:00', priority: 'High' }),
+      makerCheckerJson: JSON.stringify({ maker: 'Accounts Executive', makerTimestamp: '2026-07-21 16:50', checker: 'R-14 Finance Manager', checkerStatus: 'Pending Signoff' }),
+      upiBatchJson: JSON.stringify({ isUpi: false }),
+      vendorPaymentsJson: JSON.stringify([{ vendor: 'Mahalaxmi Transport Services', netAmount: 439836, tdsDeducted: 10164 }]),
+      fastagLedgerJson: JSON.stringify({ fastagRechargeAllocated: 0 }),
+      fuelCardLedgerJson: JSON.stringify({ fuelCardDeduction: 0 }),
+      approvalTimelineJson: JSON.stringify([
+        { step: 'Maker Batch Creation', status: 'Completed', timestamp: '2026-07-21 16:50' },
+        { step: 'Checker Release Signoff (AF-07)', status: 'Pending R-14 Approval', timestamp: '2026-07-21 17:00' }
+      ]),
+      releaseStatusJson: JSON.stringify({ released: false }),
+      auditTrailJson: JSON.stringify([
+        { user: 'Accounts Executive', action: 'Created Payment Batch PAY-BATCH-2026-071', timestamp: '2026-07-21 16:50' }
+      ])
+    },
+    {
+      batchNumber: 'PAY-BATCH-2026-072',
+      vendor: 'Indian Oil Corporation Ltd (Fuel Cards)',
+      amount: 1250000,
+      paymentMode: 'Fuel Card Ledger',
+      approval: 'Released',
+      status: 'Released',
+      releaseDate: new Date('2026-07-20'),
+      billsIncludedJson: JSON.stringify(['FUEL-JULY-WEEK3']),
+      bankStatusJson: JSON.stringify({ bank: 'State Bank of India', accountNo: 'XXXX-XXXX-9900', ifsc: 'SBIN0001122' }),
+      paymentQueueJson: JSON.stringify({ queuedAt: '2026-07-20 09:00', priority: 'Urgent' }),
+      makerCheckerJson: JSON.stringify({ maker: 'Accounts Executive', makerTimestamp: '2026-07-20 09:15', checker: 'R-14 Finance Manager', checkerStatus: 'Approved & Released' }),
+      upiBatchJson: JSON.stringify({ isUpi: false }),
+      vendorPaymentsJson: JSON.stringify([{ vendor: 'IOCL Corporate Fuel', netAmount: 1250000, tdsDeducted: 0 }]),
+      fastagLedgerJson: JSON.stringify({ fastagRechargeAllocated: 0 }),
+      fuelCardLedgerJson: JSON.stringify({ fuelCardDeduction: 1250000, cardBatchesUpdated: 45 }),
+      approvalTimelineJson: JSON.stringify([
+        { step: 'Maker Batch Creation', status: 'Completed', timestamp: '2026-07-20 09:15' },
+        { step: 'Checker Release Signoff (AF-07)', status: 'Released by R-14 Finance Manager', timestamp: '2026-07-20 10:00' }
+      ]),
+      releaseStatusJson: JSON.stringify({ released: true, bankTxnId: 'TXN-SBI-9918231' }),
+      auditTrailJson: JSON.stringify([
+        { user: 'R-14 Finance Manager', action: 'Approved and Released Payment Batch', timestamp: '2026-07-20 10:00' }
+      ])
+    }
+  ];
+
+  for (const pr of paymentRuns) {
+    await prisma.paymentRun.upsert({
+      where: { batchNumber: pr.batchNumber },
+      update: pr,
+      create: pr
+    });
+  }
+
+  const driverSettlements = [
+    {
+      driverName: 'Rajesh Kumar',
+      driverId: 'DRV-1029',
+      tripId: 'TRIP-DEL-MUM-4091',
+      advance: 8000,
+      expense: 3400,
+      bhatta: 2500,
+      recovery: 0,
+      incentive: 1200,
+      settlement: 2100,
+      status: 'Approved',
+      settlementDraftJson: JSON.stringify({ verified: true, verifiedBy: 'Fleet Ops' }),
+      disputeStatusJson: JSON.stringify({ hasDispute: false }),
+      payrollExportStatusJson: JSON.stringify({ exported: true, batchRef: 'PAYROLL-2026-W29' })
+    },
+    {
+      driverName: 'Suresh Verma',
+      driverId: 'DRV-1044',
+      tripId: 'TRIP-DEL-BLR-8922',
+      advance: 12000,
+      expense: 4800,
+      bhatta: 3500,
+      recovery: 1500,
+      incentive: 800,
+      settlement: -4400,
+      status: 'Disputed',
+      settlementDraftJson: JSON.stringify({ verified: true, verifiedBy: 'Fleet Ops' }),
+      disputeStatusJson: JSON.stringify({ hasDispute: true, reason: 'Driver disputed diesel theft recovery penalty of ₹1,500' }),
+      payrollExportStatusJson: JSON.stringify({ exported: false })
+    }
+  ];
+
+  for (const ds of driverSettlements) {
+    const existing = await prisma.driverSettlement.findFirst({ where: { tripId: ds.tripId, driverName: ds.driverName } });
+    if (!existing) {
+      await prisma.driverSettlement.create({ data: ds });
+    }
+  }
+
+  const financialApprovals = [
+    {
+      approvalNumber: 'APV-AF07-2026-081',
+      flowCode: 'AF-07',
+      flowName: 'Vendor Bill Approval',
+      entityType: 'Vendor Bill',
+      entityId: 'VBN-2026-8801',
+      entityRef: 'VBN-2026-8801 (Mahalaxmi Transport)',
+      amount: 145200,
+      requestedBy: 'Vendor Billing Engine',
+      approver: 'Finance Manager (R-14)',
+      status: 'Pending',
+      reason: '3-Way Match verified within tolerance ±0.5%. Pending R-14 financial signoff.',
+      budgetCommitmentJson: JSON.stringify({ costCenter: 'CC-103', budgetHead: 'Market Hired Vehicles', committedAmount: 145200 }),
+      timelineJson: JSON.stringify([
+        { step: '3-Way Tolerance Check', status: 'Passed', timestamp: '2026-07-21 11:00' },
+        { step: 'AF-07 Financial Signoff', status: 'Pending Action', timestamp: '2026-07-21 11:05' }
+      ]),
+      historyJson: JSON.stringify([
+        { action: 'Approval Request Created', user: 'System', timestamp: '2026-07-21 11:05' }
+      ])
+    },
+    {
+      approvalNumber: 'APV-AF11-2026-014',
+      flowCode: 'AF-11',
+      flowName: 'Budget Exception',
+      entityType: 'Budget',
+      entityId: 'BDG-2026-MAINT-NCR',
+      entityRef: 'CC-102 Fleet Workshop & Repairs',
+      amount: 170000,
+      requestedBy: 'Workshop Manager (R-06)',
+      approver: 'Finance Manager (R-14)',
+      status: 'Pending',
+      reason: 'Workshop overhaul expense exceeded head budget by 9.4% (₹170,000 variance). Requires AF-11 reallocation signoff.',
+      budgetCommitmentJson: JSON.stringify({ costCenter: 'CC-102', budgetHead: 'Engine Overhaul Parts', committedAmount: 170000 }),
+      timelineJson: JSON.stringify([
+        { step: 'Variance Exceeded >10%', status: 'Flagged by System', timestamp: '2026-07-18 14:00' },
+        { step: 'AF-11 Budget Exception Review', status: 'Pending Action', timestamp: '2026-07-18 14:15' }
+      ]),
+      historyJson: JSON.stringify([
+        { action: 'Exception Created', user: 'R-14 System Engine', timestamp: '2026-07-18 14:15' }
+      ])
+    }
+  ];
+
+  for (const fa of financialApprovals) {
+    await prisma.financialApproval.upsert({
+      where: { approvalNumber: fa.approvalNumber },
+      update: fa,
+      create: fa
+    });
+  }
+
+  const erpExports = [
+    {
+      exportNumber: 'ERP-EXP-2026-091',
+      entityType: 'AP Invoices',
+      format: 'SAP',
+      recordCount: 14,
+      amountTotal: 1850000,
+      status: 'Completed',
+      exportedBy: 'Finance Manager',
+      historyJson: JSON.stringify([
+        { action: 'Export Triggered', timestamp: '2026-07-21 18:00', format: 'SAP iDoc / IDOC_ACC_INVOICE' },
+        { action: 'File Transferred to SAP FTP', timestamp: '2026-07-21 18:02', status: 'ACK-RECEIVED' }
+      ])
+    },
+    {
+      exportNumber: 'ERP-EXP-2026-092',
+      entityType: 'General Ledger Recharges',
+      format: 'Tally',
+      recordCount: 28,
+      amountTotal: 4200000,
+      status: 'Completed',
+      exportedBy: 'Finance Manager',
+      historyJson: JSON.stringify([
+        { action: 'Tally XML Export Generated', timestamp: '2026-07-20 17:30', format: 'Tally XML' }
+      ])
+    }
+  ];
+
+  for (const ee of erpExports) {
+    await prisma.erpExport.upsert({
+      where: { exportNumber: ee.exportNumber },
+      update: ee,
+      create: ee
+    });
+  }
+
+  console.log('Finance Manager Portal (R-14) data seeded successfully.');
 }
 
 main()

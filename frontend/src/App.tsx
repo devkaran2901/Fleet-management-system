@@ -74,6 +74,19 @@ import { PartsDemand } from './pages/workshop/PartsDemand';
 import { MechanicRoster } from './pages/workshop/MechanicRoster';
 import { WorkshopReports } from './pages/workshop/WorkshopReports';
 
+// Built Finance Manager modules (R-14)
+import { FinanceLayout } from './pages/finance/FinanceLayout';
+import { FINANCE_MODULES } from './pages/finance/financeModules';
+import { FinanceDashboard } from './pages/finance/FinanceDashboard';
+import { Budget } from './pages/finance/Budget';
+import { VendorBills } from './pages/finance/VendorBills';
+import { CustomerInvoices } from './pages/finance/CustomerInvoices';
+import { Payments } from './pages/finance/Payments';
+import { DriverSettlements } from './pages/finance/DriverSettlements';
+import { Approvals } from './pages/finance/Approvals';
+import { FinanceReports } from './pages/finance/FinanceReports';
+import { FinanceExports } from './pages/finance/FinanceExports';
+
 const BUILT_PAGES: Record<string, React.ComponentType> = {
   '/admin/dashboard': AdminDashboard,
   '/admin/org': OrgTree,
@@ -140,6 +153,18 @@ const BUILT_WORKSHOP_PAGES: Record<string, React.ComponentType> = {
   '/workshop/reports': WorkshopReports,
 };
 
+const BUILT_FINANCE_PAGES: Record<string, React.ComponentType> = {
+  '/finance/dashboard': FinanceDashboard,
+  '/finance/budget': Budget,
+  '/finance/vendor-bills': VendorBills,
+  '/finance/customer-invoices': CustomerInvoices,
+  '/finance/payments': Payments,
+  '/finance/driver-settlements': DriverSettlements,
+  '/finance/approvals': Approvals,
+  '/finance/reports': FinanceReports,
+  '/finance/exports': FinanceExports,
+};
+
 const DashboardRedirect: React.FC = () => {
   const { user } = useAuth();
   if (user?.roles?.includes('ADMIN')) {
@@ -147,6 +172,9 @@ const DashboardRedirect: React.FC = () => {
   }
   if (user?.roles?.includes('WORKSHOP_MANAGER') || user?.roles?.includes('R-06')) {
     return <Navigate to="/workshop/dashboard" replace />;
+  }
+  if (user?.roles?.includes('FINANCE_MANAGER') || user?.roles?.includes('R-14')) {
+    return <Navigate to="/finance/dashboard" replace />;
   }
   if (user?.roles?.includes('DISPATCHER')) {
     return <Navigate to="/dispatcher/dashboard" replace />;
@@ -281,6 +309,28 @@ const App: React.FC = () => {
                 <Route
                   key={mod.to}
                   path={mod.to.replace('/workshop/', '')}
+                  element={<Page />}
+                />
+              );
+            })}
+          </Route>
+
+          {/* Finance Manager suite (R-14) */}
+          <Route
+            path="/finance"
+            element={
+              <ProtectedRoute allowedRoles={['FINANCE_MANAGER', 'R-14', 'ADMIN']}>
+                <FinanceLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/finance/dashboard" replace />} />
+            {FINANCE_MODULES.map((mod) => {
+              const Page = BUILT_FINANCE_PAGES[mod.to] ?? ModuleStub;
+              return (
+                <Route
+                  key={mod.to}
+                  path={mod.to.replace('/finance/', '')}
                   element={<Page />}
                 />
               );
