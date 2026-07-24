@@ -30,6 +30,21 @@ import { NotificationsCenter } from './pages/vendor/NotificationsCenter';
 import { VendorTripTracking } from './pages/vendor/VendorTripTracking';
 import { VendorSettings } from './pages/vendor/VendorSettings';
 
+// Built driver modules
+import { DriverLayout } from './pages/driver/DriverLayout';
+import { DriverDashboard } from './pages/driver/DriverDashboard';
+import { DriverTrips } from './pages/driver/DriverTrips';
+import { TripDetails } from './pages/driver/TripDetails';
+import { VehicleInspection } from './pages/driver/VehicleInspection';
+import { ElectronicPOD } from './pages/driver/ElectronicPOD';
+import { KhataManagement } from './pages/driver/KhataManagement';
+import { ExpenseClaims } from './pages/driver/ExpenseClaims';
+import { DriverDocuments } from './pages/driver/DriverDocuments';
+import { ScoreEarnings } from './pages/driver/ScoreEarnings';
+import { DriverNotifications } from './pages/driver/DriverNotifications';
+import { SOSEmergency } from './pages/driver/SOSEmergency';
+import { DriverProfile } from './pages/driver/DriverProfile';
+
 // Built admin modules
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { OrgTree } from './pages/admin/OrgTree';
@@ -191,6 +206,9 @@ const BUILT_FINANCE_PAGES: Record<string, React.ComponentType> = {
 
 const DashboardRedirect: React.FC = () => {
   const { user } = useAuth();
+  if (user?.roles?.includes('DRIVER')) {
+    return <Navigate to="/driver/dashboard" replace />;
+  }
   if (user?.roles?.includes('ADMIN')) {
     return <Navigate to="/admin/dashboard" replace />;
   }
@@ -393,6 +411,30 @@ const App: React.FC = () => {
             <Route path="profile" element={<ProfileKYC />} />
             <Route path="notifications" element={<NotificationsCenter />} />
             <Route path="settings" element={<VendorSettings />} />
+          </Route>
+
+          {/* Driver Portal suite */}
+          <Route
+            path="/driver"
+            element={
+              <ProtectedRoute>
+                <DriverLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/driver/dashboard" replace />} />
+            <Route path="dashboard" element={<DriverDashboard />} />
+            <Route path="trips" element={<DriverTrips />} />
+            <Route path="trips/:id" element={<TripDetails />} />
+            <Route path="inspections" element={<VehicleInspection />} />
+            <Route path="epod" element={<ElectronicPOD />} />
+            <Route path="khata" element={<KhataManagement />} />
+            <Route path="expenses" element={<ExpenseClaims />} />
+            <Route path="documents" element={<DriverDocuments />} />
+            <Route path="earnings" element={<ScoreEarnings />} />
+            <Route path="notifications" element={<DriverNotifications />} />
+            <Route path="sos" element={<SOSEmergency />} />
+            <Route path="profile" element={<DriverProfile />} />
           </Route>
 
           {/* Landing page redirects */}

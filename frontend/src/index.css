@@ -26,16 +26,16 @@
   --bg-tertiary: var(--panel-2);
   --glass-bg: var(--panel);
   --glass-border: var(--border);
-  
+
   --primary: var(--green);
   --primary-hover: #27ae60;
   --secondary: var(--green-dim);
   --accent: var(--green);
-  
+
   --text-primary: var(--text-1);
   --text-secondary: var(--text-2);
   --text-muted: var(--text-3);
-  
+
   --success: var(--green);
   --error: var(--red);
   --warning: var(--amber);
@@ -52,18 +52,24 @@
 
 :root.light-theme {
   /* Light mode design tokens */
-  --void: #f5f6f2; /* Light off-white background */
-  --panel: #ffffff; /* White cards and panels */
-  --panel-2: #eaebe4; /* Hover states, inputs */
-  --panel-3: #e0e1db; /* Nested surfaces */
+  --void: #f5f6f2;
+  /* Light off-white background */
+  --panel: #ffffff;
+  /* White cards and panels */
+  --panel-2: #eaebe4;
+  /* Hover states, inputs */
+  --panel-3: #e0e1db;
+  /* Nested surfaces */
   --border: #d4d5cf;
   --border-soft: #e2e3dd;
-  --green: #27ae60; /* Darker green for high-contrast */
+  --green: #27ae60;
+  /* Darker green for high-contrast */
   --green-dim: #1e7e43;
   --green-glow: rgba(39, 174, 96, 0.12);
   --amber: #d35400;
   --red: #c0392b;
-  --text-1: #14161b; /* Near-black text */
+  --text-1: #14161b;
+  /* Near-black text */
   --text-2: #4a4f55;
   --text-3: #757b82;
 }
@@ -475,7 +481,8 @@ select {
   position: relative;
   overflow: hidden;
   border-radius: var(--border-radius-lg);
-  background-color: #0f1115; /* Dark background map */
+  background-color: #0f1115;
+  /* Dark background map */
   border: 1px solid var(--glass-border);
   box-shadow: var(--shadow-premium);
   margin-bottom: 32px;
@@ -563,6 +570,7 @@ select {
     r: 3px;
     opacity: 1;
   }
+
   100% {
     r: 12px;
     opacity: 0;
@@ -699,6 +707,7 @@ select {
   0% {
     filter: drop-shadow(0 0 2px rgba(63, 222, 121, 0.4));
   }
+
   100% {
     filter: drop-shadow(0 0 10px rgba(63, 222, 121, 0.8));
   }
@@ -887,6 +896,7 @@ select {
     transform: scale(0.65);
     opacity: 0.8;
   }
+
   100% {
     transform: scale(1.6);
     opacity: 0;
@@ -942,18 +952,33 @@ select {
 }
 
 @keyframes drive-loop-1 {
-  0% { transform: translateX(-60px); }
-  100% { transform: translateX(960px); }
+  0% {
+    transform: translateX(-60px);
+  }
+
+  100% {
+    transform: translateX(960px);
+  }
 }
 
 @keyframes drive-loop-2 {
-  0% { transform: translateX(-60px); }
-  100% { transform: translateX(960px); }
+  0% {
+    transform: translateX(-60px);
+  }
+
+  100% {
+    transform: translateX(960px);
+  }
 }
 
 @keyframes drive-loop-3 {
-  0% { transform: translateX(-60px); }
-  100% { transform: translateX(960px); }
+  0% {
+    transform: translateX(-60px);
+  }
+
+  100% {
+    transform: translateX(960px);
+  }
 }
 
 /* Timeline/Live Feed stream vertical connectors */
@@ -995,6 +1020,14 @@ select {
   z-index: 2;
 }
 
-.feed-node.node-green { background-color: var(--green); }
-.feed-node.node-amber { background-color: var(--amber); }
-.feed-node.node-grey { background-color: var(--text-3); }
+.feed-node.node-green {
+  background-color: var(--green);
+}
+
+.feed-node.node-amber {
+  background-color: var(--amber);
+}
+
+.feed-node.node-grey {
+  background-color: var(--text-3);
+}

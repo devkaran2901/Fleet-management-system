@@ -33,8 +33,45 @@ function RoadScene() {
     <svg viewBox="0 0 640 300" preserveAspectRatio="none" role="img">
       <defs>
         <filter id="softShadow"><feGaussianBlur in="SourceAlpha" stdDeviation="2" /><feOffset dy="2" /><feComponentTransfer><feFuncA type="linear" slope=".35" /></feComponentTransfer><feMerge><feMergeNode /><feMergeNode in="SourceGraphic" /></feMerge></filter>
-        <g id="truck" filter="url(#softShadow)"><ellipse cx="32" cy="17" rx="29" ry="3" fill="#050609" opacity=".45" /><rect x="0" y="-12" width="41" height="20" rx="2" fill="#e9e9df" /><path d="M42-7h12l6 7v8H42z" fill="#59616a" /><path d="M47-6h6l3 5h-9z" fill="#27404c" /><path d="M8-8l4-6 4 6z" fill="#3fde79" /><text x="17" y="1" fill="#314238" fontSize="5" fontWeight="700">ARGO</text><circle cx="13" cy="10" r="5" fill="#20262d" /><circle cx="13" cy="10" r="2" fill="#b7bec1" /><circle cx="49" cy="10" r="5" fill="#20262d" /><circle cx="49" cy="10" r="2" fill="#b7bec1" /><circle cx="32" cy="10" r="5" fill="#20262d" /><circle cx="32" cy="10" r="2" fill="#b7bec1" /></g>
-        <g id="van" filter="url(#softShadow)"><ellipse cx="22" cy="15" rx="21" ry="3" fill="#050609" opacity=".45" /><path d="M1-9h31l8 8v9H1z" fill="#dce1d6" /><path d="M28-7h5l5 6h-10z" fill="#315061" /><path d="M8-6l3-5 3 5z" fill="#3fde79" /><text x="15" y="0" fill="#334438" fontSize="4.5" fontWeight="700">ARGO</text><circle cx="10" cy="10" r="5" fill="#20262d" /><circle cx="10" cy="10" r="2" fill="#bec4c3" /><circle cx="31" cy="10" r="5" fill="#20262d" /><circle cx="31" cy="10" r="2" fill="#bec4c3" /></g>
+        <mask id="travCutout">
+          <rect x="0" y="0" width="160" height="100" fill="#FFFFFF" />
+          <path d="M 92 18 L 140 48 L 96 48 L 108 34 L 88 34 Z" fill="#000000" />
+        </mask>
+        <g id="traverseMark" fill="#10B981" mask="url(#travCutout)">
+          <rect x="36" y="16" width="16" height="7" rx="3.5" />
+          <rect x="58" y="16" width="34" height="7" rx="3.5" />
+          <rect x="24" y="32" width="30" height="7" rx="3.5" />
+          <path d="M 96 10 L 152 50 L 96 90 L 96 64 L 64 64 L 64 36 L 96 36 Z" />
+          <rect x="14" y="48" width="40" height="7" rx="3.5" />
+          <rect x="24" y="64" width="22" height="7" rx="3.5" />
+          <rect x="52" y="64" width="30" height="7" rx="3.5" />
+          <rect x="36" y="80" width="36" height="7" rx="3.5" />
+        </g>
+        <g id="truck" filter="url(#softShadow)">
+          <ellipse cx="32" cy="17" rx="29" ry="3" fill="#050609" opacity=".45" />
+          <rect x="0" y="-12" width="41" height="20" rx="2" fill="#e9e9df" />
+          <path d="M42-7h12l6 7v8H42z" fill="#59616a" />
+          <path d="M47-6h6l3 5h-9z" fill="#27404c" />
+          <use href="#traverseMark" transform="translate(3, -8.5) scale(0.075)" />
+          <text x="14.5" y="-3" fill="#1e293b" fontSize="4.2" fontWeight="900" fontFamily="Inter, sans-serif" letterSpacing="-0.3px">TRA<tspan fill="#10B981">VERSE</tspan></text>
+          <circle cx="13" cy="10" r="5" fill="#20262d" />
+          <circle cx="13" cy="10" r="2" fill="#b7bec1" />
+          <circle cx="49" cy="10" r="5" fill="#20262d" />
+          <circle cx="49" cy="10" r="2" fill="#b7bec1" />
+          <circle cx="32" cy="10" r="5" fill="#20262d" />
+          <circle cx="32" cy="10" r="2" fill="#b7bec1" />
+        </g>
+        <g id="van" filter="url(#softShadow)">
+          <ellipse cx="22" cy="15" rx="21" ry="3" fill="#050609" opacity=".45" />
+          <path d="M1-9h31l8 8v9H1z" fill="#dce1d6" />
+          <path d="M28-7h5l5 6h-10z" fill="#315061" />
+          <use href="#traverseMark" transform="translate(2.5, -6.5) scale(0.06)" />
+          <text x="12" y="-2" fill="#1e293b" fontSize="3.6" fontWeight="900" fontFamily="Inter, sans-serif" letterSpacing="-0.2px">TRA<tspan fill="#10B981">VERSE</tspan></text>
+          <circle cx="10" cy="10" r="5" fill="#20262d" />
+          <circle cx="10" cy="10" r="2" fill="#bec4c3" />
+          <circle cx="31" cy="10" r="5" fill="#20262d" />
+          <circle cx="31" cy="10" r="2" fill="#bec4c3" />
+        </g>
         <g id="car" filter="url(#softShadow)"><ellipse cx="20" cy="13" rx="19" ry="3" fill="#050609" opacity=".4" /><path d="M1 3l4-9h23l8 9v5H1z" fill="#8d969e" /><path d="M9-5h15l5 6H5z" fill="#354956" /><circle cx="9" cy="9" r="4" fill="#1c2025" /><circle cx="29" cy="9" r="4" fill="#1c2025" /><path d="M34 2h2v3h-2z" fill="#f2b441" /></g>
         <g id="scooter" filter="url(#softShadow)"><ellipse cx="16" cy="12" rx="15" ry="2.5" fill="#050609" opacity=".4" /><circle cx="7" cy="8" r="4" fill="#1d2229" /><circle cx="26" cy="8" r="4" fill="#1d2229" /><path d="M7 5h15l3-10h2l-2 11H14l-4-5z" fill="#9fa7a6" /><circle cx="17" cy="-6" r="5" fill="#b8a28e" /><path d="M14-2h8l4 6H13z" fill="#4d8b62" /><circle cx="23" cy="0" r="2" fill="#3fde79" /></g>
       </defs>
@@ -158,6 +195,7 @@ export function SignInPage() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 5 }}>
           {[
+            { role: 'Driver Portal', email: 'driver@fleetos.com', pass: 'password123', icon: '🚗' },
             { role: 'Dispatcher', email: 'dispatcher@fleetos.com', pass: 'password123', icon: '⚡' },
             { role: 'Fleet Manager', email: 'manager@fleetos.com', pass: 'password123', icon: '🚚' },
             { role: 'Workshop Manager', email: 'workshop@fleetos.com', pass: 'password123', icon: '🛠️' },
