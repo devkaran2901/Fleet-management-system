@@ -21,7 +21,7 @@ flowchart TB
       P5[P-05 Audit]:::p --- P6[P-06 Integration & Import]:::p --- P7[P-07 AI Layer]:::p --- P8[P-08 Reporting Platform]:::p
     end
     subgraph CORE[Core Modules]
-      M2[M-02 Vehicles] --> M6[M-06 Trips]
+      M2[M-02 Vehicles] --> M6[M-06 Trips]  
       M3[M-03 Drivers] --> M6
       M4[M-04 Requests] --> M5[M-05 Dispatch] --> M6
       M7[M-07 GPS/Live] --> M6

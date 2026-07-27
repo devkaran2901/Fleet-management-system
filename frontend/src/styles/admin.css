@@ -121,7 +121,7 @@
 }
 
 /* The sole grid item: must be able to shrink and clip its own content. */
-.adm-rail-collapse > .adm-rail-links {
+.adm-rail-collapse>.adm-rail-links {
   min-height: 0;
   overflow: hidden;
 }
@@ -179,8 +179,15 @@
 }
 
 @keyframes adm-marker {
-  from { height: 0; opacity: 0; }
-  to { height: 18px; opacity: 1; }
+  from {
+    height: 0;
+    opacity: 0;
+  }
+
+  to {
+    height: 18px;
+    opacity: 1;
+  }
 }
 
 .adm-rail-count {
@@ -237,17 +244,26 @@
 }
 
 @keyframes adm-page-in {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .adm-page,
   .adm-rail-link.is-active::before,
   .adm-modal,
   .adm-toast {
     animation: none;
   }
+
   .adm-rail-collapse {
     transition: none;
   }
@@ -394,6 +410,7 @@
 }
 
 @media (max-width: 1100px) {
+
   .adm-grid-2,
   .adm-grid-4,
   .adm-grid-side {
@@ -515,7 +532,10 @@
 }
 
 @keyframes adm-count-in {
-  from { opacity: 0; transform: translateY(4px); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
 }
 
 .adm-metric-none {
@@ -1184,10 +1204,21 @@ textarea.adm-input {
   background-color: var(--text-3);
 }
 
-.adm-conn-card.status-HEALTHY::before { background-color: var(--green); }
-.adm-conn-card.status-DEGRADED::before { background-color: var(--amber); }
-.adm-conn-card.status-DOWN::before { background-color: var(--red); }
-.adm-conn-card.status-DISCONNECTED::before { background-color: var(--text-3); }
+.adm-conn-card.status-HEALTHY::before {
+  background-color: var(--green);
+}
+
+.adm-conn-card.status-DEGRADED::before {
+  background-color: var(--amber);
+}
+
+.adm-conn-card.status-DOWN::before {
+  background-color: var(--red);
+}
+
+.adm-conn-card.status-DISCONNECTED::before {
+  background-color: var(--text-3);
+}
 
 .adm-conn-card:hover {
   border-color: var(--border);
@@ -1614,11 +1645,16 @@ textarea.adm-input {
 }
 
 @keyframes adm-fade {
-  from { opacity: 0; }
+  from {
+    opacity: 0;
+  }
 }
 
 @keyframes adm-rise {
-  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
 }
 
 /* --- Toast ---------------------------------------------------------------- */
@@ -1653,12 +1689,25 @@ textarea.adm-input {
   line-height: 1.4;
 }
 
-.adm-toast-success { border-color: rgba(46, 204, 113, 0.4); color: var(--green); }
-.adm-toast-error { border-color: rgba(229, 72, 77, 0.4); color: var(--red); }
-.adm-toast-info { border-color: var(--border); }
+.adm-toast-success {
+  border-color: rgba(46, 204, 113, 0.4);
+  color: var(--green);
+}
+
+.adm-toast-error {
+  border-color: rgba(229, 72, 77, 0.4);
+  color: var(--red);
+}
+
+.adm-toast-info {
+  border-color: var(--border);
+}
 
 @keyframes adm-slide {
-  from { opacity: 0; transform: translateX(16px); }
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
 }
 
 /* --- States --------------------------------------------------------------- */
@@ -1696,7 +1745,9 @@ textarea.adm-input {
 }
 
 @keyframes adm-rotate {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* --- Toggle --------------------------------------------------------------- */
