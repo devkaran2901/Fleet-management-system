@@ -148,7 +148,11 @@ export const AdminDashboard: React.FC = () => {
             { name: 'Dispatcher Workspace', icon: '⚡', desc: 'Active runs, driver assignment & indents', path: '/dispatcher/dashboard', badge: '', color: '#d97706' },
             { name: 'Fleet Manager Portal', icon: '🚚', desc: 'Vehicle master, telematics & health', path: '/fleet/dashboard', badge: '', color: '#0891b2' },
             { name: 'Workshop Portal', icon: '🛠️', desc: 'Job cards, maintenance board & parts demand', path: '/workshop/dashboard', badge: '', color: '#9333ea' },
-            { name: 'Admin Suite', icon: '🔧', desc: 'System governance, roles & integrations', path: '/admin/dashboard', badge: '', color: '#2563eb' },
+            { name: 'Finance Manager', icon: '💰', desc: 'Finance management with revenue and cost list', path: '/finance/dashboard', badge: '', color: '#2563eb' },
+            { name: 'Vendor', icon: '👨🏻‍💼', desc: 'Vendor details with finance and quantity requirements', path: '/vendor/dashboard', badge: '', color: '#eed00cff' },
+            { name: 'Driver Portal', icon: '👨🏻', desc: 'Driver trips, vehicle inspection, Expenses', path: '/driver/dashboard', badge: '', color: '#ee0c0cff' },
+
+
           ].map((portal) => (
             <div
               key={portal.path}
@@ -200,11 +204,11 @@ export const AdminDashboard: React.FC = () => {
       <div className="adm-metric-groups">
         <Panel title="Users" subtitle="Identity and access" className="adm-metric-panel">
           <div className="adm-metric-grid">
-            <MetricTile label="Total users" metric={summary.users.total} icon={<Users size={13} color="var(--green)" />} />
-            <MetricTile label="Active" metric={summary.users.active} icon={<Users size={13} color="var(--green)" />} />
-            <MetricTile label="Disabled" metric={summary.users.disabled} icon={<Users size={13} color="var(--text-3)" />} />
-            <MetricTile label="New this month" metric={summary.users.newThisMonth} icon={<Plus size={13} color="var(--green)" />} />
-            <MetricTile label="Failed logins" metric={summary.users.failedLogins} />
+          <Link to="/admin/users"> <MetricTile label="Total users" metric={summary.users.total} icon={<Users size={13} color="var(--green)" />} /></Link> 
+            <Link to="/admin/users"><MetricTile label="Active" metric={summary.users.active} icon={<Users size={13} color="var(--green)" />} /></Link>
+            <Link to="/admin/users"><MetricTile label="Disabled" metric={summary.users.disabled} icon={<Users size={13} color="var(--text-3)" />} /></Link>
+            <Link to="/admin/users"><MetricTile label="New this month" metric={summary.users.newThisMonth} icon={<Plus size={13} color="var(--green)" />} /></Link>
+            <Link to="/admin/users"><MetricTile label="Failed logins" metric={summary.users.failedLogins} /></Link>
           </div>
         </Panel>
 
