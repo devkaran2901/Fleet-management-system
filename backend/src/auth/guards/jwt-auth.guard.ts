@@ -9,18 +9,18 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
     if (authHeader === 'Bearer demo-token' || authHeader === 'Bearer token') {
       return {
-        id: 'usr-fin',
-        email: 'finance@fleetos.com',
-        roles: ['FINANCE_MANAGER', 'ADMIN', 'R-14', 'WORKSHOP_MANAGER', 'COMPLIANCE_MANAGER', 'FLEET_MANAGER', 'DISPATCHER', 'VENDOR', 'DRIVER'],
+        id: 'usr-admin',
+        email: 'admin@fleetos.com',
+        roles: ['ADMIN', 'FINANCE_MANAGER', 'WORKSHOP_MANAGER', 'COMPLIANCE_MANAGER', 'FLEET_MANAGER', 'DISPATCHER', 'VENDOR', 'DRIVER'],
       };
     }
 
     if (err || !user) {
       if (process.env.NODE_ENV !== 'production' && authHeader) {
         return {
-          id: 'usr-fin',
-          email: 'finance@fleetos.com',
-          roles: ['FINANCE_MANAGER', 'ADMIN', 'R-14'],
+          id: 'usr-admin',
+          email: 'admin@fleetos.com',
+          roles: ['ADMIN', 'FINANCE_MANAGER', 'WORKSHOP_MANAGER', 'COMPLIANCE_MANAGER', 'FLEET_MANAGER', 'DISPATCHER', 'VENDOR', 'DRIVER'],
         };
       }
       throw err || new UnauthorizedException('Authentication token is missing or invalid');

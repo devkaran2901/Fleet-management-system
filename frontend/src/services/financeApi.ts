@@ -1,7 +1,5 @@
 import api from './api';
 
-const unwrap = <T>(promise: Promise<{ data: T }>) => promise.then((res) => res.data);
-
 export interface FinanceKPIs {
   budgetVsActualCommitment: {
     allocated: number;
@@ -117,18 +115,18 @@ export interface PaymentRunRecord {
   status: 'Queued' | 'Processing' | 'Released' | 'Failed';
   releaseDate: string;
   billsIncludedJson: string | string[];
-  bankStatusJson: string | any;
-  paymentQueueJson: string | any;
-  makerCheckerJson: string | any;
-  upiBatchJson: string | any;
-  vendorPaymentsJson: string | any[];
-  fastagLedgerJson: string | any;
-  fuelCardLedgerJson: string | any;
-  approvalTimelineJson: string | any[];
-  releaseStatusJson: string | any;
-  auditTrailJson: string | any[];
-  createdAt: string;
-  updatedAt: string;
+  bankStatusJson?: string | any;
+  paymentQueueJson?: string | any;
+  makerCheckerJson?: string | any;
+  upiBatchJson?: string | any;
+  vendorPaymentsJson?: string | any[];
+  fastagLedgerJson?: string | any;
+  fuelCardLedgerJson?: string | any;
+  approvalTimelineJson?: string | any[];
+  releaseStatusJson?: string | any;
+  auditTrailJson?: string | any[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface DriverSettlementRecord {

@@ -1,13 +1,21 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
 
-interface User {
+export interface CapabilityItem {
+  capabilityKey: string;
+  label?: string;
+  group?: string;
+  scope?: string;
+}
+
+export interface User {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
   isActive: boolean;
   roles: string[];
+  capabilities?: CapabilityItem[];
 }
 
 interface AuthContextType {
@@ -34,10 +42,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           // Fetch complete profile details from server
           const response = await api.get('/auth/profile');
-          const roles = response.data.roles.map((ur: any) => ur.role.name);
+          const roles = (response.data.roles || []).map((ur: any) => (ur.role ? ur.role.name : ur));
+          
+          const capabilitiesMap = new Map<string, CapabilityItem>();
+          if (response.data.roles && Array.isArray(response.data.roles)) {
+            response.data.roles.forEach((ur: any) => {
+              if (ur.role && ur.role.capabilities && Array.isArray(ur.role.capabilities)) {
+                ur.role.capabilities.forEach((rc: any) => {
+                  capabilitiesMap.set(rc.capabilityKey, {
+                    capabilityKey: rc.capabilityKey,
+                    label: rc.capability?.label || rc.capabilityKey,
+                    group: rc.capability?.group || 'General',
+                    scope: rc.scope || 'HUB',
+                  });
+                });
+              }
+            });
+          }
+
+          const capabilities = response.data.capabilities || Array.from(capabilitiesMap.values());
+
           setUser({
             ...response.data,
             roles,
+            capabilities,
           });
         } catch (err) {
           // If offline / demo mode, restore from fms_user if present
@@ -71,11 +99,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('fms_user', JSON.stringify(loggedUser));
       setUser(loggedUser);
     } catch (err: any) {
-      // Demo / Fallback account check
+      // Check if custom user was registered/saved in local demo registry
+      const customUsersJson = localStorage.getItem('fms_custom_users');
+      let customUsers: User[] = [];
+      if (customUsersJson) {
+        try { customUsers = JSON.parse(customUsersJson); } catch { customUsers = []; }
+      }
+
       const lower = email.toLowerCase();
+      const matchedCustomUser = customUsers.find(
+        (u) => u.email.toLowerCase() === lower,
+      );
+
       let demoUser: User | null = null;
 
-      if (lower.includes('driver') || lower.includes('drv') || lower.includes('98765') || lower.includes('rajesh')) {
+      if (matchedCustomUser) {
+        demoUser = matchedCustomUser;
+      } else if (lower.includes('driver') || lower.includes('drv') || lower.includes('98765') || lower.includes('rajesh')) {
         demoUser = {
           id: 'drv-401',
           email: email.includes('@') ? email : 'driver@fleetos.com',
@@ -83,6 +123,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           lastName: 'Kumar',
           isActive: true,
           roles: ['DRIVER'],
+          capabilities: [
+            { capabilityKey: 'trip.record', label: 'Record trips', group: 'Operations', scope: 'SELF' },
+            { capabilityKey: 'expense.submit', label: 'Submit expenses', group: 'Finance', scope: 'SELF' },
+          ],
         };
       } else if (lower.includes('admin')) {
         demoUser = { id: 'usr-admin', email, firstName: 'Admin', lastName: 'User', isActive: true, roles: ['ADMIN'] };
@@ -99,14 +143,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else if (lower.includes('finance')) {
         demoUser = { id: 'usr-fin', email, firstName: 'Finance', lastName: 'Manager', isActive: true, roles: ['FINANCE_MANAGER'] };
       } else if (email.length > 0) {
-        // Fallback for any entered text in demo environment
+        // Fallback custom demo user if non-standard account name entered
         demoUser = {
-          id: 'drv-401',
-          email: email.includes('@') ? email : 'driver@fleetos.com',
-          firstName: 'Rajesh',
-          lastName: 'Kumar',
+          id: `usr-custom-${Date.now()}`,
+          email,
+          firstName: email.split('@')[0] || 'Custom',
+          lastName: 'User',
           isActive: true,
-          roles: ['DRIVER'],
+          roles: ['Custom Operations Manager'],
+          capabilities: [
+            { capabilityKey: 'fleet.view', label: 'View fleet', group: 'Fleet', scope: 'HUB' },
+            { capabilityKey: 'driver.manage', label: 'Manage drivers', group: 'Fleet', scope: 'HUB' },
+            { capabilityKey: 'expense.approve', label: 'Approve expenses', group: 'Finance', scope: 'HUB' },
+            { capabilityKey: 'trip.record', label: 'Record trips', group: 'Operations', scope: 'HUB' },
+          ],
         };
       }
 

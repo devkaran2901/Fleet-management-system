@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { ChevronDown, LogOut } from 'lucide-react';
+import {
+  Building2, ChevronDown, DollarSign, LayoutDashboard, LogOut,
+  Route, ShieldCheck, Truck, Users
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { ADMIN_NAV, findGroup } from '../pages/admin/adminModules';
 import { DISPATCHER_NAV, findDispatcherGroup } from '../pages/dispatcher/dispatcherModules';
@@ -16,7 +19,7 @@ const STORAGE_KEY = 'fms_admin_nav_collapsed';
 
 /**
  * The single navigation rail for the whole app. Dynamically switches between
- * ADMIN, DISPATCHER, FLEET, COMPLIANCE, WORKSHOP, FINANCE and VENDOR menus based on route.
+ * ADMIN, DISPATCHER, FLEET, COMPLIANCE, WORKSHOP, FINANCE, VENDOR and CUSTOM menus based on route.
  */
 export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = ({
   open,
@@ -42,11 +45,103 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
   const hasFinanceManager = roles.includes('FINANCE_MANAGER') || roles.includes('R-14');
   const hasVendor = roles.includes('VENDOR') || isVendor;
 
+  const isCustomRole = location.pathname.startsWith('/custom') ||
+    (!hasAdmin && !hasDispatcher && !hasFleetManager && !hasComplianceManager && !hasWorkshopManager && !hasFinanceManager && !hasVendor);
+
   // Determine which nav to show based on route + role
   let nav = ADMIN_NAV;
   let resolveGroup = findGroup;
 
-  if (hasAdmin) {
+  if (isCustomRole) {
+    const caps = user?.capabilities || [];
+    const capKeys = new Set(caps.map((c) => c.capabilityKey));
+
+    const modules: any[] = [
+      {
+        to: '/custom/dashboard',
+        label: 'Dashboard',
+        icon: LayoutDashboard,
+        built: true,
+        service: 'Role',
+        summary: 'Overview & vitals',
+      },
+    ];
+
+    if (capKeys.has('fleet.view') || capKeys.has('fleet.edit')) {
+      modules.push({
+        to: '/custom/dashboard',
+        label: 'Fleet & Assets',
+        icon: Truck,
+        built: true,
+        service: 'Fleet',
+        summary: 'Fleet assets management',
+      });
+    }
+
+    if (capKeys.has('driver.manage')) {
+      modules.push({
+        to: '/custom/dashboard',
+        label: 'Driver Roster',
+        icon: Users,
+        built: true,
+        service: 'Fleet',
+        summary: 'Driver management',
+      });
+    }
+
+    if (capKeys.has('trip.record') || capKeys.has('route.dispatch')) {
+      modules.push({
+        to: '/custom/dashboard',
+        label: 'Trip Runs',
+        icon: Route,
+        built: true,
+        service: 'Operations',
+        summary: 'Trip dispatch & runs',
+      });
+    }
+
+    if (capKeys.has('expense.submit') || capKeys.has('expense.approve') || capKeys.has('payment.release')) {
+      modules.push({
+        to: '/custom/dashboard',
+        label: 'Finance & Expenses',
+        icon: DollarSign,
+        built: true,
+        service: 'Finance',
+        summary: 'Expenses & approvals',
+      });
+    }
+
+    if (capKeys.has('vendor.manage')) {
+      modules.push({
+        to: '/custom/dashboard',
+        label: 'Vendor Partners',
+        icon: Building2,
+        built: true,
+        service: 'Vendor',
+        summary: 'Vendor directory',
+      });
+    }
+
+    if (capKeys.has('user.manage') || capKeys.has('role.manage') || capKeys.has('audit.read')) {
+      modules.push({
+        to: '/custom/dashboard',
+        label: 'Administration',
+        icon: ShieldCheck,
+        built: true,
+        service: 'Admin',
+        summary: 'System & access control',
+      });
+    }
+
+    nav = [
+      {
+        label: 'Main Navigation',
+        modules,
+      },
+    ];
+
+    resolveGroup = () => ({ id: 'custom', label: 'Main Navigation', modules });
+  } else if (hasAdmin) {
     if (isDispatcher) {
       nav = DISPATCHER_NAV;
       resolveGroup = findDispatcherGroup;

@@ -204,6 +204,9 @@ const BUILT_FINANCE_PAGES: Record<string, React.ComponentType> = {
   '/finance/exports': FinanceExports,
 };
 
+import { CustomRoleLayout } from './pages/custom/CustomRoleLayout';
+import { CustomRoleDashboard } from './pages/custom/CustomRoleDashboard';
+
 const DashboardRedirect: React.FC = () => {
   const { user } = useAuth();
   if (user?.roles?.includes('DRIVER')) {
@@ -230,7 +233,7 @@ const DashboardRedirect: React.FC = () => {
   if (user?.roles?.includes('COMPLIANCE_MANAGER') || user?.roles?.includes('COMPLIANCE') || user?.roles?.includes('S-22')) {
     return <Navigate to="/compliance/dashboard" replace />;
   }
-  return <Navigate to="/admin/dashboard" replace />;
+  return <Navigate to="/custom/dashboard" replace />;
 };
 
 const App: React.FC = () => {
@@ -435,6 +438,19 @@ const App: React.FC = () => {
             <Route path="notifications" element={<DriverNotifications />} />
             <Route path="sos" element={<SOSEmergency />} />
             <Route path="profile" element={<DriverProfile />} />
+          </Route>
+
+          {/* Dynamic Custom Role suite */}
+          <Route
+            path="/custom"
+            element={
+              <ProtectedRoute>
+                <CustomRoleLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/custom/dashboard" replace />} />
+            <Route path="dashboard" element={<CustomRoleDashboard />} />
           </Route>
 
           {/* Landing page redirects */}

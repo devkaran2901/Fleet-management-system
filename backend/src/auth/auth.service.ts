@@ -21,7 +21,26 @@ export class AuthService {
 
   async login(user: any) {
     // Map UserRole objects to simple string array of role names
-    const roleNames = user.roles.map((ur: any) => ur.role.name);
+    const roleNames = (user.roles || []).map((ur: any) => (ur.role ? ur.role.name : ur));
+
+    // Extract all assigned role capabilities
+    const capabilitiesMap = new Map<string, any>();
+    if (user.roles && Array.isArray(user.roles)) {
+      user.roles.forEach((ur: any) => {
+        if (ur.role && ur.role.capabilities && Array.isArray(ur.role.capabilities)) {
+          ur.role.capabilities.forEach((rc: any) => {
+            capabilitiesMap.set(rc.capabilityKey, {
+              capabilityKey: rc.capabilityKey,
+              label: rc.capability?.label || rc.capabilityKey,
+              group: rc.capability?.group || 'General',
+              scope: rc.scope || 'HUB',
+            });
+          });
+        }
+      });
+    }
+
+    const capabilities = Array.from(capabilitiesMap.values());
     
     const payload = {
       email: user.email,
@@ -38,6 +57,7 @@ export class AuthService {
         lastName: user.lastName,
         isActive: user.isActive,
         roles: roleNames,
+        capabilities,
       },
     };
   }

@@ -13,7 +13,15 @@ export class UserService {
       include: {
         roles: {
           include: {
-            role: true,
+            role: {
+              include: {
+                capabilities: {
+                  include: {
+                    capability: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -26,7 +34,15 @@ export class UserService {
       include: {
         roles: {
           include: {
-            role: true,
+            role: {
+              include: {
+                capabilities: {
+                  include: {
+                    capability: true,
+                  },
+                },
+              },
+            },
           },
         },
       },

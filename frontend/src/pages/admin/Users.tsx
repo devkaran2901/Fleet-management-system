@@ -42,7 +42,35 @@ export const Users: React.FC = () => {
         password,
         roles: [selectedRole],
       });
-      notify('success', `Created user ${email}`);
+
+      // Find role and capabilities to store in demo registry
+      const assignedRoleObj = roles.find((r) => r.name === selectedRole);
+      const roleCaps = assignedRoleObj?.capabilities || [];
+
+      const newCustomUser = {
+        id: `usr-${Date.now()}`,
+        email,
+        firstName,
+        lastName,
+        isActive: true,
+        roles: [selectedRole],
+        capabilities: roleCaps.map((c) => ({
+          capabilityKey: c.capabilityKey,
+          label: c.label || c.capabilityKey,
+          group: c.group || 'General',
+          scope: c.scope || 'HUB',
+        })),
+      };
+
+      const existingUsersJson = localStorage.getItem('fms_custom_users');
+      let existingUsers: any[] = [];
+      if (existingUsersJson) {
+        try { existingUsers = JSON.parse(existingUsersJson); } catch { existingUsers = []; }
+      }
+      existingUsers.push(newCustomUser);
+      localStorage.setItem('fms_custom_users', JSON.stringify(existingUsers));
+
+      notify('success', `Created user ${email} with role ${selectedRole}`);
       setAdding(false);
       setFirstName('');
       setLastName('');
