@@ -1017,29 +1017,30 @@ export const LiveFleetMap: React.FC = () => {
           )}
         </div>
 
-        {/* Selected Vehicle Telemetry Side Drawer Panel */}
+        {/* Selected Vehicle Telemetry Side Drawer Panel - Single Unified Card (No Scrollbar) */}
         <div
           style={{
             backgroundColor: bgHeader,
             borderLeft: `1px solid ${borderSoft}`,
-            padding: 14,
+            padding: '12px 14px',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            maxHeight: isFullscreen ? 'calc(100vh - 105px)' : 480,
-            overflowY: 'auto',
+            height: '100%',
+            overflow: 'hidden',
+            boxSizing: 'border-box',
           }}
         >
           {selectedVehicle ? (
-            <div>
-              {/* Status Header */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, height: '100%', justifyContent: 'space-between' }}>
+              {/* Status Header & Last Ping */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span
                   style={{
-                    fontSize: 11,
+                    fontSize: 10,
                     fontWeight: 800,
-                    padding: '4px 10px',
-                    borderRadius: 20,
+                    padding: '2px 8px',
+                    borderRadius: 12,
                     textTransform: 'uppercase',
                     letterSpacing: 0.5,
                     backgroundColor: `${getStatusColor(selectedVehicle.status)}22`,
@@ -1049,238 +1050,298 @@ export const LiveFleetMap: React.FC = () => {
                 >
                   ● {selectedVehicle.status}
                 </span>
-                <span style={{ fontSize: 11, color: text3 }}>
-                  Last Ping: {selectedVehicle.lastPing}
+                <span style={{ fontSize: 10, color: text3 }}>
+                  Ping: {selectedVehicle.lastPing}
                 </span>
               </div>
 
-              {/* 3D TRAVERSE Fleet Truck Preview Badge */}
+              {/* Single Unified Telemetry Card */}
               <div
                 style={{
-                  marginBottom: 16,
-                  padding: 10,
-                  borderRadius: 10,
                   backgroundColor: bgSection,
                   border: `1px solid ${borderSoft}`,
+                  borderRadius: 10,
+                  padding: '12px 14px',
                   display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
+                  flexDirection: 'column',
+                  gap: 10,
+                  flex: 1,
+                  justifyContent: 'space-around',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
                 }}
               >
-                <img
-                  src="/traverse-truck.png"
-                  alt="TRAVERSE 3D Logistics Truck"
-                  style={{
-                    width: 72,
-                    height: 52,
-                    objectFit: 'contain',
-                    filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))',
-                  }}
-                />
-                <div>
-                  <div style={{ fontSize: 10, fontWeight: 800, color: '#0284c7', letterSpacing: 0.8, textTransform: 'uppercase' }}>
-                    TRAVERSE FLEET ASSET
+                {/* Top Section: Truck Preview & Registration Info */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 8, borderBottom: `1px solid ${borderSoft}` }}>
+                  <div
+                    style={{
+                      width: 58,
+                      height: 44,
+                      borderRadius: 8,
+                      backgroundColor: bgCard,
+                      border: `1px solid ${borderSoft}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+                    }}
+                  >
+                    <img
+                      src="/traverse-truck.png"
+                      alt="TRAVERSE 3D Logistics Truck"
+                      style={{
+                        width: 50,
+                        height: 36,
+                        objectFit: 'contain',
+                        filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))',
+                      }}
+                    />
                   </div>
-                  <h3 style={{ margin: '2px 0 0 0', fontSize: 18, fontWeight: 800, color: text1 }}>
-                    {selectedVehicle.vehicleNumber}
-                  </h3>
-                  <span style={{ fontSize: 11, color: text3 }}>
-                    {selectedVehicle.category} Heavy Freight Vehicle
-                  </span>
+                  <div>
+                    <div style={{ fontSize: 9, fontWeight: 800, color: '#0284c7', letterSpacing: 0.8, textTransform: 'uppercase' }}>
+                      TRAVERSE FLEET ASSET
+                    </div>
+                    <h4 style={{ margin: '2px 0 0 0', fontSize: 17, fontWeight: 800, color: text1, letterSpacing: -0.2 }}>
+                      {selectedVehicle.vehicleNumber}
+                    </h4>
+                    <span style={{ fontSize: 10, color: text3, fontWeight: 500 }}>
+                      {selectedVehicle.category} Heavy Freight Vehicle
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              {/* Location Card */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 18 }}>
+                {/* Telemetry Metrics Pill Grid (Speed & Fuel with Progress Visual Gauges) */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  <div
+                    style={{
+                      padding: '8px 10px',
+                      borderRadius: 8,
+                      backgroundColor: bgCard,
+                      border: `1px solid ${borderSoft}`,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 4,
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: text3, fontSize: 9 }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontWeight: 700, textTransform: 'uppercase' }}>
+                        <Gauge size={12} color="#0284c7" /> Speed
+                      </span>
+                      <span style={{ fontSize: 9, color: selectedVehicle.speedKmH > 75 ? '#ef4444' : '#22c55e', fontWeight: 700 }}>
+                        {selectedVehicle.speedKmH > 75 ? 'OVERSEED' : 'NORMAL'}
+                      </span>
+                    </div>
+                    <span style={{ fontSize: 16, fontWeight: 800, color: selectedVehicle.speedKmH > 75 ? '#ef4444' : text1 }}>
+                      {selectedVehicle.speedKmH} <span style={{ fontSize: 9, fontWeight: 500, color: text3 }}>km/h</span>
+                    </span>
+                    {/* Speed Gauge Bar */}
+                    <div style={{ width: '100%', height: 3, backgroundColor: 'rgba(0,0,0,0.08)', borderRadius: 2, overflow: 'hidden', marginTop: 2 }}>
+                      <div
+                        style={{
+                          height: '100%',
+                          width: `${Math.min(100, (selectedVehicle.speedKmH / 100) * 100)}%`,
+                          backgroundColor: selectedVehicle.speedKmH > 75 ? '#ef4444' : '#0284c7',
+                          borderRadius: 2,
+                          transition: 'width 0.4s ease',
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      padding: '8px 10px',
+                      borderRadius: 8,
+                      backgroundColor: bgCard,
+                      border: `1px solid ${borderSoft}`,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 4,
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: text3, fontSize: 9 }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontWeight: 700, textTransform: 'uppercase' }}>
+                        <Fuel size={12} color="#22c55e" /> Fuel
+                      </span>
+                      <span style={{ fontSize: 9, color: selectedVehicle.fuelLevel < 25 ? '#f59e0b' : '#22c55e', fontWeight: 700 }}>
+                        {selectedVehicle.fuelLevel < 25 ? 'LOW' : 'OK'}
+                      </span>
+                    </div>
+                    <span style={{ fontSize: 16, fontWeight: 800, color: selectedVehicle.fuelLevel < 25 ? '#f59e0b' : '#22c55e' }}>
+                      {selectedVehicle.fuelLevel}%
+                    </span>
+                    {/* Fuel Level Gauge Bar */}
+                    <div style={{ width: '100%', height: 3, backgroundColor: 'rgba(0,0,0,0.08)', borderRadius: 2, overflow: 'hidden', marginTop: 2 }}>
+                      <div
+                        style={{
+                          height: '100%',
+                          width: `${selectedVehicle.fuelLevel}%`,
+                          backgroundColor: selectedVehicle.fuelLevel < 25 ? '#f59e0b' : '#22c55e',
+                          borderRadius: 2,
+                          transition: 'width 0.4s ease',
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* GPS Location Address Container */}
                 <div
                   style={{
-                    padding: 12,
-                    borderRadius: 8,
-                    backgroundColor: bgSection,
-                    border: `1px solid ${borderSoft}`,
                     display: 'flex',
-                    alignItems: 'center',
+                    alignItems: 'flex-start',
                     gap: 10,
+                    padding: '8px 10px',
+                    borderRadius: 8,
+                    backgroundColor: bgCard,
+                    border: `1px solid ${borderSoft}`,
                   }}
                 >
-                  <MapPin size={18} color="#22c55e" />
+                  <div
+                    style={{
+                      width: 26,
+                      height: 26,
+                      borderRadius: 6,
+                      backgroundColor: 'rgba(34, 197, 94, 0.12)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      marginTop: 2,
+                    }}
+                  >
+                    <MapPin size={14} color="#22c55e" />
+                  </div>
                   <div>
-                    <span style={{ fontSize: 10, color: text3, display: 'block', textTransform: 'uppercase', fontWeight: 700 }}>
+                    <span style={{ fontSize: 9, color: text3, display: 'block', textTransform: 'uppercase', fontWeight: 700 }}>
                       Current GPS Address
                     </span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: text1, lineHeight: 1.3 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: text1, lineHeight: 1.2, display: 'block', marginTop: 1 }}>
                       {selectedVehicle.currentLocation}
                     </span>
-                    <span style={{ fontSize: 10, color: text3, display: 'block', marginTop: 2 }}>
-                      Geo: {selectedVehicle.lat.toFixed(4)}° N, {selectedVehicle.lng.toFixed(4)}° E (Heading: {selectedVehicle.heading}°)
+                    <span style={{ fontSize: 9, color: text3, display: 'block', marginTop: 2 }}>
+                      Geo: {selectedVehicle.lat.toFixed(4)}° N, {selectedVehicle.lng.toFixed(4)}° E ({selectedVehicle.heading}°)
                     </span>
                   </div>
                 </div>
 
-                {/* Driver Info */}
+                {/* Driver Info Container */}
                 <div
                   style={{
-                    padding: 12,
-                    borderRadius: 8,
-                    backgroundColor: bgSection,
-                    border: `1px solid ${borderSoft}`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
+                    padding: '8px 10px',
+                    borderRadius: 8,
+                    backgroundColor: bgCard,
+                    border: `1px solid ${borderSoft}`,
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <User size={18} color="#3b82f6" />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div
+                      style={{
+                        width: 26,
+                        height: 26,
+                        borderRadius: 6,
+                        backgroundColor: 'rgba(59, 130, 246, 0.12)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <User size={14} color="#3b82f6" />
+                    </div>
                     <div>
-                      <span style={{ fontSize: 10, color: text3, display: 'block', textTransform: 'uppercase', fontWeight: 700 }}>
+                      <span style={{ fontSize: 9, color: text3, display: 'block', textTransform: 'uppercase', fontWeight: 700 }}>
                         Assigned Driver
                       </span>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: text1 }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: text1 }}>
                         {selectedVehicle.driverName}
                       </span>
                     </div>
                   </div>
-                  <span style={{ fontSize: 11, color: '#0284c7', fontWeight: 600, fontFamily: 'monospace' }}>{selectedVehicle.driverPhone}</span>
+                  <span style={{ fontSize: 10, color: '#0284c7', fontWeight: 700, fontFamily: 'monospace' }}>
+                    {selectedVehicle.driverPhone}
+                  </span>
                 </div>
 
-                {/* Destination & ETA */}
+                {/* Destination & ETA Container */}
                 <div
                   style={{
-                    padding: 12,
-                    borderRadius: 8,
-                    backgroundColor: bgSection,
-                    border: `1px solid ${borderSoft}`,
                     display: 'flex',
-                    alignItems: 'center',
+                    alignItems: 'flex-start',
                     gap: 10,
+                    padding: '8px 10px',
+                    borderRadius: 8,
+                    backgroundColor: bgCard,
+                    border: `1px solid ${borderSoft}`,
                   }}
                 >
-                  <Navigation size={18} color="#a855f7" />
+                  <div
+                    style={{
+                      width: 26,
+                      height: 26,
+                      borderRadius: 6,
+                      backgroundColor: 'rgba(168, 85, 247, 0.12)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      marginTop: 2,
+                    }}
+                  >
+                    <Navigation size={14} color="#a855f7" />
+                  </div>
                   <div>
-                    <span style={{ fontSize: 10, color: text3, display: 'block', textTransform: 'uppercase', fontWeight: 700 }}>
+                    <span style={{ fontSize: 9, color: text3, display: 'block', textTransform: 'uppercase', fontWeight: 700 }}>
                       Destination & Calculated ETA
                     </span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: text1, display: 'block' }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: text1, display: 'block', marginTop: 1 }}>
                       {selectedVehicle.destination}
                     </span>
-                    <span style={{ fontSize: 11, color: '#a855f7', fontWeight: 700 }}>
+                    <span style={{ fontSize: 10, color: '#a855f7', fontWeight: 700, marginTop: 2, display: 'block' }}>
                       {selectedVehicle.eta}
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Telemetry Metrics Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 18 }}>
-                <div
-                  style={{
-                    padding: 12,
-                    borderRadius: 8,
-                    backgroundColor: bgSection,
-                    border: `1px solid ${borderSoft}`,
-                    textAlign: 'center',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: text3, fontSize: 11, marginBottom: 4 }}>
-                    <Gauge size={14} /> Telemetry Speed
-                  </div>
-                  <span style={{ fontSize: 20, fontWeight: 800, color: selectedVehicle.speedKmH > 75 ? '#ef4444' : text1 }}>
-                    {selectedVehicle.speedKmH} <span style={{ fontSize: 11, fontWeight: 500, color: text3 }}>km/h</span>
-                  </span>
-                </div>
-
-                <div
-                  style={{
-                    padding: 12,
-                    borderRadius: 8,
-                    backgroundColor: bgSection,
-                    border: `1px solid ${borderSoft}`,
-                    textAlign: 'center',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: text3, fontSize: 11, marginBottom: 4 }}>
-                    <Fuel size={14} /> Fuel Level
-                  </div>
-                  <span style={{ fontSize: 20, fontWeight: 800, color: selectedVehicle.fuelLevel < 25 ? '#f59e0b' : '#22c55e' }}>
-                    {selectedVehicle.fuelLevel}%
-                  </span>
-                </div>
-              </div>
-
-              {/* Diagnostics Box */}
-              <div
+              {/* Premium Gradient Action Button */}
+              <button
+                disabled={!selectedVehicle}
+                onClick={handleToggleRouteReplay}
                 style={{
-                  padding: 12,
+                  width: '100%',
+                  padding: '9px 14px',
+                  fontSize: 11,
+                  fontWeight: 800,
                   borderRadius: 8,
-                  backgroundColor: bgSection,
-                  border: `1px solid ${borderSoft}`,
-                  marginBottom: 18,
+                  border: 'none',
+                  background: isReplayingRoute
+                    ? 'linear-gradient(135deg, #ef4444, #dc2626)'
+                    : 'linear-gradient(135deg, #0284c7, #0369a1)',
+                  color: '#ffffff',
+                  cursor: selectedVehicle ? 'pointer' : 'not-allowed',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  boxShadow: isReplayingRoute
+                    ? '0 4px 14px rgba(239, 68, 68, 0.35)'
+                    : '0 4px 14px rgba(2, 132, 199, 0.35)',
+                  transition: 'all 0.2s ease',
+                  letterSpacing: 0.3,
                 }}
               >
-                <h5 style={{ margin: '0 0 8px 0', fontSize: 11, fontWeight: 700, color: text3, textTransform: 'uppercase' }}>
-                  ECU Diagnostics & Vitals
-                </h5>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 11 }}>
-                  <div>
-                    <span style={{ color: text3 }}>Engine Temp:</span>{' '}
-                    <strong style={{ color: selectedVehicle.diagnostics.engineTempC > 90 ? '#ef4444' : text1 }}>
-                      {selectedVehicle.diagnostics.engineTempC}°C
-                    </strong>
-                  </div>
-                  <div>
-                    <span style={{ color: text3 }}>Tire Pressure:</span>{' '}
-                    <strong style={{ color: text1 }}>{selectedVehicle.diagnostics.tirePressurePsi} PSI</strong>
-                  </div>
-                  <div>
-                    <span style={{ color: text3 }}>Battery Volt:</span>{' '}
-                    <strong style={{ color: text1 }}>{selectedVehicle.diagnostics.batteryVoltageV}V</strong>
-                  </div>
-                  <div>
-                    <span style={{ color: text3 }}>Odometer:</span>{' '}
-                    <strong style={{ color: text1 }}>{selectedVehicle.diagnostics.odometerKm.toLocaleString()} km</strong>
-                  </div>
-                </div>
-
-                {selectedVehicle.diagnostics.faultCodes.length > 0 && (
-                  <div style={{ marginTop: 8, paddingTop: 8, borderTop: `1px dashed ${borderSoft}`, color: '#ef4444', fontSize: 11, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <AlertTriangle size={12} />
-                    <span>Fault: {selectedVehicle.diagnostics.faultCodes.join(', ')}</span>
-                  </div>
-                )}
-              </div>
+                <RotateCcw size={13} />
+                {isReplayingRoute ? 'EXIT ROUTE REPLAY' : 'LAUNCH ROUTE REPLAY'}
+              </button>
             </div>
           ) : (
-            <div style={{ textAlign: 'center', padding: '60px 0', color: text3 }}>
+            <div style={{ textAlign: 'center', padding: '60px 0', color: text3, fontSize: 12 }}>
               Select a vehicle on the map to view live telemetry
             </div>
           )}
-
-          {/* Action Buttons */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <button
-              disabled={!selectedVehicle}
-              onClick={handleToggleRouteReplay}
-              style={{
-                width: '100%',
-                padding: '10px 14px',
-                fontSize: 12,
-                fontWeight: 700,
-                borderRadius: 6,
-                border: 'none',
-                backgroundColor: isReplayingRoute ? '#ef4444' : '#0284c7',
-                color: '#ffffff',
-                cursor: selectedVehicle ? 'pointer' : 'not-allowed',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-              }}
-            >
-              <RotateCcw size={14} />
-              {isReplayingRoute ? 'Exit Route Replay' : 'Launch Route Replay'}
-            </button>
-          </div>
         </div>
       </div>
     </div>
