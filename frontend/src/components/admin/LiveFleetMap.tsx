@@ -1,237 +1,588 @@
-import React, { useState, useEffect } from 'react';
-import { MapPin, Navigation, Gauge, Fuel, ShieldAlert, Radio, RefreshCw, Eye, Truck, User } from 'lucide-react';
-import type { LiveVehicleTelemetry } from '../../services/adminApi';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import {
+  MapPin, Navigation, Gauge, Fuel, ShieldAlert, Radio, RefreshCw, Eye, Truck, User,
+  Layers, Maximize2, Minimize2, Play, Pause, RotateCcw, Search, Filter, AlertTriangle,
+  Zap, Wrench, CheckCircle2, Building2, Flame, Map as MapIcon, Sliders, Volume2, Shield
+} from 'lucide-react';
+import {
+  INITIAL_FLEET_VEHICLES,
+  generateLargeFleetDataset,
+  INDIA_DEPOTS_AND_INFRA,
+  INDIA_GEOFENCES,
+} from '../../services/indiaGeospatialData';
+import type {
+  DetailedVehicleTelemetry,
+  GeospatialPoint,
+  GeofenceZone,
+} from '../../services/indiaGeospatialData';
+import { fleetSocketService } from '../../services/fleetSocket';
+import L from 'leaflet';
 
-const DEFAULT_VEHICLES: LiveVehicleTelemetry[] = [
-  {
-    id: 'v-101',
-    vehicleNumber: 'DL 01 AB 1234',
-    category: 'Owned',
-    status: 'In Transit',
-    driverName: 'Rajesh Kumar',
-    currentLocation: 'NH-48, near Gurugram Toll',
-    lat: 28.4595,
-    lng: 77.0266,
-    speedKmH: 64,
-    fuelLevel: 78,
-    batteryLevel: 94,
-    lastPing: '30s ago',
-    destination: 'Jaipur Logistics Hub',
-    site: 'Delhi Depot',
-  },
-  {
-    id: 'v-102',
-    vehicleNumber: 'MH 04 CD 5678',
-    category: 'Vendor',
-    status: 'Available',
-    driverName: 'Vikram Singh',
-    currentLocation: 'Bhiwandi Hub Gate 2',
-    lat: 19.2812,
-    lng: 73.0482,
-    speedKmH: 0,
-    fuelLevel: 88,
-    batteryLevel: 99,
-    lastPing: '1m ago',
-    destination: 'Idle / Unassigned',
-    site: 'Mumbai Port Hub',
-  },
-  {
-    id: 'v-103',
-    vehicleNumber: 'KA 03 EF 9012',
-    category: 'Owned',
-    status: 'In Transit',
-    driverName: 'Anil Reddy',
-    currentLocation: 'Electronic City Flyover, Bengaluru',
-    lat: 12.8452,
-    lng: 77.6602,
-    speedKmH: 52,
-    fuelLevel: 45,
-    batteryLevel: 82,
-    lastPing: '15s ago',
-    destination: 'Chennai Container Terminal',
-    site: 'Bangalore Depot',
-  },
-  {
-    id: 'v-104',
-    vehicleNumber: 'HR 55 GH 3456',
-    category: 'Owned',
-    status: 'Maintenance',
-    driverName: 'Suresh Verma',
-    currentLocation: 'Workshop Bay 3, Delhi Depot',
-    lat: 28.6139,
-    lng: 77.2090,
-    speedKmH: 0,
-    fuelLevel: 30,
-    batteryLevel: 65,
-    lastPing: '5m ago',
-    destination: 'Service Maintenance',
-    site: 'Delhi Depot',
-  },
-  {
-    id: 'v-105',
-    vehicleNumber: 'WB 02 JK 7890',
-    category: 'Vendor',
-    status: 'Blocked',
-    driverName: 'Pradeep Das',
-    currentLocation: 'Dankuni Checkpost, Kolkata',
-    lat: 22.6854,
-    lng: 88.2974,
-    speedKmH: 0,
-    fuelLevel: 60,
-    batteryLevel: 40,
-    lastPing: '12m ago',
-    destination: 'Blocked - Expired PUC',
-    site: 'Kolkata Depot',
-  },
-  {
-    id: 'v-106',
-    vehicleNumber: 'GJ 01 LM 4321',
-    category: 'Vendor',
-    status: 'In Transit',
-    driverName: 'Mukesh Patel',
-    currentLocation: 'Ahmedabad Expressway KM 45',
-    lat: 23.0225,
-    lng: 72.5714,
-    speedKmH: 71,
-    fuelLevel: 82,
-    batteryLevel: 98,
-    lastPing: '10s ago',
-    destination: 'Vadodara Industrial Depot',
-    site: 'Gujarat West Hub',
-  },
-];
+// Dynamically inject Leaflet CSS if not already loaded
+if (typeof document !== 'undefined' && !document.getElementById('leaflet-css-cdn')) {
+  const link = document.createElement('link');
+  link.id = 'leaflet-css-cdn';
+  link.rel = 'stylesheet';
+  link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+  document.head.appendChild(link);
+}
 
 export const LiveFleetMap: React.FC = () => {
-  const [vehicles, setVehicles] = useState<LiveVehicleTelemetry[]>(DEFAULT_VEHICLES);
-  const [selectedVehicle, setSelectedVehicle] = useState<LiveVehicleTelemetry | null>(DEFAULT_VEHICLES[0]);
+  // State variables
+  const [vehicles, setVehicles] = useState<DetailedVehicleTelemetry[]>(INITIAL_FLEET_VEHICLES);
+  const [selectedVehicle, setSelectedVehicle] = useState<DetailedVehicleTelemetry | null>(INITIAL_FLEET_VEHICLES[0]);
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  
+  // Map Layer & Feature Toggles
+  const [mapProvider, setMapProvider] = useState<'google_dark' | 'google_roadmap' | 'google_satellite' | 'google_terrain'>('google_dark');
+  const [showTraffic, setShowTraffic] = useState<boolean>(true);
+  const [showGeofences, setShowGeofences] = useState<boolean>(true);
+  const [showInfra, setShowInfra] = useState<boolean>(true);
+  const [useLargeFleet, setUseLargeFleet] = useState<boolean>(false);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
-  // Simulate periodic GPS pings
+  // Telemetry & Route Replay State
+  const [socketStatus, setSocketStatus] = useState<string>('connecting');
+  const [pingsCount, setPingsCount] = useState<number>(14820);
+  const [isReplayingRoute, setIsReplayingRoute] = useState<boolean>(false);
+  const [replayProgress, setReplayProgress] = useState<number>(0);
+  const [replaySpeed, setReplaySpeed] = useState<number>(1);
+  const [isPlayingReplay, setIsPlayingReplay] = useState<boolean>(false);
+
+  // Map Refs
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
+  const markersGroupRef = useRef<L.LayerGroup | null>(null);
+  const infraGroupRef = useRef<L.LayerGroup | null>(null);
+  const geofencesGroupRef = useRef<L.LayerGroup | null>(null);
+  const routePolylineRef = useRef<L.Polyline | null>(null);
+  const replayMarkerRef = useRef<L.Marker | null>(null);
+  const replayIntervalRef = useRef<number | null>(null);
+
+  // Load Large Fleet Dataset on demand
   useEffect(() => {
-    const interval = setInterval(() => {
-      setVehicles((prev) =>
-        prev.map((v) => {
-          if (v.status === 'In Transit') {
-            const speedDelta = Math.floor(Math.random() * 7) - 3;
-            const newSpeed = Math.max(30, Math.min(85, v.speedKmH + speedDelta));
-            return {
-              ...v,
-              speedKmH: newSpeed,
-              lastPing: 'just now',
-            };
-          }
-          return v;
-        })
-      );
-    }, 5000);
-    return () => clearInterval(interval);
+    if (useLargeFleet) {
+      const dataset = generateLargeFleetDataset(1000);
+      setVehicles(dataset);
+      setSelectedVehicle(dataset[0]);
+      fleetSocketService.connect(dataset);
+    } else {
+      setVehicles(INITIAL_FLEET_VEHICLES);
+      setSelectedVehicle(INITIAL_FLEET_VEHICLES[0]);
+      fleetSocketService.connect(INITIAL_FLEET_VEHICLES);
+    }
+  }, [useLargeFleet]);
+
+  // Connect WebSockets / Socket.io GPS Telemetry Stream
+  useEffect(() => {
+    const unsubscribe = fleetSocketService.subscribe((updatedVehicles, count) => {
+      setVehicles(updatedVehicles);
+      setPingsCount(count);
+      setSocketStatus(fleetSocketService.getStatus());
+      // Update selected vehicle live references
+      if (selectedVehicle) {
+        const current = updatedVehicles.find((v) => v.id === selectedVehicle.id);
+        if (current) setSelectedVehicle(current);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [selectedVehicle?.id]);
+
+  // Filtered vehicles calculation
+  const filteredVehicles = useMemo(() => {
+    return vehicles.filter((v) => {
+      if (statusFilter !== 'ALL' && v.status !== statusFilter) return false;
+      if (categoryFilter !== 'ALL' && v.category !== categoryFilter) return false;
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        return (
+          v.vehicleNumber.toLowerCase().includes(q) ||
+          v.driverName.toLowerCase().includes(q) ||
+          v.currentLocation.toLowerCase().includes(q) ||
+          v.destination.toLowerCase().includes(q)
+        );
+      }
+      return true;
+    });
+  }, [vehicles, statusFilter, categoryFilter, searchQuery]);
+
+  // Status color mapper
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'In Transit': return '#3b82f6';
+      case 'Available': return '#22c55e';
+      case 'Idle': return '#f59e0b';
+      case 'Maintenance': return '#8b5cf6';
+      case 'Blocked': return '#ef4444';
+      default: return '#94a3b8';
+    }
+  };
+
+  // 1. Initialize Map Instance (Centered on India by default)
+  useEffect(() => {
+    if (!mapContainerRef.current || mapInstanceRef.current) return;
+
+    // Center of India: Lat 20.5937, Lng 78.9629, Zoom Level 5
+    const map = L.map(mapContainerRef.current, {
+      center: [20.5937, 78.9629],
+      zoom: 5,
+      zoomControl: false,
+      attributionControl: false,
+    });
+
+    mapInstanceRef.current = map;
+
+    // Custom Layer Groups
+    markersGroupRef.current = L.layerGroup().addTo(map);
+    infraGroupRef.current = L.layerGroup().addTo(map);
+    geofencesGroupRef.current = L.layerGroup().addTo(map);
+
+    // Initial Tile Layer setup
+    updateTileLayer(map, 'google_dark');
+
+    return () => {
+      map.remove();
+      mapInstanceRef.current = null;
+    };
   }, []);
 
-  const filteredVehicles = vehicles.filter((v) => {
-    if (statusFilter !== 'ALL' && v.status !== statusFilter) return false;
-    if (categoryFilter !== 'ALL' && v.category !== categoryFilter) return false;
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      return (
-        v.vehicleNumber.toLowerCase().includes(q) ||
-        v.driverName.toLowerCase().includes(q) ||
-        v.currentLocation.toLowerCase().includes(q)
+  // 2. Tile Provider Switcher (Google Maps / Enterprise Dark / Satellite / Terrain)
+  const updateTileLayer = (map: L.Map, provider: string) => {
+    if (tileLayerRef.current) {
+      map.removeLayer(tileLayerRef.current);
+    }
+
+    let tileUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+    let subdomains = 'abcd';
+
+    if (provider === 'google_roadmap') {
+      tileUrl = 'http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}';
+      subdomains = 'mt0,mt1,mt2,mt3';
+    } else if (provider === 'google_satellite') {
+      tileUrl = 'http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}';
+      subdomains = 'mt0,mt1,mt2,mt3';
+    } else if (provider === 'google_terrain') {
+      tileUrl = 'http://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}';
+      subdomains = 'mt0,mt1,mt2,mt3';
+    }
+
+    const newLayer = L.tileLayer(tileUrl, {
+      maxZoom: 19,
+      subdomains: subdomains.split(','),
+    }).addTo(map);
+
+    tileLayerRef.current = newLayer;
+  };
+
+  useEffect(() => {
+    if (mapInstanceRef.current) {
+      updateTileLayer(mapInstanceRef.current, mapProvider);
+    }
+  }, [mapProvider]);
+
+  // 3. Render Geofences Layer
+  useEffect(() => {
+    if (!mapInstanceRef.current || !geofencesGroupRef.current) return;
+    geofencesGroupRef.current.clearLayers();
+
+    if (!showGeofences) return;
+
+    INDIA_GEOFENCES.forEach((zone) => {
+      if (zone.type === 'circle' && zone.center) {
+        const circle = L.circle([zone.center.lat, zone.center.lng], {
+          radius: zone.radiusMeters || 10000,
+          color: zone.color,
+          fillColor: zone.color,
+          fillOpacity: 0.12,
+          weight: 2,
+          dashArray: '4, 4',
+        });
+        circle.bindTooltip(`<b>${zone.name}</b><br/>Type: ${zone.category}`, {
+          permanent: false,
+          direction: 'top',
+          className: 'custom-map-tooltip',
+        });
+        geofencesGroupRef.current?.addLayer(circle);
+      }
+    });
+  }, [showGeofences]);
+
+  // 4. Render Infrastructure Layer (Depots, Toll Plazas, Fuel Stations, Service Centers)
+  useEffect(() => {
+    if (!mapInstanceRef.current || !infraGroupRef.current) return;
+    infraGroupRef.current.clearLayers();
+
+    if (!showInfra) return;
+
+    INDIA_DEPOTS_AND_INFRA.forEach((pt) => {
+      let iconHtml = '🏢';
+      let iconBg = '#38bdf8';
+      if (pt.category === 'toll_plaza') { iconHtml = '🛑'; iconBg = '#ef4444'; }
+      else if (pt.category === 'fuel_station') { iconHtml = '⛽'; iconBg = '#f59e0b'; }
+      else if (pt.category === 'service_center') { iconHtml = '🔧'; iconBg = '#a855f7'; }
+
+      const customIcon = L.divIcon({
+        className: 'infra-map-marker',
+        html: `
+          <div style="
+            background: ${iconBg};
+            color: #fff;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            box-shadow: 0 0 10px ${iconBg}88;
+            border: 2px solid #ffffff;
+          ">
+            ${iconHtml}
+          </div>
+        `,
+        iconSize: [26, 26],
+        iconAnchor: [13, 13],
+      });
+
+      const marker = L.marker([pt.lat, pt.lng], { icon: customIcon });
+      marker.bindPopup(`
+        <div style="font-family: sans-serif; padding: 4px;">
+          <h4 style="margin: 0 0 4px 0; color: #0f172a;">${pt.name}</h4>
+          <p style="margin: 0; font-size: 11px; color: #475569;">${pt.address}, ${pt.city}</p>
+          <span style="font-size: 10px; font-weight: 700; color: ${iconBg};">${pt.details || pt.category}</span>
+        </div>
+      `);
+
+      infraGroupRef.current?.addLayer(marker);
+    });
+  }, [showInfra]);
+
+  // 5. Render Vehicle Markers with Heading Rotation & Clustering
+  useEffect(() => {
+    if (!mapInstanceRef.current || !markersGroupRef.current) return;
+    markersGroupRef.current.clearLayers();
+
+    if (useLargeFleet) {
+      // Clustering grid simulation for 1000+ vehicles
+      const gridClusters: Record<string, DetailedVehicleTelemetry[]> = {};
+      const zoom = mapInstanceRef.current.getZoom();
+      const gridSize = zoom > 7 ? 0.5 : zoom > 5 ? 1.5 : 3.5;
+
+      filteredVehicles.forEach((v) => {
+        const gridKey = `${Math.floor(v.lat / gridSize)}_${Math.floor(v.lng / gridSize)}`;
+        if (!gridClusters[gridKey]) gridClusters[gridKey] = [];
+        gridClusters[gridKey].push(v);
+      });
+
+      Object.entries(gridClusters).forEach(([_, clusterList]) => {
+        if (clusterList.length === 1) {
+          renderSingleVehicleMarker(clusterList[0]);
+        } else {
+          // Render Cluster Badge Marker
+          const avgLat = clusterList.reduce((acc, curr) => acc + curr.lat, 0) / clusterList.length;
+          const avgLng = clusterList.reduce((acc, curr) => acc + curr.lng, 0) / clusterList.length;
+
+          const clusterIcon = L.divIcon({
+            className: 'vehicle-cluster-marker',
+            html: `
+              <div style="
+                background: linear-gradient(135deg, #1e293b, #0f172a);
+                border: 2px solid #38bdf8;
+                box-shadow: 0 0 16px rgba(56, 189, 248, 0.4);
+                color: #ffffff;
+                width: 38px;
+                height: 38px;
+                border-radius: 50%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                font-weight: 800;
+                font-size: 13px;
+                cursor: pointer;
+              ">
+                <span>${clusterList.length}</span>
+                <span style="font-size: 8px; color: #38bdf8;">FLEET</span>
+              </div>
+            `,
+            iconSize: [38, 38],
+            iconAnchor: [19, 19],
+          });
+
+          const clusterMarker = L.marker([avgLat, avgLng], { icon: clusterIcon });
+          clusterMarker.on('click', () => {
+            mapInstanceRef.current?.setView([avgLat, avgLng], (mapInstanceRef.current?.getZoom() || 5) + 2);
+          });
+          markersGroupRef.current?.addLayer(clusterMarker);
+        }
+      });
+    } else {
+      // Standard Vehicle Marker rendering
+      filteredVehicles.forEach((v) => renderSingleVehicleMarker(v));
+    }
+  }, [filteredVehicles, selectedVehicle?.id, useLargeFleet]);
+
+  // Helper to render individual rotating vehicle marker
+  const renderSingleVehicleMarker = (v: DetailedVehicleTelemetry) => {
+    const isSelected = selectedVehicle?.id === v.id;
+    const statusColor = getStatusColor(v.status);
+
+    // Dynamic rotating directional truck icon HTML
+    const markerIconHtml = `
+      <div style="
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 8px;
+        border-radius: 16px;
+        background-color: ${isSelected ? 'rgba(15, 23, 42, 0.95)' : 'rgba(15, 23, 42, 0.85)'};
+        border: 2px solid ${statusColor};
+        box-shadow: ${isSelected ? `0 0 18px ${statusColor}` : '0 4px 12px rgba(0,0,0,0.5)'};
+        backdrop-filter: blur(4px);
+        transform: scale(${isSelected ? '1.1' : '1'});
+        transition: transform 0.2s ease;
+      ">
+        <div style="
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: ${statusColor};
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transform: rotate(${v.heading}deg);
+          transition: transform 0.4s ease;
+        ">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 19 21 12 17 5 21 12 2"/>
+          </svg>
+        </div>
+
+        <span style="font-size: 11px; font-weight: 700; color: ${isSelected ? '#ffffff' : '#cbd5e1'}; white-space: nowrap;">
+          ${v.vehicleNumber}
+        </span>
+
+        ${v.status === 'In Transit' ? `
+          <span style="font-size: 9px; color: #38bdf8; font-weight: 700;">
+            ${v.speedKmH}k/h
+          </span>
+        ` : ''}
+      </div>
+    `;
+
+    const vehicleDivIcon = L.divIcon({
+      className: 'vehicle-live-marker',
+      html: markerIconHtml,
+      iconSize: [120, 32],
+      iconAnchor: [60, 16],
+    });
+
+    const marker = L.marker([v.lat, v.lng], { icon: vehicleDivIcon });
+    marker.on('click', () => {
+      setSelectedVehicle(v);
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.panTo([v.lat, v.lng], { animate: true, duration: 0.5 });
+      }
+    });
+
+    markersGroupRef.current?.addLayer(marker);
+  };
+
+  // Pan to selected vehicle on click
+  const handleSelectVehicle = (v: DetailedVehicleTelemetry) => {
+    setSelectedVehicle(v);
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.setView([v.lat, v.lng], 10, { animate: true });
+    }
+  };
+
+  // Pan to India view
+  const handleResetMapFocus = () => {
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.setView([20.5937, 78.9629], 5, { animate: true });
+    }
+  };
+
+  // 6. Interactive Route Replay Animation
+  const handleToggleRouteReplay = () => {
+    if (!selectedVehicle || !selectedVehicle.routeHistory || selectedVehicle.routeHistory.length === 0) {
+      alert('No breadcrumb route history available for this vehicle.');
+      return;
+    }
+
+    if (isReplayingRoute) {
+      // Stop replay
+      setIsReplayingRoute(false);
+      setIsPlayingReplay(false);
+      if (replayIntervalRef.current) clearInterval(replayIntervalRef.current);
+      if (routePolylineRef.current) routePolylineRef.current.remove();
+      if (replayMarkerRef.current) replayMarkerRef.current.remove();
+    } else {
+      // Start replay
+      setIsReplayingRoute(true);
+      setIsPlayingReplay(true);
+      setReplayProgress(0);
+
+      const routePoints = selectedVehicle.routeHistory.map((p) => [p.lat, p.lng] as [number, number]);
+
+      if (mapInstanceRef.current) {
+        if (routePolylineRef.current) routePolylineRef.current.remove();
+        routePolylineRef.current = L.polyline(routePoints, {
+          color: '#38bdf8',
+          weight: 4,
+          dashArray: '8, 8',
+        }).addTo(mapInstanceRef.current);
+
+        mapInstanceRef.current.fitBounds(routePolylineRef.current.getBounds(), { padding: [40, 40] });
+      }
+    }
+  };
+
+  // Route Replay Playback Timer
+  useEffect(() => {
+    if (isPlayingReplay && selectedVehicle?.routeHistory) {
+      const history = selectedVehicle.routeHistory;
+      replayIntervalRef.current = window.setInterval(() => {
+        setReplayProgress((prev) => {
+          if (prev >= 100) {
+            setIsPlayingReplay(false);
+            return 100;
+          }
+          return prev + 5 * replaySpeed;
+        });
+      }, 500);
+    } else {
+      if (replayIntervalRef.current) clearInterval(replayIntervalRef.current);
+    }
+
+    return () => {
+      if (replayIntervalRef.current) clearInterval(replayIntervalRef.current);
+    };
+  }, [isPlayingReplay, replaySpeed, selectedVehicle]);
+
+  // Update animated vehicle marker position during route replay
+  useEffect(() => {
+    if (!isReplayingRoute || !selectedVehicle?.routeHistory || !mapInstanceRef.current) return;
+
+    const history = selectedVehicle.routeHistory;
+    const index = Math.min(
+      history.length - 1,
+      Math.floor((replayProgress / 100) * history.length)
+    );
+    const point = history[index];
+
+    if (replayMarkerRef.current) {
+      replayMarkerRef.current.setLatLng([point.lat, point.lng]);
+    } else {
+      const replayIcon = L.divIcon({
+        className: 'replay-anim-marker',
+        html: `
+          <div style="
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #22c55e;
+            border: 3px solid #ffffff;
+            box-shadow: 0 0 20px #22c55e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+          ">
+            🚚
+          </div>
+        `,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+      });
+      replayMarkerRef.current = L.marker([point.lat, point.lng], { icon: replayIcon }).addTo(
+        mapInstanceRef.current
       );
     }
-    return true;
-  });
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'In Transit':
-        return { bg: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6', border: 'rgba(59, 130, 246, 0.4)' };
-      case 'Available':
-        return { bg: 'rgba(34, 197, 94, 0.15)', color: '#22c55e', border: 'rgba(34, 197, 94, 0.4)' };
-      case 'Maintenance':
-        return { bg: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', border: 'rgba(245, 158, 11, 0.4)' };
-      case 'Blocked':
-        return { bg: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', border: 'rgba(239, 68, 68, 0.4)' };
-      default:
-        return { bg: 'var(--panel-2)', color: 'var(--text-2)', border: 'var(--border-soft)' };
-    }
-  };
-
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    setTimeout(() => {
-      setIsRefreshing(false);
-    }, 600);
-  };
+  }, [replayProgress, isReplayingRoute, selectedVehicle]);
 
   return (
     <div
       style={{
-        backgroundColor: 'var(--panel-1)',
-        border: '1px solid var(--border-soft)',
+        backgroundColor: '#0b0f19',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
         borderRadius: 12,
         overflow: 'hidden',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+        color: '#f8fafc',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
       }}
     >
-      {/* Map Header & Controls */}
+      {/* Control Room Top Header */}
       <div
         style={{
-          padding: '16px 20px',
-          borderBottom: '1px solid var(--border-soft)',
+          padding: '14px 20px',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
           display: 'flex',
           flexWrap: 'wrap',
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: 12,
-          backgroundColor: 'var(--panel-2)',
+          backgroundColor: '#0f172a',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div
             style={{
-              width: 36,
-              height: 36,
-              borderRadius: 8,
-              backgroundColor: 'rgba(34, 197, 94, 0.12)',
+              width: 40,
+              height: 40,
+              borderRadius: 10,
+              backgroundColor: 'rgba(56, 189, 248, 0.12)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              border: '1px solid rgba(34, 197, 94, 0.3)',
+              border: '1px solid rgba(56, 189, 248, 0.3)',
             }}
           >
-            <Radio size={18} color="var(--green)" className="pulsing-icon" />
+            <Radio size={20} color="#38bdf8" />
           </div>
           <div>
-            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--text-1)' }}>
-              Live Telemetry Fleet Map
+            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: '#f8fafc', letterSpacing: -0.3 }}>
+              India Fleet Command Map
             </h3>
-            <p style={{ margin: 0, fontSize: 12, color: 'var(--text-3)' }}>
-              Real-time vehicle tracking, speed telemetry & geofence monitor
+            <p style={{ margin: 0, fontSize: 11, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: socketStatus === 'connected' ? '#22c55e' : '#f59e0b' }} />
+              WebSocket Telemetry: <strong>{socketStatus.toUpperCase()}</strong> ({pingsCount.toLocaleString()} Pings Processed)
             </p>
           </div>
         </div>
 
+        {/* Top Control Tools & Search */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <input
-            type="text"
-            placeholder="Search vehicle / driver / location..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              padding: '6px 12px',
-              fontSize: 12,
-              borderRadius: 6,
-              border: '1px solid var(--border-soft)',
-              backgroundColor: 'var(--panel-1)',
-              color: 'var(--text-1)',
-              outline: 'none',
-              width: 200,
-            }}
-          />
+          {/* Search Input */}
+          <div style={{ position: 'relative' }}>
+            <Search size={14} color="#64748b" style={{ position: 'absolute', left: 10, top: 9 }} />
+            <input
+              type="text"
+              placeholder="Search vehicle / driver / location..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                padding: '6px 12px 6px 32px',
+                fontSize: 12,
+                borderRadius: 6,
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                backgroundColor: '#1e293b',
+                color: '#f8fafc',
+                outline: 'none',
+                width: 220,
+              }}
+            />
+          </div>
 
+          {/* Filters */}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -239,14 +590,15 @@ export const LiveFleetMap: React.FC = () => {
               padding: '6px 10px',
               fontSize: 12,
               borderRadius: 6,
-              border: '1px solid var(--border-soft)',
-              backgroundColor: 'var(--panel-1)',
-              color: 'var(--text-1)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              backgroundColor: '#1e293b',
+              color: '#f8fafc',
             }}
           >
             <option value="ALL">All Statuses</option>
             <option value="In Transit">In Transit</option>
             <option value="Available">Available</option>
+            <option value="Idle">Idle</option>
             <option value="Maintenance">Maintenance</option>
             <option value="Blocked">Blocked</option>
           </select>
@@ -258,67 +610,138 @@ export const LiveFleetMap: React.FC = () => {
               padding: '6px 10px',
               fontSize: 12,
               borderRadius: 6,
-              border: '1px solid var(--border-soft)',
-              backgroundColor: 'var(--panel-1)',
-              color: 'var(--text-1)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              backgroundColor: '#1e293b',
+              color: '#f8fafc',
             }}
           >
-            <option value="ALL">All Fleets</option>
+            <option value="ALL">All Fleet Types</option>
             <option value="Owned">Owned Fleet</option>
             <option value="Vendor">Vendor Fleet</option>
           </select>
 
+          {/* 1000+ Fleet Cluster Mode Toggle */}
           <button
-            onClick={handleRefresh}
+            onClick={() => setUseLargeFleet(!useLargeFleet)}
             style={{
               padding: '6px 12px',
               fontSize: 12,
+              fontWeight: 600,
               borderRadius: 6,
-              border: '1px solid var(--border-soft)',
-              backgroundColor: 'var(--panel-1)',
-              color: 'var(--text-1)',
+              border: useLargeFleet ? '1px solid #38bdf8' : '1px solid rgba(255, 255, 255, 0.12)',
+              backgroundColor: useLargeFleet ? 'rgba(56, 189, 248, 0.2)' : '#1e293b',
+              color: useLargeFleet ? '#38bdf8' : '#cbd5e1',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: 6,
             }}
           >
-            <RefreshCw size={13} className={isRefreshing ? 'spin' : ''} />
-            <span>Ping</span>
+            <Layers size={13} />
+            <span>{useLargeFleet ? '1000+ Vehicles (Clustered)' : 'Active Fleet (8 Vehicles)'}</span>
           </button>
         </div>
       </div>
 
-      {/* Map Layout Grid: Map View Left, Vehicle Telemetry Detail Right */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', minHeight: 420 }}>
-        {/* Interactive Vector / Tile Simulation Canvas */}
-        <div
-          style={{
-            position: 'relative',
-            backgroundColor: '#121824',
-            backgroundImage:
-              'radial-gradient(#1e293b 1px, transparent 1px), radial-gradient(#1e293b 1px, #0f172a 1px)',
-            backgroundSize: '24px 24px',
-            backgroundPosition: '0 0, 12px 12px',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            padding: 16,
-          }}
-        >
-          {/* Map Overlay Badges */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', pointerEvents: 'none', zIndex: 5 }}>
+      {/* Map Control Toolbar & Layer Switchers */}
+      <div
+        style={{
+          padding: '8px 20px',
+          backgroundColor: '#1e293b',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 10,
+          fontSize: 11,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span style={{ color: '#94a3b8', fontWeight: 600 }}>Map View Provider:</span>
+          {[
+            { key: 'google_dark', label: 'Enterprise Dark' },
+            { key: 'google_roadmap', label: 'Google Roadmap' },
+            { key: 'google_satellite', label: 'Google Satellite' },
+            { key: 'google_terrain', label: 'Terrain' },
+          ].map((pv) => (
+            <button
+              key={pv.key}
+              onClick={() => setMapProvider(pv.key as any)}
+              style={{
+                padding: '3px 10px',
+                borderRadius: 4,
+                border: 'none',
+                backgroundColor: mapProvider === pv.key ? '#38bdf8' : 'transparent',
+                color: mapProvider === pv.key ? '#0f172a' : '#cbd5e1',
+                fontWeight: mapProvider === pv.key ? 700 : 500,
+                cursor: 'pointer',
+              }}
+            >
+              {pv.label}
+            </button>
+          ))}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: '#cbd5e1' }}>
+            <input type="checkbox" checked={showGeofences} onChange={(e) => setShowGeofences(e.target.checked)} />
+            Geofences
+          </label>
+
+          <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: '#cbd5e1' }}>
+            <input type="checkbox" checked={showInfra} onChange={(e) => setShowInfra(e.target.checked)} />
+            Depots & Tolls
+          </label>
+
+          <button
+            onClick={handleResetMapFocus}
+            style={{
+              padding: '3px 8px',
+              borderRadius: 4,
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              backgroundColor: '#0f172a',
+              color: '#38bdf8',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+            }}
+          >
+            <MapIcon size={12} /> Center India
+          </button>
+        </div>
+      </div>
+
+      {/* Main Map Grid Layout: Interactive Map Canvas Left, Telemetry Drawer Right */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', minHeight: 540, position: 'relative' }}>
+        {/* Leaflet Real-World Map Viewport */}
+        <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: 540 }}>
+          <div ref={mapContainerRef} style={{ width: '100%', height: '100%', backgroundColor: '#0f172a' }} />
+
+          {/* Map Overlay Badge & Legend */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 14,
+              left: 14,
+              zIndex: 1000,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+              pointerEvents: 'none',
+            }}
+          >
             <div
               style={{
-                backgroundColor: 'rgba(15, 23, 42, 0.85)',
+                backgroundColor: 'rgba(15, 23, 42, 0.9)',
                 backdropFilter: 'blur(8px)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
                 padding: '6px 12px',
                 borderRadius: 20,
                 fontSize: 11,
                 fontWeight: 600,
-                color: '#94a3b8',
+                color: '#38bdf8',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6,
@@ -326,349 +749,375 @@ export const LiveFleetMap: React.FC = () => {
               }}
             >
               <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#22c55e' }} />
-              GPS Live Stream Connected (India Corridor)
-            </div>
-
-            <div
-              style={{
-                backgroundColor: 'rgba(15, 23, 42, 0.85)',
-                backdropFilter: 'blur(8px)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                padding: '6px 12px',
-                borderRadius: 20,
-                fontSize: 11,
-                fontWeight: 600,
-                color: '#f8fafc',
-                pointerEvents: 'auto',
-              }}
-            >
-              Active Telemetry: <span style={{ color: '#38bdf8' }}>{filteredVehicles.length} vehicles</span>
+              Live India Transport Network ({filteredVehicles.length} Vehicles Visible)
             </div>
           </div>
 
-          {/* Simulated Geofenced Hub Circles & Road Vectors */}
-          <svg
+          {/* Bottom Floating Map Legend */}
+          <div
             style={{
               position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              pointerEvents: 'none',
-            }}
-          >
-            {/* Major Corridor Lines */}
-            <path d="M 120,80 L 260,180 L 450,280" stroke="#334155" strokeWidth="2" strokeDasharray="4 4" fill="none" />
-            <path d="M 450,280 L 620,340" stroke="#334155" strokeWidth="2" strokeDasharray="4 4" fill="none" />
-            <path d="M 260,180 L 320,380" stroke="#334155" strokeWidth="2" fill="none" />
-
-            {/* Geofence Hub 1: Delhi */}
-            <circle cx="120" cy="80" r="40" fill="rgba(56, 189, 248, 0.08)" stroke="#38bdf8" strokeWidth="1" strokeDasharray="3 3" />
-            <text x="120" y="60" textAnchor="middle" fill="#94a3b8" fontSize="10" fontWeight="600">Delhi Hub Geofence</text>
-
-            {/* Geofence Hub 2: Mumbai */}
-            <circle cx="260" cy="260" r="45" fill="rgba(34, 197, 94, 0.08)" stroke="#22c55e" strokeWidth="1" strokeDasharray="3 3" />
-            <text x="260" y="235" textAnchor="middle" fill="#94a3b8" fontSize="10" fontWeight="600">Mumbai Port Hub</text>
-
-            {/* Geofence Hub 3: Bangalore */}
-            <circle cx="450" cy="320" r="38" fill="rgba(168, 85, 247, 0.08)" stroke="#a855f7" strokeWidth="1" strokeDasharray="3 3" />
-            <text x="450" y="295" textAnchor="middle" fill="#94a3b8" fontSize="10" fontWeight="600">Bangalore Depot</text>
-          </svg>
-
-          {/* Vehicle Markers Container */}
-          <div
-            style={{
-              position: 'relative',
-              width: '100%',
-              height: 320,
-            }}
-          >
-            {filteredVehicles.map((v, idx) => {
-              const badgeStyle = getStatusBadge(v.status);
-              const isSelected = selectedVehicle?.id === v.id;
-
-              // Compute marker position relative coordinates
-              const xPos = 60 + ((v.lng - 70) / 20) * 800 + (idx * 60) % 400;
-              const yPos = 40 + ((30 - v.lat) / 20) * 300 + (idx * 40) % 220;
-
-              return (
-                <div
-                  key={v.id}
-                  onClick={() => setSelectedVehicle(v)}
-                  style={{
-                    position: 'absolute',
-                    left: `${Math.min(85, Math.max(10, (xPos / 600) * 100))}%`,
-                    top: `${Math.min(80, Math.max(10, (yPos / 300) * 100))}%`,
-                    transform: 'translate(-50%, -50%)',
-                    cursor: 'pointer',
-                    zIndex: isSelected ? 20 : 10,
-                    transition: 'all 0.3s ease',
-                  }}
-                >
-                  <div
-                    style={{
-                      position: 'relative',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      padding: '4px 8px',
-                      borderRadius: 16,
-                      backgroundColor: isSelected ? 'rgba(15, 23, 42, 0.95)' : 'rgba(15, 23, 42, 0.85)',
-                      border: `2px solid ${badgeStyle.color}`,
-                      boxShadow: isSelected ? `0 0 16px ${badgeStyle.color}` : '0 4px 10px rgba(0,0,0,0.4)',
-                      backdropFilter: 'blur(4px)',
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        backgroundColor: badgeStyle.color,
-                        boxShadow: `0 0 8px ${badgeStyle.color}`,
-                      }}
-                    />
-                    <span
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 700,
-                        color: isSelected ? '#ffffff' : '#cbd5e1',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {v.vehicleNumber}
-                    </span>
-                    {v.status === 'In Transit' && (
-                      <span style={{ fontSize: 9, color: '#38bdf8', fontWeight: 600 }}>
-                        {v.speedKmH}km/h
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Map Legend */}
-          <div
-            style={{
-              backgroundColor: 'rgba(15, 23, 42, 0.85)',
+              bottom: 16,
+              left: 16,
+              zIndex: 1000,
+              backgroundColor: 'rgba(15, 23, 42, 0.92)',
               backdropFilter: 'blur(8px)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
               padding: '8px 14px',
               borderRadius: 8,
               display: 'flex',
               alignItems: 'center',
               gap: 16,
-              zIndex: 5,
               fontSize: 11,
-              width: 'fit-content',
             }}
           >
-            <span style={{ color: '#94a3b8', fontWeight: 600 }}>Legend:</span>
+            <span style={{ color: '#94a3b8', fontWeight: 700 }}>Status Colors:</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#3b82f6' }} />
-              <span style={{ color: '#cbd5e1' }}>In Transit</span>
+              <span>In Transit</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#22c55e' }} />
-              <span style={{ color: '#cbd5e1' }}>Available</span>
+              <span>Available</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#f59e0b' }} />
-              <span style={{ color: '#cbd5e1' }}>Maintenance</span>
+              <span>Idle</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#8b5cf6' }} />
+              <span>Maintenance</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#ef4444' }} />
-              <span style={{ color: '#cbd5e1' }}>Blocked</span>
+              <span>Blocked</span>
             </div>
           </div>
+
+          {/* Route Replay Bar Overlay (If active) */}
+          {isReplayingRoute && selectedVehicle && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 14,
+                right: 14,
+                zIndex: 1000,
+                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid #38bdf8',
+                padding: '12px 16px',
+                borderRadius: 10,
+                width: 320,
+                boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#38bdf8' }}>
+                  Route Replay: {selectedVehicle.vehicleNumber}
+                </span>
+                <button
+                  onClick={handleToggleRouteReplay}
+                  style={{
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    color: '#ef4444',
+                    cursor: 'pointer',
+                    fontSize: 11,
+                    fontWeight: 700,
+                  }}
+                >
+                  Close ✕
+                </button>
+              </div>
+
+              {/* Progress Slider */}
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={replayProgress}
+                onChange={(e) => setReplayProgress(Number(e.target.value))}
+                style={{ width: '100%', marginBottom: 10 }}
+              />
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <button
+                  onClick={() => setIsPlayingReplay(!isPlayingReplay)}
+                  style={{
+                    padding: '4px 12px',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    borderRadius: 4,
+                    border: 'none',
+                    backgroundColor: '#38bdf8',
+                    color: '#0f172a',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  {isPlayingReplay ? <Pause size={12} /> : <Play size={12} />}
+                  {isPlayingReplay ? 'Pause' : 'Play'}
+                </button>
+
+                <div style={{ display: 'flex', gap: 4 }}>
+                  {[1, 2, 5, 10].map((sp) => (
+                    <button
+                      key={sp}
+                      onClick={() => setReplaySpeed(sp)}
+                      style={{
+                        padding: '2px 6px',
+                        fontSize: 10,
+                        borderRadius: 3,
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        backgroundColor: replaySpeed === sp ? '#38bdf8' : '#1e293b',
+                        color: replaySpeed === sp ? '#0f172a' : '#cbd5e1',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {sp}x
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Selected Vehicle Telemetry Detail Drawer */}
+        {/* Selected Vehicle Telemetry Side Drawer Panel */}
         <div
           style={{
-            backgroundColor: 'var(--panel-1)',
-            borderLeft: '1px solid var(--border-soft)',
-            padding: 16,
+            backgroundColor: '#0f172a',
+            borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
+            padding: 20,
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
+            maxHeight: 620,
+            overflowY: 'auto',
           }}
         >
           {selectedVehicle ? (
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              {/* Status Header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                 <span
                   style={{
-                    fontSize: 10,
-                    fontWeight: 700,
-                    padding: '2px 8px',
-                    borderRadius: 4,
+                    fontSize: 11,
+                    fontWeight: 800,
+                    padding: '4px 10px',
+                    borderRadius: 20,
                     textTransform: 'uppercase',
                     letterSpacing: 0.5,
-                    backgroundColor: getStatusBadge(selectedVehicle.status).bg,
-                    color: getStatusBadge(selectedVehicle.status).color,
-                    border: `1px solid ${getStatusBadge(selectedVehicle.status).border}`,
+                    backgroundColor: `${getStatusColor(selectedVehicle.status)}22`,
+                    color: getStatusColor(selectedVehicle.status),
+                    border: `1px solid ${getStatusColor(selectedVehicle.status)}66`,
                   }}
                 >
-                  {selectedVehicle.status}
+                  ● {selectedVehicle.status}
                 </span>
-                <span style={{ fontSize: 11, color: 'var(--text-3)' }}>
-                  Ping: {selectedVehicle.lastPing}
+                <span style={{ fontSize: 11, color: '#94a3b8' }}>
+                  Last Ping: {selectedVehicle.lastPing}
                 </span>
               </div>
 
-              <h4 style={{ margin: '0 0 4px 0', fontSize: 16, fontWeight: 700, color: 'var(--text-1)' }}>
+              {/* Vehicle & Driver Overview */}
+              <h3 style={{ margin: '0 0 4px 0', fontSize: 20, fontWeight: 800, color: '#f8fafc' }}>
                 {selectedVehicle.vehicleNumber}
-              </h4>
-              <p style={{ margin: '0 0 16px 0', fontSize: 12, color: 'var(--text-3)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                <Truck size={12} /> Category: <strong>{selectedVehicle.category} Fleet</strong>
+              </h3>
+              <p style={{ margin: '0 0 16px 0', fontSize: 12, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Truck size={14} color="#38bdf8" /> Category: <strong>{selectedVehicle.category} Fleet</strong>
               </p>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
+              {/* Location Card */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 18 }}>
                 <div
                   style={{
-                    padding: 10,
+                    padding: 12,
                     borderRadius: 8,
-                    backgroundColor: 'var(--panel-2)',
-                    border: '1px solid var(--border-soft)',
+                    backgroundColor: '#1e293b',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 10,
                   }}
                 >
-                  <MapPin size={16} color="var(--green)" />
+                  <MapPin size={18} color="#22c55e" />
                   <div>
-                    <span style={{ fontSize: 10, color: 'var(--text-3)', display: 'block' }}>Current Location</span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)' }}>
+                    <span style={{ fontSize: 10, color: '#94a3b8', display: 'block', textTransform: 'uppercase', fontWeight: 700 }}>
+                      Current GPS Address
+                    </span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: '#f8fafc', lineHeight: 1.3 }}>
                       {selectedVehicle.currentLocation}
                     </span>
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    padding: 10,
-                    borderRadius: 8,
-                    backgroundColor: 'var(--panel-2)',
-                    border: '1px solid var(--border-soft)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                  }}
-                >
-                  <User size={16} color="#3b82f6" />
-                  <div>
-                    <span style={{ fontSize: 10, color: 'var(--text-3)', display: 'block' }}>Assigned Driver</span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)' }}>
-                      {selectedVehicle.driverName}
+                    <span style={{ fontSize: 10, color: '#64748b', display: 'block', marginTop: 2 }}>
+                      Geo: {selectedVehicle.lat.toFixed(4)}° N, {selectedVehicle.lng.toFixed(4)}° E (Heading: {selectedVehicle.heading}°)
                     </span>
                   </div>
                 </div>
 
+                {/* Driver Info */}
                 <div
                   style={{
-                    padding: 10,
+                    padding: 12,
                     borderRadius: 8,
-                    backgroundColor: 'var(--panel-2)',
-                    border: '1px solid var(--border-soft)',
+                    backgroundColor: '#1e293b',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <User size={18} color="#3b82f6" />
+                    <div>
+                      <span style={{ fontSize: 10, color: '#94a3b8', display: 'block', textTransform: 'uppercase', fontWeight: 700 }}>
+                        Assigned Driver
+                      </span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#f8fafc' }}>
+                        {selectedVehicle.driverName}
+                      </span>
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 11, color: '#38bdf8', fontFamily: 'monospace' }}>{selectedVehicle.driverPhone}</span>
+                </div>
+
+                {/* Destination & ETA */}
+                <div
+                  style={{
+                    padding: 12,
+                    borderRadius: 8,
+                    backgroundColor: '#1e293b',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 10,
                   }}
                 >
-                  <Navigation size={16} color="#a855f7" />
+                  <Navigation size={18} color="#a855f7" />
                   <div>
-                    <span style={{ fontSize: 10, color: 'var(--text-3)', display: 'block' }}>Destination / Depot</span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)' }}>
+                    <span style={{ fontSize: 10, color: '#94a3b8', display: 'block', textTransform: 'uppercase', fontWeight: 700 }}>
+                      Destination & Calculated ETA
+                    </span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: '#f8fafc', display: 'block' }}>
                       {selectedVehicle.destination}
+                    </span>
+                    <span style={{ fontSize: 11, color: '#a855f7', fontWeight: 700 }}>
+                      {selectedVehicle.eta}
                     </span>
                   </div>
                 </div>
               </div>
 
               {/* Telemetry Metrics Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 18 }}>
                 <div
                   style={{
-                    padding: 10,
-                    borderRadius: 6,
-                    backgroundColor: 'var(--panel-2)',
-                    border: '1px solid var(--border-soft)',
+                    padding: 12,
+                    borderRadius: 8,
+                    backgroundColor: '#1e293b',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
                     textAlign: 'center',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, color: 'var(--text-3)', fontSize: 10, marginBottom: 2 }}>
-                    <Gauge size={12} /> Speed
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: '#94a3b8', fontSize: 11, marginBottom: 4 }}>
+                    <Gauge size={14} /> Telemetry Speed
                   </div>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: selectedVehicle.speedKmH > 75 ? '#ef4444' : 'var(--text-1)' }}>
-                    {selectedVehicle.speedKmH} <span style={{ fontSize: 10, fontWeight: 500 }}>km/h</span>
+                  <span style={{ fontSize: 20, fontWeight: 800, color: selectedVehicle.speedKmH > 75 ? '#ef4444' : '#f8fafc' }}>
+                    {selectedVehicle.speedKmH} <span style={{ fontSize: 11, fontWeight: 500, color: '#94a3b8' }}>km/h</span>
                   </span>
                 </div>
 
                 <div
                   style={{
-                    padding: 10,
-                    borderRadius: 6,
-                    backgroundColor: 'var(--panel-2)',
-                    border: '1px solid var(--border-soft)',
+                    padding: 12,
+                    borderRadius: 8,
+                    backgroundColor: '#1e293b',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
                     textAlign: 'center',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, color: 'var(--text-3)', fontSize: 10, marginBottom: 2 }}>
-                    <Fuel size={12} /> Fuel Level
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: '#94a3b8', fontSize: 11, marginBottom: 4 }}>
+                    <Fuel size={14} /> Fuel Level
                   </div>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: selectedVehicle.fuelLevel < 25 ? '#f59e0b' : 'var(--text-1)' }}>
+                  <span style={{ fontSize: 20, fontWeight: 800, color: selectedVehicle.fuelLevel < 25 ? '#f59e0b' : '#22c55e' }}>
                     {selectedVehicle.fuelLevel}%
                   </span>
                 </div>
               </div>
+
+              {/* Diagnostics Box */}
+              <div
+                style={{
+                  padding: 12,
+                  borderRadius: 8,
+                  backgroundColor: '#1e293b',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  marginBottom: 18,
+                }}
+              >
+                <h5 style={{ margin: '0 0 8px 0', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>
+                  ECU Diagnostics & Vitals
+                </h5>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 11 }}>
+                  <div>
+                    <span style={{ color: '#64748b' }}>Engine Temp:</span>{' '}
+                    <strong style={{ color: selectedVehicle.diagnostics.engineTempC > 90 ? '#ef4444' : '#f8fafc' }}>
+                      {selectedVehicle.diagnostics.engineTempC}°C
+                    </strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b' }}>Tire Pressure:</span>{' '}
+                    <strong>{selectedVehicle.diagnostics.tirePressurePsi} PSI</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b' }}>Battery Volt:</span>{' '}
+                    <strong>{selectedVehicle.diagnostics.batteryVoltageV}V</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#64748b' }}>Odometer:</span>{' '}
+                    <strong>{selectedVehicle.diagnostics.odometerKm.toLocaleString()} km</strong>
+                  </div>
+                </div>
+
+                {selectedVehicle.diagnostics.faultCodes.length > 0 && (
+                  <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px dashed rgba(255,255,255,0.1)', color: '#ef4444', fontSize: 11, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <AlertTriangle size={12} />
+                    <span>Fault: {selectedVehicle.diagnostics.faultCodes.join(', ')}</span>
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
-            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-3)' }}>
-              Select a vehicle on the map to view telemetry
+            <div style={{ textAlign: 'center', padding: '60px 0', color: '#64748b' }}>
+              Select a vehicle on the map to view live telemetry
             </div>
           )}
 
-          <div style={{ display: 'flex', gap: 8 }}>
+          {/* Action Buttons */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <button
               disabled={!selectedVehicle}
+              onClick={handleToggleRouteReplay}
               style={{
-                flex: 1,
-                padding: '8px 12px',
+                width: '100%',
+                padding: '10px 14px',
                 fontSize: 12,
-                fontWeight: 600,
+                fontWeight: 700,
                 borderRadius: 6,
                 border: 'none',
-                backgroundColor: 'var(--green)',
-                color: '#ffffff',
+                backgroundColor: isReplayingRoute ? '#ef4444' : '#38bdf8',
+                color: '#0f172a',
                 cursor: selectedVehicle ? 'pointer' : 'not-allowed',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 6,
+                gap: 8,
               }}
-              onClick={() => alert(`Tracking live trip for vehicle ${selectedVehicle?.vehicleNumber}`)}
             >
-              <Eye size={14} /> Live Track
-            </button>
-
-            <button
-              disabled={!selectedVehicle}
-              style={{
-                padding: '8px 12px',
-                fontSize: 12,
-                fontWeight: 600,
-                borderRadius: 6,
-                border: '1px solid var(--border-soft)',
-                backgroundColor: 'var(--panel-2)',
-                color: 'var(--text-1)',
-                cursor: selectedVehicle ? 'pointer' : 'not-allowed',
-              }}
-              onClick={() => alert(`Sending ping diagnostics to ${selectedVehicle?.vehicleNumber}`)}
-            >
-              Diagnostics
+              <RotateCcw size={14} />
+              {isReplayingRoute ? 'Exit Route Replay' : 'Launch Route Replay'}
             </button>
           </div>
         </div>

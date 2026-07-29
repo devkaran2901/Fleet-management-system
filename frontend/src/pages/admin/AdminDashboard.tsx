@@ -541,13 +541,12 @@ export const AdminDashboard: React.FC = () => {
               {activity.map((entry) => (
                 <div key={entry.id} className="feed-item">
                   <div
-                    className={`feed-node node-${
-                      actionTone(entry.action) === 'red'
+                    className={`feed-node node-${actionTone(entry.action) === 'red'
                         ? 'amber'
                         : actionTone(entry.action) === 'green'
                           ? 'green'
                           : 'grey'
-                    }`}
+                      }`}
                   />
                   <div style={{ minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>

@@ -144,7 +144,7 @@ interface Toast {
 
 const ToastContext = createContext<{
   notify: (tone: ToastTone, message: string) => void;
-}>({ notify: () => {} });
+}>({ notify: () => { } });
 
 export const useToast = () => useContext(ToastContext);
 
