@@ -34,14 +34,18 @@ export const LiveFleetMap: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  
+
+  // Theme observer state
+  const [isLightTheme, setIsLightTheme] = useState<boolean>(() =>
+    typeof document !== 'undefined' ? document.documentElement.classList.contains('light-theme') : false
+  );
+
   // Map Layer & Feature Toggles
   const [mapProvider, setMapProvider] = useState<'google_dark' | 'google_roadmap' | 'google_satellite' | 'google_terrain'>('google_dark');
   const [showTraffic, setShowTraffic] = useState<boolean>(true);
   const [showGeofences, setShowGeofences] = useState<boolean>(true);
   const [showInfra, setShowInfra] = useState<boolean>(true);
   const [useLargeFleet, setUseLargeFleet] = useState<boolean>(false);
-  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
   // Telemetry & Route Replay State
   const [socketStatus, setSocketStatus] = useState<string>('connecting');
@@ -61,6 +65,33 @@ export const LiveFleetMap: React.FC = () => {
   const routePolylineRef = useRef<L.Polyline | null>(null);
   const replayMarkerRef = useRef<L.Marker | null>(null);
   const replayIntervalRef = useRef<number | null>(null);
+
+  // Observe theme changes (light-theme class on html root)
+  useEffect(() => {
+    const checkTheme = () => {
+      const isLight = document.documentElement.classList.contains('light-theme');
+      setIsLightTheme(isLight);
+    };
+
+    checkTheme();
+
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // Auto-sync map provider when theme changes
+  useEffect(() => {
+    if (isLightTheme) {
+      setMapProvider('google_roadmap');
+    } else {
+      setMapProvider('google_dark');
+    }
+  }, [isLightTheme]);
 
   // Load Large Fleet Dataset on demand
   useEffect(() => {
@@ -112,15 +143,15 @@ export const LiveFleetMap: React.FC = () => {
     });
   }, [vehicles, statusFilter, categoryFilter, searchQuery]);
 
-  // Status color mapper
+  // Status color mapper - soft, lightened, elegant corporate palette
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'In Transit': return '#3b82f6';
-      case 'Available': return '#22c55e';
-      case 'Idle': return '#f59e0b';
-      case 'Maintenance': return '#8b5cf6';
-      case 'Blocked': return '#ef4444';
-      default: return '#94a3b8';
+      case 'In Transit': return '#4a80db'; // Soft Muted Blue
+      case 'Available': return '#3bb074';  // Soft Muted Green
+      case 'Idle': return '#e29b38';       // Soft Muted Warm Amber
+      case 'Maintenance': return '#8c6be8';// Soft Muted Lavender
+      case 'Blocked': return '#e05252';    // Soft Muted Coral Red
+      default: return '#718096';
     }
   };
 
@@ -144,7 +175,7 @@ export const LiveFleetMap: React.FC = () => {
     geofencesGroupRef.current = L.layerGroup().addTo(map);
 
     // Initial Tile Layer setup
-    updateTileLayer(map, 'google_dark');
+    updateTileLayer(map, mapProvider);
 
     return () => {
       map.remove();
@@ -333,45 +364,64 @@ export const LiveFleetMap: React.FC = () => {
     const isSelected = selectedVehicle?.id === v.id;
     const statusColor = getStatusColor(v.status);
 
-    // Dynamic rotating directional truck icon HTML
+    // Solid status-colored vehicle pointer badge with simple location pin logo
     const markerIconHtml = `
       <div style="
         position: relative;
         display: flex;
         align-items: center;
         gap: 6px;
-        padding: 4px 8px;
-        border-radius: 16px;
-        background-color: ${isSelected ? 'rgba(15, 23, 42, 0.95)' : 'rgba(15, 23, 42, 0.85)'};
-        border: 2px solid ${statusColor};
-        box-shadow: ${isSelected ? `0 0 18px ${statusColor}` : '0 4px 12px rgba(0,0,0,0.5)'};
-        backdrop-filter: blur(4px);
-        transform: scale(${isSelected ? '1.1' : '1'});
-        transition: transform 0.2s ease;
+        padding: 4px 10px 4px 6px;
+        border-radius: 18px;
+        background-color: ${statusColor};
+        color: #ffffff;
+        border: ${isSelected ? '2px solid #ffffff' : '1px solid rgba(255, 255, 255, 0.25)'};
+        box-shadow: ${isSelected ? '0 4px 14px rgba(0,0,0,0.5)' : '0 2px 8px rgba(0,0,0,0.3)'};
+        transform: scale(${isSelected ? '1.12' : '1'});
+        transition: all 0.2s ease;
       ">
+        <!-- Truck Front Vector Logo matching user specification -->
         <div style="
-          width: 20px;
-          height: 20px;
-          border-radius: 50%;
-          background: ${statusColor};
           display: flex;
           align-items: center;
           justify-content: center;
-          transform: rotate(${v.heading}deg);
-          transition: transform 0.4s ease;
+          width: 22px;
+          height: 22px;
         ">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="12 2 19 21 12 17 5 21 12 2"/>
+          <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 7C8 4.79 9.79 3 12 3H20C22.21 3 24 4.79 24 7V10H8V7Z" fill="#ffffff"/>
+            <rect x="5" y="9" width="22" height="18" rx="4" fill="#ffffff"/>
+            <path d="M2 14C2 12.5 5 12 5 12V18C5 18 2 17.5 2 16V14Z" fill="#ffffff"/>
+            <path d="M30 14C30 12.5 27 12 27 12V18C27 18 30 17.5 30 16V14Z" fill="#ffffff"/>
+            <rect x="8" y="12" width="16" height="6.5" rx="2" fill="${statusColor}"/>
+            <rect x="12" y="20.5" width="8" height="1.6" rx="0.8" fill="${statusColor}"/>
+            <rect x="12" y="23" width="8" height="1.6" rx="0.8" fill="${statusColor}"/>
+            <rect x="12" y="25.5" width="8" height="1.6" rx="0.8" fill="${statusColor}"/>
+            <ellipse cx="8.5" cy="24.5" rx="1.8" ry="1.2" fill="${statusColor}"/>
+            <ellipse cx="23.5" cy="24.5" rx="1.8" ry="1.2" fill="${statusColor}"/>
+            <rect x="8" y="27" width="3.5" height="3" rx="1" fill="#ffffff"/>
+            <rect x="20.5" y="27" width="3.5" height="3" rx="1" fill="#ffffff"/>
           </svg>
         </div>
 
-        <span style="font-size: 11px; font-weight: 700; color: ${isSelected ? '#ffffff' : '#cbd5e1'}; white-space: nowrap;">
+        <!-- Registration Number -->
+        <span style="font-size: 11px; font-weight: 800; color: #ffffff; white-space: nowrap; letter-spacing: 0.2px;">
           ${v.vehicleNumber}
         </span>
 
+        <!-- Clean Speed Tag Pill -->
         ${v.status === 'In Transit' ? `
-          <span style="font-size: 9px; color: #38bdf8; font-weight: 700;">
-            ${v.speedKmH}k/h
+          <span style="
+            font-size: 10px;
+            font-weight: 800;
+            color: #ffffff;
+            background: rgba(0, 0, 0, 0.28);
+            padding: 2px 7px;
+            border-radius: 10px;
+            white-space: nowrap;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+          ">
+            ⚡ ${v.speedKmH} km/h
           </span>
         ` : ''}
       </div>
@@ -380,8 +430,8 @@ export const LiveFleetMap: React.FC = () => {
     const vehicleDivIcon = L.divIcon({
       className: 'vehicle-live-marker',
       html: markerIconHtml,
-      iconSize: [120, 32],
-      iconAnchor: [60, 16],
+      iconSize: [170, 44],
+      iconAnchor: [85, 22],
     });
 
     const marker = L.marker([v.lat, v.lng], { icon: vehicleDivIcon });
@@ -485,22 +535,34 @@ export const LiveFleetMap: React.FC = () => {
         className: 'replay-anim-marker',
         html: `
           <div style="
-            width: 32px;
-            height: 32px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
-            background: #22c55e;
-            border: 3px solid #ffffff;
-            box-shadow: 0 0 20px #22c55e;
+            background: #0f172a;
+            border: 2px solid #38bdf8;
+            box-shadow: 0 0 16px #38bdf8;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #ffffff;
           ">
-            🚚
+            <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 7C8 4.79 9.79 3 12 3H20C22.21 3 24 4.79 24 7V10H8V7Z" fill="#ffffff"/>
+              <rect x="5" y="9" width="22" height="18" rx="4" fill="#ffffff"/>
+              <path d="M2 14C2 12.5 5 12 5 12V18C5 18 2 17.5 2 16V14Z" fill="#ffffff"/>
+              <path d="M30 14C30 12.5 27 12 27 12V18C27 18 30 17.5 30 16V14Z" fill="#ffffff"/>
+              <rect x="8" y="12" width="16" height="6.5" rx="2" fill="#0f172a"/>
+              <rect x="12" y="20.5" width="8" height="1.6" rx="0.8" fill="#0f172a"/>
+              <rect x="12" y="23" width="8" height="1.6" rx="0.8" fill="#0f172a"/>
+              <rect x="12" y="25.5" width="8" height="1.6" rx="0.8" fill="#0f172a"/>
+              <ellipse cx="8.5" cy="24.5" rx="1.8" ry="1.2" fill="#0f172a"/>
+              <ellipse cx="23.5" cy="24.5" rx="1.8" ry="1.2" fill="#0f172a"/>
+              <rect x="8" y="27" width="3.5" height="3" rx="1" fill="#ffffff"/>
+              <rect x="20.5" y="27" width="3.5" height="3" rx="1" fill="#ffffff"/>
+            </svg>
           </div>
         `,
-        iconSize: [32, 32],
-        iconAnchor: [16, 16],
+        iconSize: [34, 34],
+        iconAnchor: [17, 17],
       });
       replayMarkerRef.current = L.marker([point.lat, point.lng], { icon: replayIcon }).addTo(
         mapInstanceRef.current
@@ -508,29 +570,40 @@ export const LiveFleetMap: React.FC = () => {
     }
   }, [replayProgress, isReplayingRoute, selectedVehicle]);
 
+  // Theme-aware dynamic style values
+  const bgCard = isLightTheme ? 'var(--panel)' : 'var(--panel-1, #0b0f19)';
+  const bgHeader = isLightTheme ? 'var(--panel-2)' : 'var(--panel-2, #0f172a)';
+  const bgSection = isLightTheme ? 'var(--panel-3)' : '#1e293b';
+  const bgSubtle = isLightTheme ? '#f5f6f2' : '#0f172a';
+  const borderSoft = 'var(--border-soft)';
+  const text1 = 'var(--text-1)';
+  const text2 = 'var(--text-2)';
+  const text3 = 'var(--text-3)';
+
   return (
     <div
       style={{
-        backgroundColor: '#0b0f19',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
+        backgroundColor: bgCard,
+        border: `1px solid ${borderSoft}`,
         borderRadius: 12,
         overflow: 'hidden',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
-        color: '#f8fafc',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+        color: text1,
         fontFamily: 'system-ui, -apple-system, sans-serif',
+        transition: 'background-color 0.3s ease, border-color 0.3s ease',
       }}
     >
       {/* Control Room Top Header */}
       <div
         style={{
           padding: '14px 20px',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+          borderBottom: `1px solid ${borderSoft}`,
           display: 'flex',
           flexWrap: 'wrap',
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: 12,
-          backgroundColor: '#0f172a',
+          backgroundColor: bgHeader,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -546,13 +619,13 @@ export const LiveFleetMap: React.FC = () => {
               border: '1px solid rgba(56, 189, 248, 0.3)',
             }}
           >
-            <Radio size={20} color="#38bdf8" />
+            <Radio size={20} color="var(--green, #38bdf8)" />
           </div>
           <div>
-            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: '#f8fafc', letterSpacing: -0.3 }}>
+            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: text1, letterSpacing: -0.3 }}>
               India Fleet Command Map
             </h3>
-            <p style={{ margin: 0, fontSize: 11, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <p style={{ margin: 0, fontSize: 11, color: text3, display: 'flex', alignItems: 'center', gap: 6 }}>
               <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: socketStatus === 'connected' ? '#22c55e' : '#f59e0b' }} />
               WebSocket Telemetry: <strong>{socketStatus.toUpperCase()}</strong> ({pingsCount.toLocaleString()} Pings Processed)
             </p>
@@ -563,7 +636,7 @@ export const LiveFleetMap: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           {/* Search Input */}
           <div style={{ position: 'relative' }}>
-            <Search size={14} color="#64748b" style={{ position: 'absolute', left: 10, top: 9 }} />
+            <Search size={14} color="var(--text-3)" style={{ position: 'absolute', left: 10, top: 9 }} />
             <input
               type="text"
               placeholder="Search vehicle / driver / location..."
@@ -573,9 +646,9 @@ export const LiveFleetMap: React.FC = () => {
                 padding: '6px 12px 6px 32px',
                 fontSize: 12,
                 borderRadius: 6,
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                backgroundColor: '#1e293b',
-                color: '#f8fafc',
+                border: `1px solid ${borderSoft}`,
+                backgroundColor: bgCard,
+                color: text1,
                 outline: 'none',
                 width: 220,
               }}
@@ -590,9 +663,9 @@ export const LiveFleetMap: React.FC = () => {
               padding: '6px 10px',
               fontSize: 12,
               borderRadius: 6,
-              border: '1px solid rgba(255, 255, 255, 0.12)',
-              backgroundColor: '#1e293b',
-              color: '#f8fafc',
+              border: `1px solid ${borderSoft}`,
+              backgroundColor: bgCard,
+              color: text1,
             }}
           >
             <option value="ALL">All Statuses</option>
@@ -610,9 +683,9 @@ export const LiveFleetMap: React.FC = () => {
               padding: '6px 10px',
               fontSize: 12,
               borderRadius: 6,
-              border: '1px solid rgba(255, 255, 255, 0.12)',
-              backgroundColor: '#1e293b',
-              color: '#f8fafc',
+              border: `1px solid ${borderSoft}`,
+              backgroundColor: bgCard,
+              color: text1,
             }}
           >
             <option value="ALL">All Fleet Types</option>
@@ -628,9 +701,9 @@ export const LiveFleetMap: React.FC = () => {
               fontSize: 12,
               fontWeight: 600,
               borderRadius: 6,
-              border: useLargeFleet ? '1px solid #38bdf8' : '1px solid rgba(255, 255, 255, 0.12)',
-              backgroundColor: useLargeFleet ? 'rgba(56, 189, 248, 0.2)' : '#1e293b',
-              color: useLargeFleet ? '#38bdf8' : '#cbd5e1',
+              border: useLargeFleet ? '1px solid #38bdf8' : `1px solid ${borderSoft}`,
+              backgroundColor: useLargeFleet ? 'rgba(56, 189, 248, 0.15)' : bgCard,
+              color: useLargeFleet ? '#0284c7' : text1,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -647,8 +720,8 @@ export const LiveFleetMap: React.FC = () => {
       <div
         style={{
           padding: '8px 20px',
-          backgroundColor: '#1e293b',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+          backgroundColor: bgSection,
+          borderBottom: `1px solid ${borderSoft}`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -658,10 +731,10 @@ export const LiveFleetMap: React.FC = () => {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ color: '#94a3b8', fontWeight: 600 }}>Map View Provider:</span>
+          <span style={{ color: text3, fontWeight: 600 }}>Map View Provider:</span>
           {[
-            { key: 'google_dark', label: 'Enterprise Dark' },
             { key: 'google_roadmap', label: 'Google Roadmap' },
+            { key: 'google_dark', label: 'Enterprise Dark' },
             { key: 'google_satellite', label: 'Google Satellite' },
             { key: 'google_terrain', label: 'Terrain' },
           ].map((pv) => (
@@ -672,8 +745,8 @@ export const LiveFleetMap: React.FC = () => {
                 padding: '3px 10px',
                 borderRadius: 4,
                 border: 'none',
-                backgroundColor: mapProvider === pv.key ? '#38bdf8' : 'transparent',
-                color: mapProvider === pv.key ? '#0f172a' : '#cbd5e1',
+                backgroundColor: mapProvider === pv.key ? '#0284c7' : 'transparent',
+                color: mapProvider === pv.key ? '#ffffff' : text2,
                 fontWeight: mapProvider === pv.key ? 700 : 500,
                 cursor: 'pointer',
               }}
@@ -684,12 +757,12 @@ export const LiveFleetMap: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: '#cbd5e1' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: text2 }}>
             <input type="checkbox" checked={showGeofences} onChange={(e) => setShowGeofences(e.target.checked)} />
             Geofences
           </label>
 
-          <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: '#cbd5e1' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: text2 }}>
             <input type="checkbox" checked={showInfra} onChange={(e) => setShowInfra(e.target.checked)} />
             Depots & Tolls
           </label>
@@ -699,13 +772,14 @@ export const LiveFleetMap: React.FC = () => {
             style={{
               padding: '3px 8px',
               borderRadius: 4,
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              backgroundColor: '#0f172a',
-              color: '#38bdf8',
+              border: `1px solid ${borderSoft}`,
+              backgroundColor: bgCard,
+              color: '#0284c7',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: 4,
+              fontWeight: 600,
             }}
           >
             <MapIcon size={12} /> Center India
@@ -717,7 +791,7 @@ export const LiveFleetMap: React.FC = () => {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', minHeight: 540, position: 'relative' }}>
         {/* Leaflet Real-World Map Viewport */}
         <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: 540 }}>
-          <div ref={mapContainerRef} style={{ width: '100%', height: '100%', backgroundColor: '#0f172a' }} />
+          <div ref={mapContainerRef} style={{ width: '100%', height: '100%', backgroundColor: bgSubtle }} />
 
           {/* Map Overlay Badge & Legend */}
           <div
@@ -734,18 +808,19 @@ export const LiveFleetMap: React.FC = () => {
           >
             <div
               style={{
-                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                backgroundColor: isLightTheme ? 'rgba(255, 255, 255, 0.95)' : 'rgba(15, 23, 42, 0.9)',
                 backdropFilter: 'blur(8px)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
+                border: `1px solid ${borderSoft}`,
                 padding: '6px 12px',
                 borderRadius: 20,
                 fontSize: 11,
-                fontWeight: 600,
-                color: '#38bdf8',
+                fontWeight: 700,
+                color: isLightTheme ? '#0284c7' : '#38bdf8',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6,
                 pointerEvents: 'auto',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
               }}
             >
               <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#22c55e' }} />
@@ -760,37 +835,38 @@ export const LiveFleetMap: React.FC = () => {
               bottom: 16,
               left: 16,
               zIndex: 1000,
-              backgroundColor: 'rgba(15, 23, 42, 0.92)',
+              backgroundColor: isLightTheme ? 'rgba(255, 255, 255, 0.95)' : 'rgba(15, 23, 42, 0.92)',
               backdropFilter: 'blur(8px)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
+              border: `1px solid ${borderSoft}`,
               padding: '8px 14px',
               borderRadius: 8,
               display: 'flex',
               alignItems: 'center',
               gap: 16,
               fontSize: 11,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
             }}
           >
-            <span style={{ color: '#94a3b8', fontWeight: 700 }}>Status Colors:</span>
+            <span style={{ color: text3, fontWeight: 700 }}>Status Colors:</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#3b82f6' }} />
-              <span>In Transit</span>
+              <span style={{ color: text1 }}>In Transit</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#22c55e' }} />
-              <span>Available</span>
+              <span style={{ color: text1 }}>Available</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#f59e0b' }} />
-              <span>Idle</span>
+              <span style={{ color: text1 }}>Idle</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#8b5cf6' }} />
-              <span>Maintenance</span>
+              <span style={{ color: text1 }}>Maintenance</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#ef4444' }} />
-              <span>Blocked</span>
+              <span style={{ color: text1 }}>Blocked</span>
             </div>
           </div>
 
@@ -802,17 +878,17 @@ export const LiveFleetMap: React.FC = () => {
                 top: 14,
                 right: 14,
                 zIndex: 1000,
-                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                backgroundColor: isLightTheme ? 'rgba(255, 255, 255, 0.98)' : 'rgba(15, 23, 42, 0.95)',
                 backdropFilter: 'blur(10px)',
-                border: '1px solid #38bdf8',
+                border: '1px solid #0284c7',
                 padding: '12px 16px',
                 borderRadius: 10,
                 width: 320,
-                boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: '#38bdf8' }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#0284c7' }}>
                   Route Replay: {selectedVehicle.vehicleNumber}
                 </span>
                 <button
@@ -849,8 +925,8 @@ export const LiveFleetMap: React.FC = () => {
                     fontWeight: 700,
                     borderRadius: 4,
                     border: 'none',
-                    backgroundColor: '#38bdf8',
-                    color: '#0f172a',
+                    backgroundColor: '#0284c7',
+                    color: '#ffffff',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
@@ -870,9 +946,9 @@ export const LiveFleetMap: React.FC = () => {
                         padding: '2px 6px',
                         fontSize: 10,
                         borderRadius: 3,
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        backgroundColor: replaySpeed === sp ? '#38bdf8' : '#1e293b',
-                        color: replaySpeed === sp ? '#0f172a' : '#cbd5e1',
+                        border: `1px solid ${borderSoft}`,
+                        backgroundColor: replaySpeed === sp ? '#0284c7' : bgCard,
+                        color: replaySpeed === sp ? '#ffffff' : text1,
                         cursor: 'pointer',
                       }}
                     >
@@ -888,8 +964,8 @@ export const LiveFleetMap: React.FC = () => {
         {/* Selected Vehicle Telemetry Side Drawer Panel */}
         <div
           style={{
-            backgroundColor: '#0f172a',
-            borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
+            backgroundColor: bgHeader,
+            borderLeft: `1px solid ${borderSoft}`,
             padding: 20,
             display: 'flex',
             flexDirection: 'column',
@@ -917,18 +993,47 @@ export const LiveFleetMap: React.FC = () => {
                 >
                   ● {selectedVehicle.status}
                 </span>
-                <span style={{ fontSize: 11, color: '#94a3b8' }}>
+                <span style={{ fontSize: 11, color: text3 }}>
                   Last Ping: {selectedVehicle.lastPing}
                 </span>
               </div>
 
-              {/* Vehicle & Driver Overview */}
-              <h3 style={{ margin: '0 0 4px 0', fontSize: 20, fontWeight: 800, color: '#f8fafc' }}>
-                {selectedVehicle.vehicleNumber}
-              </h3>
-              <p style={{ margin: '0 0 16px 0', fontSize: 12, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Truck size={14} color="#38bdf8" /> Category: <strong>{selectedVehicle.category} Fleet</strong>
-              </p>
+              {/* 3D TRAVERSE Fleet Truck Preview Badge */}
+              <div
+                style={{
+                  marginBottom: 16,
+                  padding: 10,
+                  borderRadius: 10,
+                  backgroundColor: bgSection,
+                  border: `1px solid ${borderSoft}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
+                }}
+              >
+                <img
+                  src="/traverse-truck.png"
+                  alt="TRAVERSE 3D Logistics Truck"
+                  style={{
+                    width: 72,
+                    height: 52,
+                    objectFit: 'contain',
+                    filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))',
+                  }}
+                />
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: '#0284c7', letterSpacing: 0.8, textTransform: 'uppercase' }}>
+                    TRAVERSE FLEET ASSET
+                  </div>
+                  <h3 style={{ margin: '2px 0 0 0', fontSize: 18, fontWeight: 800, color: text1 }}>
+                    {selectedVehicle.vehicleNumber}
+                  </h3>
+                  <span style={{ fontSize: 11, color: text3 }}>
+                    {selectedVehicle.category} Heavy Freight Vehicle
+                  </span>
+                </div>
+              </div>
 
               {/* Location Card */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 18 }}>
@@ -936,8 +1041,8 @@ export const LiveFleetMap: React.FC = () => {
                   style={{
                     padding: 12,
                     borderRadius: 8,
-                    backgroundColor: '#1e293b',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    backgroundColor: bgSection,
+                    border: `1px solid ${borderSoft}`,
                     display: 'flex',
                     alignItems: 'center',
                     gap: 10,
@@ -945,13 +1050,13 @@ export const LiveFleetMap: React.FC = () => {
                 >
                   <MapPin size={18} color="#22c55e" />
                   <div>
-                    <span style={{ fontSize: 10, color: '#94a3b8', display: 'block', textTransform: 'uppercase', fontWeight: 700 }}>
+                    <span style={{ fontSize: 10, color: text3, display: 'block', textTransform: 'uppercase', fontWeight: 700 }}>
                       Current GPS Address
                     </span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: '#f8fafc', lineHeight: 1.3 }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: text1, lineHeight: 1.3 }}>
                       {selectedVehicle.currentLocation}
                     </span>
-                    <span style={{ fontSize: 10, color: '#64748b', display: 'block', marginTop: 2 }}>
+                    <span style={{ fontSize: 10, color: text3, display: 'block', marginTop: 2 }}>
                       Geo: {selectedVehicle.lat.toFixed(4)}° N, {selectedVehicle.lng.toFixed(4)}° E (Heading: {selectedVehicle.heading}°)
                     </span>
                   </div>
@@ -962,8 +1067,8 @@ export const LiveFleetMap: React.FC = () => {
                   style={{
                     padding: 12,
                     borderRadius: 8,
-                    backgroundColor: '#1e293b',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    backgroundColor: bgSection,
+                    border: `1px solid ${borderSoft}`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
@@ -972,15 +1077,15 @@ export const LiveFleetMap: React.FC = () => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <User size={18} color="#3b82f6" />
                     <div>
-                      <span style={{ fontSize: 10, color: '#94a3b8', display: 'block', textTransform: 'uppercase', fontWeight: 700 }}>
+                      <span style={{ fontSize: 10, color: text3, display: 'block', textTransform: 'uppercase', fontWeight: 700 }}>
                         Assigned Driver
                       </span>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: '#f8fafc' }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: text1 }}>
                         {selectedVehicle.driverName}
                       </span>
                     </div>
                   </div>
-                  <span style={{ fontSize: 11, color: '#38bdf8', fontFamily: 'monospace' }}>{selectedVehicle.driverPhone}</span>
+                  <span style={{ fontSize: 11, color: '#0284c7', fontWeight: 600, fontFamily: 'monospace' }}>{selectedVehicle.driverPhone}</span>
                 </div>
 
                 {/* Destination & ETA */}
@@ -988,8 +1093,8 @@ export const LiveFleetMap: React.FC = () => {
                   style={{
                     padding: 12,
                     borderRadius: 8,
-                    backgroundColor: '#1e293b',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    backgroundColor: bgSection,
+                    border: `1px solid ${borderSoft}`,
                     display: 'flex',
                     alignItems: 'center',
                     gap: 10,
@@ -997,10 +1102,10 @@ export const LiveFleetMap: React.FC = () => {
                 >
                   <Navigation size={18} color="#a855f7" />
                   <div>
-                    <span style={{ fontSize: 10, color: '#94a3b8', display: 'block', textTransform: 'uppercase', fontWeight: 700 }}>
+                    <span style={{ fontSize: 10, color: text3, display: 'block', textTransform: 'uppercase', fontWeight: 700 }}>
                       Destination & Calculated ETA
                     </span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: '#f8fafc', display: 'block' }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: text1, display: 'block' }}>
                       {selectedVehicle.destination}
                     </span>
                     <span style={{ fontSize: 11, color: '#a855f7', fontWeight: 700 }}>
@@ -1016,16 +1121,16 @@ export const LiveFleetMap: React.FC = () => {
                   style={{
                     padding: 12,
                     borderRadius: 8,
-                    backgroundColor: '#1e293b',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    backgroundColor: bgSection,
+                    border: `1px solid ${borderSoft}`,
                     textAlign: 'center',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: '#94a3b8', fontSize: 11, marginBottom: 4 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: text3, fontSize: 11, marginBottom: 4 }}>
                     <Gauge size={14} /> Telemetry Speed
                   </div>
-                  <span style={{ fontSize: 20, fontWeight: 800, color: selectedVehicle.speedKmH > 75 ? '#ef4444' : '#f8fafc' }}>
-                    {selectedVehicle.speedKmH} <span style={{ fontSize: 11, fontWeight: 500, color: '#94a3b8' }}>km/h</span>
+                  <span style={{ fontSize: 20, fontWeight: 800, color: selectedVehicle.speedKmH > 75 ? '#ef4444' : text1 }}>
+                    {selectedVehicle.speedKmH} <span style={{ fontSize: 11, fontWeight: 500, color: text3 }}>km/h</span>
                   </span>
                 </div>
 
@@ -1033,12 +1138,12 @@ export const LiveFleetMap: React.FC = () => {
                   style={{
                     padding: 12,
                     borderRadius: 8,
-                    backgroundColor: '#1e293b',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    backgroundColor: bgSection,
+                    border: `1px solid ${borderSoft}`,
                     textAlign: 'center',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: '#94a3b8', fontSize: 11, marginBottom: 4 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: text3, fontSize: 11, marginBottom: 4 }}>
                     <Fuel size={14} /> Fuel Level
                   </div>
                   <span style={{ fontSize: 20, fontWeight: 800, color: selectedVehicle.fuelLevel < 25 ? '#f59e0b' : '#22c55e' }}>
@@ -1052,37 +1157,37 @@ export const LiveFleetMap: React.FC = () => {
                 style={{
                   padding: 12,
                   borderRadius: 8,
-                  backgroundColor: '#1e293b',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  backgroundColor: bgSection,
+                  border: `1px solid ${borderSoft}`,
                   marginBottom: 18,
                 }}
               >
-                <h5 style={{ margin: '0 0 8px 0', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>
+                <h5 style={{ margin: '0 0 8px 0', fontSize: 11, fontWeight: 700, color: text3, textTransform: 'uppercase' }}>
                   ECU Diagnostics & Vitals
                 </h5>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 11 }}>
                   <div>
-                    <span style={{ color: '#64748b' }}>Engine Temp:</span>{' '}
-                    <strong style={{ color: selectedVehicle.diagnostics.engineTempC > 90 ? '#ef4444' : '#f8fafc' }}>
+                    <span style={{ color: text3 }}>Engine Temp:</span>{' '}
+                    <strong style={{ color: selectedVehicle.diagnostics.engineTempC > 90 ? '#ef4444' : text1 }}>
                       {selectedVehicle.diagnostics.engineTempC}°C
                     </strong>
                   </div>
                   <div>
-                    <span style={{ color: '#64748b' }}>Tire Pressure:</span>{' '}
-                    <strong>{selectedVehicle.diagnostics.tirePressurePsi} PSI</strong>
+                    <span style={{ color: text3 }}>Tire Pressure:</span>{' '}
+                    <strong style={{ color: text1 }}>{selectedVehicle.diagnostics.tirePressurePsi} PSI</strong>
                   </div>
                   <div>
-                    <span style={{ color: '#64748b' }}>Battery Volt:</span>{' '}
-                    <strong>{selectedVehicle.diagnostics.batteryVoltageV}V</strong>
+                    <span style={{ color: text3 }}>Battery Volt:</span>{' '}
+                    <strong style={{ color: text1 }}>{selectedVehicle.diagnostics.batteryVoltageV}V</strong>
                   </div>
                   <div>
-                    <span style={{ color: '#64748b' }}>Odometer:</span>{' '}
-                    <strong>{selectedVehicle.diagnostics.odometerKm.toLocaleString()} km</strong>
+                    <span style={{ color: text3 }}>Odometer:</span>{' '}
+                    <strong style={{ color: text1 }}>{selectedVehicle.diagnostics.odometerKm.toLocaleString()} km</strong>
                   </div>
                 </div>
 
                 {selectedVehicle.diagnostics.faultCodes.length > 0 && (
-                  <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px dashed rgba(255,255,255,0.1)', color: '#ef4444', fontSize: 11, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ marginTop: 8, paddingTop: 8, borderTop: `1px dashed ${borderSoft}`, color: '#ef4444', fontSize: 11, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <AlertTriangle size={12} />
                     <span>Fault: {selectedVehicle.diagnostics.faultCodes.join(', ')}</span>
                   </div>
@@ -1090,7 +1195,7 @@ export const LiveFleetMap: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div style={{ textAlign: 'center', padding: '60px 0', color: '#64748b' }}>
+            <div style={{ textAlign: 'center', padding: '60px 0', color: text3 }}>
               Select a vehicle on the map to view live telemetry
             </div>
           )}
@@ -1107,8 +1212,8 @@ export const LiveFleetMap: React.FC = () => {
                 fontWeight: 700,
                 borderRadius: 6,
                 border: 'none',
-                backgroundColor: isReplayingRoute ? '#ef4444' : '#38bdf8',
-                color: '#0f172a',
+                backgroundColor: isReplayingRoute ? '#ef4444' : '#0284c7',
+                color: '#ffffff',
                 cursor: selectedVehicle ? 'pointer' : 'not-allowed',
                 display: 'flex',
                 alignItems: 'center',
