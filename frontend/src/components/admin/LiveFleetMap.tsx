@@ -580,11 +580,12 @@ export const LiveFleetMap: React.FC = () => {
     }
   }, [replayProgress, isReplayingRoute, selectedVehicle]);
 
-  // Theme-aware dynamic style values
-  const bgCard = isLightTheme ? 'var(--panel)' : 'var(--panel-1, #0b0f19)';
-  const bgHeader = isLightTheme ? 'var(--panel-2)' : 'var(--panel-2, #0f172a)';
-  const bgSection = isLightTheme ? 'var(--panel-3)' : '#1e293b';
-  const bgSubtle = isLightTheme ? '#f5f6f2' : '#0f172a';
+  // Theme-aware dynamic style values (White outer background, slightly darker shade cards in Light Mode)
+  const bgCard = isLightTheme ? '#ffffff' : 'var(--panel, #0b0f19)';
+  const bgHeader = isLightTheme ? '#f4f5f0' : 'var(--panel-2, #0f172a)';
+  const bgSection = isLightTheme ? '#ffffff' : '#1e293b';
+  const bgTile = isLightTheme ? '#f4f5f0' : 'var(--panel-3, #1e293b)';
+  const bgSubtle = isLightTheme ? '#f4f5f0' : '#0f172a';
   const borderSoft = 'var(--border-soft)';
   const text1 = 'var(--text-1)';
   const text2 = 'var(--text-2)';
@@ -1115,7 +1116,7 @@ export const LiveFleetMap: React.FC = () => {
                     style={{
                       padding: '8px 10px',
                       borderRadius: 8,
-                      backgroundColor: bgCard,
+                      backgroundColor: bgTile,
                       border: `1px solid ${borderSoft}`,
                       display: 'flex',
                       flexDirection: 'column',
@@ -1127,7 +1128,7 @@ export const LiveFleetMap: React.FC = () => {
                         <Gauge size={12} color="#0284c7" /> Speed
                       </span>
                       <span style={{ fontSize: 9, color: selectedVehicle.speedKmH > 75 ? '#ef4444' : '#22c55e', fontWeight: 700 }}>
-                        {selectedVehicle.speedKmH > 75 ? 'OVERSEED' : 'NORMAL'}
+                        {selectedVehicle.speedKmH > 75 ? 'OVERSPEED' : 'NORMAL'}
                       </span>
                     </div>
                     <span style={{ fontSize: 16, fontWeight: 800, color: selectedVehicle.speedKmH > 75 ? '#ef4444' : text1 }}>
@@ -1151,7 +1152,7 @@ export const LiveFleetMap: React.FC = () => {
                     style={{
                       padding: '8px 10px',
                       borderRadius: 8,
-                      backgroundColor: bgCard,
+                      backgroundColor: bgTile,
                       border: `1px solid ${borderSoft}`,
                       display: 'flex',
                       flexDirection: 'column',
@@ -1192,7 +1193,7 @@ export const LiveFleetMap: React.FC = () => {
                     gap: 10,
                     padding: '8px 10px',
                     borderRadius: 8,
-                    backgroundColor: bgCard,
+                    backgroundColor: bgTile,
                     border: `1px solid ${borderSoft}`,
                   }}
                 >
@@ -1232,7 +1233,7 @@ export const LiveFleetMap: React.FC = () => {
                     justifyContent: 'space-between',
                     padding: '8px 10px',
                     borderRadius: 8,
-                    backgroundColor: bgCard,
+                    backgroundColor: bgTile,
                     border: `1px solid ${borderSoft}`,
                   }}
                 >
@@ -1273,7 +1274,7 @@ export const LiveFleetMap: React.FC = () => {
                     gap: 10,
                     padding: '8px 10px',
                     borderRadius: 8,
-                    backgroundColor: bgCard,
+                    backgroundColor: bgTile,
                     border: `1px solid ${borderSoft}`,
                   }}
                 >
