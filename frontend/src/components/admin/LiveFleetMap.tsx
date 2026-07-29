@@ -16,6 +16,7 @@ import type {
   GeofenceZone,
 } from '../../services/indiaGeospatialData';
 import { fleetSocketService } from '../../services/fleetSocket';
+import { masterUnifiedStore } from '../../services/masterUnifiedStore';
 import L from 'leaflet';
 
 // Dynamically inject Leaflet CSS if not already loaded
@@ -47,7 +48,8 @@ export const LiveFleetMap: React.FC = () => {
   const [showInfra, setShowInfra] = useState<boolean>(true);
   const [useLargeFleet, setUseLargeFleet] = useState<boolean>(false);
 
-  // Telemetry & Route Replay State
+  // Fullscreen & Telemetry State
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [socketStatus, setSocketStatus] = useState<string>('connecting');
   const [pingsCount, setPingsCount] = useState<number>(14820);
   const [isReplayingRoute, setIsReplayingRoute] = useState<boolean>(false);
@@ -93,7 +95,7 @@ export const LiveFleetMap: React.FC = () => {
     }
   }, [isLightTheme]);
 
-  // Load Large Fleet Dataset on demand
+  // Load Large Fleet Dataset or Canonical Master Store on demand
   useEffect(() => {
     if (useLargeFleet) {
       const dataset = generateLargeFleetDataset(1000);
@@ -101,11 +103,27 @@ export const LiveFleetMap: React.FC = () => {
       setSelectedVehicle(dataset[0]);
       fleetSocketService.connect(dataset);
     } else {
-      setVehicles(INITIAL_FLEET_VEHICLES);
-      setSelectedVehicle(INITIAL_FLEET_VEHICLES[0]);
-      fleetSocketService.connect(INITIAL_FLEET_VEHICLES);
+      const canonicals = masterUnifiedStore.getVehicles();
+      setVehicles(canonicals);
+      setSelectedVehicle(canonicals[0]);
+      fleetSocketService.connect(canonicals);
     }
   }, [useLargeFleet]);
+
+  // Subscribe to Master Unified Store changes
+  useEffect(() => {
+    const syncFromStore = () => {
+      if (!useLargeFleet) {
+        const canonicals = masterUnifiedStore.getVehicles();
+        setVehicles(canonicals);
+        if (selectedVehicle) {
+          const curr = canonicals.find((v) => v.id === selectedVehicle.id);
+          if (curr) setSelectedVehicle(curr);
+        }
+      }
+    };
+    return masterUnifiedStore.subscribe(syncFromStore);
+  }, [useLargeFleet, selectedVehicle?.id]);
 
   // Connect WebSockets / Socket.io GPS Telemetry Stream
   useEffect(() => {
@@ -582,16 +600,33 @@ export const LiveFleetMap: React.FC = () => {
 
   return (
     <div
-      style={{
-        backgroundColor: bgCard,
-        border: `1px solid ${borderSoft}`,
-        borderRadius: 12,
-        overflow: 'hidden',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
-        color: text1,
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-        transition: 'background-color 0.3s ease, border-color 0.3s ease',
-      }}
+      style={
+        isFullscreen
+          ? {
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              zIndex: 99999,
+              backgroundColor: bgCard,
+              color: text1,
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+            }
+          : {
+              backgroundColor: bgCard,
+              border: `1px solid ${borderSoft}`,
+              borderRadius: 12,
+              overflow: 'hidden',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+              color: text1,
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              transition: 'background-color 0.3s ease, border-color 0.3s ease',
+            }
+      }
     >
       {/* Control Room Top Header */}
       <div
@@ -713,6 +748,34 @@ export const LiveFleetMap: React.FC = () => {
             <Layers size={13} />
             <span>{useLargeFleet ? '1000+ Vehicles (Clustered)' : 'Active Fleet (8 Vehicles)'}</span>
           </button>
+
+          {/* Go Fullscreen Toggle Button */}
+          <button
+            onClick={() => {
+              const next = !isFullscreen;
+              setIsFullscreen(next);
+              setTimeout(() => {
+                mapInstanceRef.current?.invalidateSize();
+              }, 200);
+            }}
+            style={{
+              padding: '6px 12px',
+              fontSize: 12,
+              fontWeight: 700,
+              borderRadius: 6,
+              border: isFullscreen ? '1px solid #0284c7' : `1px solid ${borderSoft}`,
+              backgroundColor: isFullscreen ? '#0284c7' : bgCard,
+              color: isFullscreen ? '#ffffff' : '#0284c7',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              transition: 'all 0.2s ease',
+            }}
+          >
+            {isFullscreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+            <span>{isFullscreen ? 'Exit Fullscreen' : 'Go Fullscreen'}</span>
+          </button>
         </div>
       </div>
 
@@ -788,9 +851,9 @@ export const LiveFleetMap: React.FC = () => {
       </div>
 
       {/* Main Map Grid Layout: Interactive Map Canvas Left, Telemetry Drawer Right */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', minHeight: 540, position: 'relative' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', height: isFullscreen ? 'calc(100vh - 105px)' : 480, position: 'relative' }}>
         {/* Leaflet Real-World Map Viewport */}
-        <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: 540 }}>
+        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
           <div ref={mapContainerRef} style={{ width: '100%', height: '100%', backgroundColor: bgSubtle }} />
 
           {/* Map Overlay Badge & Legend */}
@@ -966,11 +1029,11 @@ export const LiveFleetMap: React.FC = () => {
           style={{
             backgroundColor: bgHeader,
             borderLeft: `1px solid ${borderSoft}`,
-            padding: 20,
+            padding: 14,
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            maxHeight: 620,
+            maxHeight: isFullscreen ? 'calc(100vh - 105px)' : 480,
             overflowY: 'auto',
           }}
         >

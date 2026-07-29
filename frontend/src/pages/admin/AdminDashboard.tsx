@@ -235,7 +235,7 @@ export const AdminDashboard: React.FC = () => {
       </Panel>
 
       {/* Embedded Live Telemetry Fleet Map */}
-      <div style={{ marginTop: 24, marginBottom: 24 }}>
+      <div style={{ marginTop: 20, marginBottom: 24 }}>
         <LiveFleetMap />
       </div>
 
