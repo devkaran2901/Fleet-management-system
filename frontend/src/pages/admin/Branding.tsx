@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Palette, Save, CheckCircle, Image, Sun, Moon } from 'lucide-react';
-import { Button, Panel, Input } from '../../components/admin/ui';
+import { Palette, Save, CheckCircle } from 'lucide-react';
+import { Button, Panel, Input, Field } from '../../components/admin/ui';
 import type { BrandingConfig } from '../../services/adminApi';
 
 const DEFAULT_BRANDING: BrandingConfig = {
@@ -40,19 +40,21 @@ export const Branding: React.FC = () => {
       <form onSubmit={handleSave}>
         <Panel title="Brand Identity & Theme Tokens">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 640 }}>
-            <Input
-              label="Company / Enterprise Name"
-              value={branding.companyName}
-              onChange={(e) => setBranding({ ...branding, companyName: e.target.value })}
-              required
-            />
+            <Field label="Company / Enterprise Name">
+              <Input
+                value={branding.companyName}
+                onChange={(e) => setBranding({ ...branding, companyName: e.target.value })}
+                required
+              />
+            </Field>
 
-            <Input
-              label="Logo URL (PNG / SVG)"
-              value={branding.logoUrl}
-              onChange={(e) => setBranding({ ...branding, logoUrl: e.target.value })}
-              required
-            />
+            <Field label="Logo URL (PNG / SVG)">
+              <Input
+                value={branding.logoUrl}
+                onChange={(e) => setBranding({ ...branding, logoUrl: e.target.value })}
+                required
+              />
+            </Field>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <div>
@@ -112,24 +114,27 @@ export const Branding: React.FC = () => {
               </div>
             </div>
 
-            <Input
-              label="Login Screen Banner Announcement"
-              value={branding.loginBannerText}
-              onChange={(e) => setBranding({ ...branding, loginBannerText: e.target.value })}
-            />
+            <Field label="Login Screen Banner Announcement">
+              <Input
+                value={branding.loginBannerText}
+                onChange={(e) => setBranding({ ...branding, loginBannerText: e.target.value })}
+              />
+            </Field>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              <Input
-                label="Support Contact Email"
-                value={branding.supportEmail}
-                onChange={(e) => setBranding({ ...branding, supportEmail: e.target.value })}
-              />
+              <Field label="Support Contact Email">
+                <Input
+                  value={branding.supportEmail}
+                  onChange={(e) => setBranding({ ...branding, supportEmail: e.target.value })}
+                />
+              </Field>
 
-              <Input
-                label="Toll-Free Support Helpline"
-                value={branding.supportPhone}
-                onChange={(e) => setBranding({ ...branding, supportPhone: e.target.value })}
-              />
+              <Field label="Toll-Free Support Helpline">
+                <Input
+                  value={branding.supportPhone}
+                  onChange={(e) => setBranding({ ...branding, supportPhone: e.target.value })}
+                />
+              </Field>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12 }}>

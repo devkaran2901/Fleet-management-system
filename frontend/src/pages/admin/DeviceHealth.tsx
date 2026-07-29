@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { HardDrive, Search, Wifi, BatteryCharging } from 'lucide-react';
+import { HardDrive, Search, Wifi, BatteryCharging, RefreshCw } from 'lucide-react';
 import { Button, Panel, Badge } from '../../components/admin/ui';
 import type { DeviceHealthItem } from '../../services/adminApi';
 

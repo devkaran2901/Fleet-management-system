@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Globe, Save, Clock } from 'lucide-react';
-import { Button, Panel, Badge } from '../../components/admin/ui';
+import { Globe, Save, CheckCircle } from 'lucide-react';
+import { Button, Panel } from '../../components/admin/ui';
 import type { LocalizationConfig } from '../../services/adminApi';
 
 const DEFAULT_CONFIG: LocalizationConfig = {

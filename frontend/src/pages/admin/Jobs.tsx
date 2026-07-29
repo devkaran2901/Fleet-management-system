@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ClipboardList, Plus, Play, AlertCircle } from 'lucide-react';
+import { ClipboardList, Play, FileText } from 'lucide-react';
 import { Button, Panel, Badge, Modal } from '../../components/admin/ui';
 import type { BatchJob } from '../../services/adminApi';
 

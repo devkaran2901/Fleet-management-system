@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { RefreshCcw, Search, AlertTriangle, XCircle } from 'lucide-react';
+import { RefreshCcw, Search, Download, RotateCw } from 'lucide-react';
 import { Button, Panel, Badge, Modal } from '../../components/admin/ui';
 import type { SyncLogItem } from '../../services/adminApi';
 
