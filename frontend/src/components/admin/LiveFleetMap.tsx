@@ -41,8 +41,8 @@ export const LiveFleetMap: React.FC = () => {
     typeof document !== 'undefined' ? document.documentElement.classList.contains('light-theme') : false
   );
 
-  // Map Layer & Feature Toggles
-  const [mapProvider, setMapProvider] = useState<'google_dark' | 'google_roadmap' | 'google_satellite' | 'google_terrain'>('google_dark');
+  // Map Layer & Feature Toggles - Default to Google Roadmap View
+  const [mapProvider, setMapProvider] = useState<'google_dark' | 'google_roadmap' | 'google_satellite' | 'google_terrain'>('google_roadmap');
   const [showTraffic, setShowTraffic] = useState<boolean>(true);
   const [showGeofences, setShowGeofences] = useState<boolean>(true);
   const [showInfra, setShowInfra] = useState<boolean>(true);
@@ -86,14 +86,6 @@ export const LiveFleetMap: React.FC = () => {
     return () => observer.disconnect();
   }, []);
 
-  // Auto-sync map provider when theme changes
-  useEffect(() => {
-    if (isLightTheme) {
-      setMapProvider('google_roadmap');
-    } else {
-      setMapProvider('google_dark');
-    }
-  }, [isLightTheme]);
 
   // Load Large Fleet Dataset or Canonical Master Store on demand
   useEffect(() => {
@@ -631,22 +623,22 @@ export const LiveFleetMap: React.FC = () => {
       {/* Control Room Top Header */}
       <div
         style={{
-          padding: '14px 20px',
+          padding: '8px 14px',
           borderBottom: `1px solid ${borderSoft}`,
           display: 'flex',
           flexWrap: 'wrap',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: 12,
+          gap: 8,
           backgroundColor: bgHeader,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div
             style={{
-              width: 40,
-              height: 40,
-              borderRadius: 10,
+              width: 32,
+              height: 32,
+              borderRadius: 8,
               backgroundColor: 'rgba(56, 189, 248, 0.12)',
               display: 'flex',
               alignItems: 'center',
@@ -654,38 +646,38 @@ export const LiveFleetMap: React.FC = () => {
               border: '1px solid rgba(56, 189, 248, 0.3)',
             }}
           >
-            <Radio size={20} color="var(--green, #38bdf8)" />
+            <Radio size={16} color="var(--green, #38bdf8)" />
           </div>
           <div>
-            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: text1, letterSpacing: -0.3 }}>
+            <h3 style={{ margin: 0, fontSize: 14, fontWeight: 800, color: text1, letterSpacing: -0.3 }}>
               India Fleet Command Map
             </h3>
-            <p style={{ margin: 0, fontSize: 11, color: text3, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: socketStatus === 'connected' ? '#22c55e' : '#f59e0b' }} />
+            <p style={{ margin: 0, fontSize: 10, color: text3, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: socketStatus === 'connected' ? '#22c55e' : '#f59e0b' }} />
               WebSocket Telemetry: <strong>{socketStatus.toUpperCase()}</strong> ({pingsCount.toLocaleString()} Pings Processed)
             </p>
           </div>
         </div>
 
         {/* Top Control Tools & Search */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
           {/* Search Input */}
           <div style={{ position: 'relative' }}>
-            <Search size={14} color="var(--text-3)" style={{ position: 'absolute', left: 10, top: 9 }} />
+            <Search size={13} color="var(--text-3)" style={{ position: 'absolute', left: 8, top: 7 }} />
             <input
               type="text"
-              placeholder="Search vehicle / driver / location..."
+              placeholder="Search vehicle / driver..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
-                padding: '6px 12px 6px 32px',
-                fontSize: 12,
+                padding: '4px 10px 4px 28px',
+                fontSize: 11,
                 borderRadius: 6,
                 border: `1px solid ${borderSoft}`,
                 backgroundColor: bgCard,
                 color: text1,
                 outline: 'none',
-                width: 220,
+                width: 180,
               }}
             />
           </div>
@@ -695,8 +687,8 @@ export const LiveFleetMap: React.FC = () => {
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             style={{
-              padding: '6px 10px',
-              fontSize: 12,
+              padding: '4px 8px',
+              fontSize: 11,
               borderRadius: 6,
               border: `1px solid ${borderSoft}`,
               backgroundColor: bgCard,
@@ -715,8 +707,8 @@ export const LiveFleetMap: React.FC = () => {
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
             style={{
-              padding: '6px 10px',
-              fontSize: 12,
+              padding: '4px 8px',
+              fontSize: 11,
               borderRadius: 6,
               border: `1px solid ${borderSoft}`,
               backgroundColor: bgCard,
@@ -732,8 +724,8 @@ export const LiveFleetMap: React.FC = () => {
           <button
             onClick={() => setUseLargeFleet(!useLargeFleet)}
             style={{
-              padding: '6px 12px',
-              fontSize: 12,
+              padding: '4px 10px',
+              fontSize: 11,
               fontWeight: 600,
               borderRadius: 6,
               border: useLargeFleet ? '1px solid #38bdf8' : `1px solid ${borderSoft}`,
@@ -742,11 +734,11 @@ export const LiveFleetMap: React.FC = () => {
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: 6,
+              gap: 4,
             }}
           >
-            <Layers size={13} />
-            <span>{useLargeFleet ? '1000+ Vehicles (Clustered)' : 'Active Fleet (8 Vehicles)'}</span>
+            <Layers size={12} />
+            <span>{useLargeFleet ? '1000+ Vehicles' : 'Active Fleet'}</span>
           </button>
 
           {/* Go Fullscreen Toggle Button */}
@@ -759,8 +751,8 @@ export const LiveFleetMap: React.FC = () => {
               }, 200);
             }}
             style={{
-              padding: '6px 12px',
-              fontSize: 12,
+              padding: '4px 10px',
+              fontSize: 11,
               fontWeight: 700,
               borderRadius: 6,
               border: isFullscreen ? '1px solid #0284c7' : `1px solid ${borderSoft}`,
@@ -769,12 +761,12 @@ export const LiveFleetMap: React.FC = () => {
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: 6,
+              gap: 4,
               transition: 'all 0.2s ease',
             }}
           >
-            {isFullscreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
-            <span>{isFullscreen ? 'Exit Fullscreen' : 'Go Fullscreen'}</span>
+            {isFullscreen ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
+            <span>{isFullscreen ? 'Exit' : 'Fullscreen'}</span>
           </button>
         </div>
       </div>
@@ -782,30 +774,30 @@ export const LiveFleetMap: React.FC = () => {
       {/* Map Control Toolbar & Layer Switchers */}
       <div
         style={{
-          padding: '8px 20px',
+          padding: '5px 14px',
           backgroundColor: bgSection,
           borderBottom: `1px solid ${borderSoft}`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: 10,
+          gap: 8,
           fontSize: 11,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ color: text3, fontWeight: 600 }}>Map View Provider:</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ color: text3, fontWeight: 600 }}>Provider:</span>
           {[
             { key: 'google_roadmap', label: 'Google Roadmap' },
             { key: 'google_dark', label: 'Enterprise Dark' },
-            { key: 'google_satellite', label: 'Google Satellite' },
+            { key: 'google_satellite', label: 'Satellite' },
             { key: 'google_terrain', label: 'Terrain' },
           ].map((pv) => (
             <button
               key={pv.key}
               onClick={() => setMapProvider(pv.key as any)}
               style={{
-                padding: '3px 10px',
+                padding: '2px 8px',
                 borderRadius: 4,
                 border: 'none',
                 backgroundColor: mapProvider === pv.key ? '#0284c7' : 'transparent',
@@ -819,13 +811,13 @@ export const LiveFleetMap: React.FC = () => {
           ))}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: text2 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: text2, fontSize: 11 }}>
             <input type="checkbox" checked={showGeofences} onChange={(e) => setShowGeofences(e.target.checked)} />
             Geofences
           </label>
 
-          <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: text2 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', color: text2, fontSize: 11 }}>
             <input type="checkbox" checked={showInfra} onChange={(e) => setShowInfra(e.target.checked)} />
             Depots & Tolls
           </label>
@@ -833,7 +825,7 @@ export const LiveFleetMap: React.FC = () => {
           <button
             onClick={handleResetMapFocus}
             style={{
-              padding: '3px 8px',
+              padding: '2px 8px',
               borderRadius: 4,
               border: `1px solid ${borderSoft}`,
               backgroundColor: bgCard,
@@ -843,15 +835,16 @@ export const LiveFleetMap: React.FC = () => {
               alignItems: 'center',
               gap: 4,
               fontWeight: 600,
+              fontSize: 10,
             }}
           >
-            <MapIcon size={12} /> Center India
+            <MapIcon size={11} /> Center India
           </button>
         </div>
       </div>
 
       {/* Main Map Grid Layout: Interactive Map Canvas Left, Telemetry Drawer Right */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', height: isFullscreen ? 'calc(100vh - 105px)' : 480, position: 'relative' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', height: isFullscreen ? 'calc(100vh - 85px)' : 380, position: 'relative' }}>
         {/* Leaflet Real-World Map Viewport */}
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
           <div ref={mapContainerRef} style={{ width: '100%', height: '100%', backgroundColor: bgSubtle }} />
