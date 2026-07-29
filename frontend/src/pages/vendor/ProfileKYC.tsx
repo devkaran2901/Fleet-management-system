@@ -9,17 +9,35 @@ interface KYCDoc {
   fileName?: string;
 }
 
+interface ProfileData {
+  companyName: string;
+  gstin: string;
+  pan: string;
+  address: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string;
+  alternatePhone: string;
+}
+
 export const ProfileKYC: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'Company' | 'Bank' | 'KYC Documents'>('Company');
   const [editMode, setEditMode] = useState(false);
 
-  const [companyName] = useState('Express Logistics Pvt. Ltd.');
-  const [gstin] = useState('27AAECS8882Q1Z5');
-  const [pan] = useState('AAECS8882Q');
-  const [address] = useState('Plot No. 14, Bhiwandi Logistics Park, Bhiwandi, Maharashtra - 421 302');
-  const [contactName] = useState('Rajesh Shah');
-  const [contactEmail] = useState('rajesh.shah@expresslogistics.in');
-  const [contactPhone] = useState('+91 99887 76655');
+  // Profile data state
+  const [profile, setProfile] = useState<ProfileData>({
+    companyName: 'Express Logistics Pvt. Ltd.',
+    gstin: '27AAECS8882Q1Z5',
+    pan: 'AAECS8882Q',
+    address: 'Plot No. 14, Bhiwandi Logistics Park, Bhiwandi, Maharashtra - 421 302',
+    contactName: 'Rajesh Shah',
+    contactEmail: 'rajesh.shah@expresslogistics.in',
+    contactPhone: '+91 99887 76655',
+    alternatePhone: '+91 98765 11000',
+  });
+
+  // Draft profile state for editing mode
+  const [draftProfile, setDraftProfile] = useState<ProfileData>({ ...profile });
 
   // React State for KYC documents list
   const [docs, setDocs] = useState<KYCDoc[]>([
@@ -104,6 +122,13 @@ export const ProfileKYC: React.FC = () => {
     });
   };
 
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    setProfile({ ...draftProfile });
+    setEditMode(false);
+    alert('Profile changes saved successfully!');
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* Header */}
@@ -120,7 +145,15 @@ export const ProfileKYC: React.FC = () => {
           <span className="vp-badge vp-badge-success" style={{ padding: '8px 14px' }}>
             <CheckCircle size={14} /> KYC Verified
           </span>
-          <button className="vp-btn vp-btn-secondary" onClick={() => setEditMode(!editMode)}>
+          <button 
+            className="vp-btn vp-btn-secondary" 
+            onClick={() => {
+              if (!editMode) {
+                setDraftProfile({ ...profile });
+              }
+              setEditMode(!editMode);
+            }}
+          >
             <Edit size={14} /> {editMode ? 'Cancel Editing' : 'Edit Profile'}
           </button>
         </div>
@@ -133,12 +166,12 @@ export const ProfileKYC: React.FC = () => {
             width: 72, height: 72, borderRadius: 16, background: 'var(--vendor-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 28, fontWeight: 900, color: '#fff',
           }}>
-            EL
+            {profile.companyName.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase()}
           </div>
           <div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)' }}>{companyName}</div>
-            <div style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 2 }}>GSTIN: {gstin} · PAN: {pan}</div>
-            <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>{address}</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)' }}>{profile.companyName}</div>
+            <div style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 2 }}>GSTIN: {profile.gstin} · PAN: {profile.pan}</div>
+            <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>{profile.address}</div>
           </div>
         </div>
       </div>
@@ -152,56 +185,70 @@ export const ProfileKYC: React.FC = () => {
 
       {/* Company Details Tab */}
       {activeTab === 'Company' && (
-        <div className="vp-grid-2">
-          <div className="vp-card">
-            <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Building2 size={18} color="var(--vendor-accent)" /> Company Details
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {[
-                { label: 'Vendor / Company Name', value: companyName },
-                { label: 'GSTIN', value: gstin },
-                { label: 'PAN Number', value: pan },
-                { label: 'Registered Address', value: address },
-              ].map((field) => (
-                <div key={field.label} className="vp-form-group" style={{ marginBottom: 0 }}>
-                  <label className="vp-label">{field.label}:</label>
-                  {editMode ? (
-                    <input type="text" className="vp-input" defaultValue={field.value} />
-                  ) : (
-                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', padding: '8px 0' }}>{field.value}</div>
-                  )}
-                </div>
-              ))}
+        <form onSubmit={handleSaveProfile}>
+          <div className="vp-grid-2">
+            <div className="vp-card">
+              <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Building2 size={18} color="var(--vendor-accent)" /> Company Details
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {[
+                  { label: 'Vendor / Company Name', key: 'companyName', value: profile.companyName },
+                  { label: 'GSTIN', key: 'gstin', value: profile.gstin },
+                  { label: 'PAN Number', key: 'pan', value: profile.pan },
+                  { label: 'Registered Address', key: 'address', value: profile.address },
+                ].map((field) => (
+                  <div key={field.label} className="vp-form-group" style={{ marginBottom: 0 }}>
+                    <label className="vp-label">{field.label}:</label>
+                    {editMode ? (
+                      <input 
+                        type="text" 
+                        className="vp-input" 
+                        value={(draftProfile as any)[field.key]} 
+                        onChange={(e) => setDraftProfile({ ...draftProfile, [field.key]: e.target.value })}
+                        required
+                      />
+                    ) : (
+                      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', padding: '8px 0' }}>{field.value}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div className="vp-card">
-            <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 16 }}>Primary Contact</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {[
-                { label: 'Contact Person Name', value: contactName },
-                { label: 'Email Address', value: contactEmail },
-                { label: 'Phone Number', value: contactPhone },
-                { label: 'Alternate Phone', value: '+91 98765 11000' },
-              ].map((field) => (
-                <div key={field.label} className="vp-form-group" style={{ marginBottom: 0 }}>
-                  <label className="vp-label">{field.label}:</label>
-                  {editMode ? (
-                    <input type="text" className="vp-input" defaultValue={field.value} />
-                  ) : (
-                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', padding: '8px 0' }}>{field.value}</div>
-                  )}
-                </div>
-              ))}
+            <div className="vp-card">
+              <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 16 }}>Primary Contact</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {[
+                  { label: 'Contact Person Name', key: 'contactName', value: profile.contactName },
+                  { label: 'Email Address', key: 'contactEmail', value: profile.contactEmail },
+                  { label: 'Phone Number', key: 'contactPhone', value: profile.contactPhone },
+                  { label: 'Alternate Phone', key: 'alternatePhone', value: profile.alternatePhone },
+                ].map((field) => (
+                  <div key={field.label} className="vp-form-group" style={{ marginBottom: 0 }}>
+                    <label className="vp-label">{field.label}:</label>
+                    {editMode ? (
+                      <input 
+                        type="text" 
+                        className="vp-input" 
+                        value={(draftProfile as any)[field.key]} 
+                        onChange={(e) => setDraftProfile({ ...draftProfile, [field.key]: e.target.value })}
+                        required
+                      />
+                    ) : (
+                      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', padding: '8px 0' }}>{field.value}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {editMode && (
+                <button type="submit" className="vp-btn vp-btn-primary" style={{ marginTop: 16, width: '100%', justifyContent: 'center' }}>
+                  Save Changes
+                </button>
+              )}
             </div>
-            {editMode && (
-              <button className="vp-btn vp-btn-primary" style={{ marginTop: 16, width: '100%', justifyContent: 'center' }}>
-                Save Changes
-              </button>
-            )}
           </div>
-        </div>
+        </form>
       )}
 
       {/* Bank Details Tab */}
