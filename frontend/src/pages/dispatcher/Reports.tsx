@@ -2,15 +2,17 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { BarChart3, RefreshCw, Download, TrendingUp } from 'lucide-react';
 import { dispatcherApi } from '../../services/dispatcherApi';
 import type { ReportsSummary } from '../../services/dispatcherApi';
-import { Badge, Button, ErrorState, LoadingState, Panel } from '../../components/admin/ui';
+import { Badge, Button, ErrorState, LoadingState, Panel, useToast } from '../../components/admin/ui';
 
 type TabType = 'DISPATCH' | 'STABILITY' | 'EXCEPTIONS' | 'VENDORS';
 
 export const Reports: React.FC = () => {
+  const { notify } = useToast();
   const [reports, setReports] = useState<ReportsSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('DISPATCH');
+  const [isExporting, setIsExporting] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -29,6 +31,60 @@ export const Reports: React.FC = () => {
     void loadData();
   }, [loadData]);
 
+  const handleExportCSV = () => {
+    if (!reports) return;
+    setIsExporting(true);
+    notify('info', 'Exporting Operations Reports to CSV...');
+
+    setTimeout(() => {
+      let csvContent = '';
+      let filename = '';
+
+      if (activeTab === 'DISPATCH') {
+        filename = 'daily_dispatch_volumes.csv';
+        csvContent = 'Dispatch Date,Owned Fleet Runs,Vendor Indents,Total Dispatches,Owned Fleet Share Ratio\n' +
+          reports.dailyDispatch.map(d => {
+            const share = ((d.ownedCount / d.total) * 100).toFixed(1);
+            return `${d.date},${d.ownedCount},${d.vendorCount},${d.total},${share}%`;
+          }).join('\n');
+      } else if (activeTab === 'STABILITY') {
+        filename = 'plan_stability_score.csv';
+        csvContent = 'Metric,Value\n' +
+          `Stability Index Score,${reports.planStability.stabilityScore}%\n` +
+          `Total Planned Movements,${reports.planStability.totalPlanned}\n` +
+          `Re-assigned Vehicles (Swaps),${reports.planStability.swappedVehicles}\n` +
+          `Re-assigned Drivers (Swaps),${reports.planStability.swappedDrivers}\n` +
+          `Cancelled Operations Runs,${reports.planStability.cancelledTrips}\n`;
+      } else if (activeTab === 'EXCEPTIONS') {
+        filename = 'exception_analytics_log.csv';
+        csvContent = 'Exception Telemetry Type,Occurrences Count,Critical Severity Trigger,System Status\n' +
+          reports.exceptionSummary.map(e => {
+            const status = e.critical > 5 ? 'Action Required' : 'Monitored';
+            return `"${e.type}",${e.count},${e.critical},${status}`;
+          }).join('\n');
+      } else {
+        filename = 'transporter_placement.csv';
+        csvContent = 'Transporter Vendor,Indents Issued,Accepted Confirmed,Placement Failures,Placement Rate Score\n' +
+          reports.vendorFailures.map(v => {
+            return `"${v.vendor}",${v.indentsSent},${v.accepted},${v.placementFailures},${v.placementRate}%`;
+          }).join('\n');
+      }
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      setIsExporting(false);
+      notify('success', 'Operations Reports CSV downloaded successfully!');
+    }, 1500);
+  };
+
   if (loading) return <LoadingState label="Compiling dispatcher reports..." />;
   if (error || !reports) return <ErrorState message={error} onRetry={loadData} />;
 
@@ -46,7 +102,14 @@ export const Reports: React.FC = () => {
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
           <Button variant="subtle" icon={<RefreshCw size={12} />} onClick={loadData}>Refresh</Button>
-          <Button variant="primary" icon={<Download size={12} />}>Export CSV</Button>
+          <Button 
+            variant="primary" 
+            loading={isExporting} 
+            icon={<Download size={12} />} 
+            onClick={handleExportCSV}
+          >
+            Export CSV
+          </Button>
         </div>
       </div>
 
