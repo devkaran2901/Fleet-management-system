@@ -65,6 +65,21 @@ import { AdminVehicles } from './pages/admin/Vehicles';
 import { AdminDrivers } from './pages/admin/Drivers';
 import { AdminRoutes } from './pages/admin/Routes';
 import { AdminVendors } from './pages/admin/AdminVendors';
+import { FuelStations } from './pages/admin/FuelStations';
+import { Parts } from './pages/admin/Parts';
+import { Contracts } from './pages/admin/Contracts';
+import { Webhooks } from './pages/admin/Webhooks';
+import { ApiKeys } from './pages/admin/ApiKeys';
+import { SyncLogs } from './pages/admin/SyncLogs';
+import { Jobs } from './pages/admin/Jobs';
+import { BackgroundTasks } from './pages/admin/BackgroundTasks';
+import { DeviceHealth } from './pages/admin/DeviceHealth';
+import { NotificationHealth } from './pages/admin/NotificationHealth';
+import { OverrideRegister } from './pages/admin/OverrideRegister';
+import { DocumentTypes } from './pages/admin/DocumentTypes';
+import { Localization } from './pages/admin/Localization';
+import { Branding } from './pages/admin/Branding';
+import { TenantSettings } from './pages/admin/TenantSettings';
 
 // Built dispatcher modules
 import { DispatcherLayout } from './pages/dispatcher/DispatcherLayout';
@@ -145,6 +160,21 @@ const BUILT_PAGES: Record<string, React.ComponentType> = {
   '/admin/drivers': AdminDrivers,
   '/admin/routes': AdminRoutes,
   '/admin/vendors': AdminVendors,
+  '/admin/fuel-stations': FuelStations,
+  '/admin/parts': Parts,
+  '/admin/contracts': Contracts,
+  '/admin/webhooks': Webhooks,
+  '/admin/api-keys': ApiKeys,
+  '/admin/sync-logs': SyncLogs,
+  '/admin/jobs': Jobs,
+  '/admin/background-tasks': BackgroundTasks,
+  '/admin/device-health': DeviceHealth,
+  '/admin/notification-health': NotificationHealth,
+  '/admin/override-register': OverrideRegister,
+  '/admin/document-types': DocumentTypes,
+  '/admin/localization': Localization,
+  '/admin/branding': Branding,
+  '/admin/tenant-settings': TenantSettings,
 };
 
 const BUILT_DISPATCHER_PAGES: Record<string, React.ComponentType> = {

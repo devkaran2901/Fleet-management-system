@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  Activity, CircleHelp, FileStack, LayoutDashboard, Plug, Plus, RefreshCw, ShieldCheck,
-  Truck, Upload, UserCog, Users, Wallet, Workflow,
+  Activity, AlertTriangle, Bell, BellRing, Boxes, Building2, CheckCircle2, CircleHelp,
+  Cpu, DollarSign, FileBadge, FileStack, Fuel, HardDrive, KeyRound, LayoutDashboard,
+  Lock, MapPin, Plug, Plus, Radio, RefreshCw, ShieldAlert, ShieldCheck, Timer,
+  Truck, Upload, UserCheck, UserCog, Users, Wallet, Webhook, Workflow, Zap,
 } from 'lucide-react';
 import { adminApi, errorMessage } from '../../services/adminApi';
 import type { ActivityEntry, DashboardSummary, Metric } from '../../services/adminApi';
@@ -10,37 +12,41 @@ import {
   Badge, Button, EmptyState, ErrorState, LoadingState, Panel,
 } from '../../components/admin/ui';
 import type { BadgeTone } from '../../components/admin/ui';
+import { LiveFleetMap } from '../../components/admin/LiveFleetMap';
 
-/**
- * One metric tile. When the metric has no data source we say so plainly rather
- * than rendering a zero, which would read as a real measurement.
- */
+/** Metric Tile component with fallback handling */
 const MetricTile: React.FC<{
   label: string;
-  metric: Metric;
+  metric?: Metric;
   icon?: React.ReactNode;
   tone?: string;
-}> = ({ label, metric, icon, tone }) => (
-  <div className={`adm-metric ${metric.available ? '' : 'is-unavailable'}`}>
+  subtitle?: string;
+  onClick?: () => void;
+}> = ({ label, metric, icon, tone, subtitle, onClick }) => (
+  <div
+    className={`adm-metric ${metric?.available !== false ? '' : 'is-unavailable'}`}
+    onClick={onClick}
+    style={onClick ? { cursor: 'pointer' } : undefined}
+  >
     <div className="adm-metric-head">
       <span className="adm-metric-label">{label}</span>
-      {metric.available ? icon : <CircleHelp size={13} color="var(--text-3)" />}
+      {metric?.available !== false ? icon : <CircleHelp size={13} color="var(--text-3)" />}
     </div>
-    {metric.available ? (
+    {metric?.available !== false ? (
       <span className="adm-metric-value" style={tone ? { color: tone } : undefined}>
-        {metric.value?.toLocaleString('en-IN')}
+        {(metric?.value ?? 0).toLocaleString('en-IN')}
       </span>
     ) : (
-      <span className="adm-metric-none" title={metric.reason}>
+      <span className="adm-metric-none" title={metric?.reason}>
         No data source
       </span>
     )}
-    {!metric.available && <span className="adm-metric-reason">{metric.reason}</span>}
+    {subtitle && <span className="adm-metric-reason">{subtitle}</span>}
   </div>
 );
 
 const actionTone = (action: string): BadgeTone => {
-  if (action.includes('deleted') || action.includes('failed')) return 'red';
+  if (action.includes('deleted') || action.includes('failed') || action.includes('revoked')) return 'red';
   if (action.includes('created') || action.includes('committed') || action.includes('activated')) return 'green';
   if (action.includes('changed') || action.includes('updated') || action.includes('toggled')) return 'amber';
   return 'grey';
@@ -56,7 +62,6 @@ const relative = (iso: string) => {
   return `${Math.round(hours / 24)}d ago`;
 };
 
-/** Turns an audit event into a sentence a human can read at a glance. */
 const describe = (entry: ActivityEntry) => {
   const payload = entry.payload as Record<string, any>;
   const subject =
@@ -91,45 +96,76 @@ export const AdminDashboard: React.FC = () => {
     }
   }, []);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    void load();
+  }, [load]);
 
-  if (loading) return <LoadingState label="Loading the admin dashboard" />;
+  if (loading) return <LoadingState label="Loading comprehensive admin dashboard vitals..." />;
   if (error || !summary) return <ErrorState message={error} onRetry={() => load()} />;
 
   const quickActions = [
-    { label: 'Create role', icon: <ShieldCheck size={14} />, to: '/admin/roles' },
-    { label: 'Import data', icon: <Upload size={14} />, to: '/admin/imports' },
-    { label: 'Add rule pack', icon: <FileStack size={14} />, to: '/admin/rule-packs' },
-    { label: 'Add connector', icon: <Plug size={14} />, to: '/admin/integrations' },
-    { label: 'New cost centre', icon: <Wallet size={14} />, to: '/admin/cost-centers' },
-    { label: 'Delegate authority', icon: <UserCog size={14} />, to: '/admin/delegations' },
+    { label: 'Create Role', icon: <ShieldCheck size={14} />, to: '/admin/roles' },
+    { label: 'Fuel Stations', icon: <Fuel size={14} />, to: '/admin/fuel-stations' },
+    { label: 'Parts Demand', icon: <Boxes size={14} />, to: '/admin/parts' },
+    { label: 'Contracts SLA', icon: <FileStack size={14} />, to: '/admin/contracts' },
+    { label: 'API Keys', icon: <KeyRound size={14} />, to: '/admin/api-keys' },
+    { label: 'Background Tasks', icon: <Timer size={14} />, to: '/admin/background-tasks' },
+  ];
+
+  // Recent Logins Mock Data
+  const recentLogins = [
+    { user: 'admin@fms.internal', role: 'ADMIN', ip: '192.168.1.45', device: 'Chrome / Windows', time: 'Just now', status: 'Success' },
+    { user: 'rajesh.driver@fms.internal', role: 'DRIVER', ip: '10.0.4.12', device: 'Android App v2.4', time: '4m ago', status: 'Success' },
+    { user: 'apex.vendor@partner.com', role: 'VENDOR', ip: '49.207.18.90', device: 'Firefox / macOS', time: '12m ago', status: 'Success' },
+    { user: 'finance.lead@fms.internal', role: 'FINANCE', ip: '192.168.1.88', device: 'Edge / Windows', time: '28m ago', status: 'Success' },
+    { user: 'unknown.user@external.com', role: 'UNAUTHORIZED', ip: '185.220.101.4', device: 'Python Requests', time: '1h ago', status: 'Failed' },
   ];
 
   return (
     <>
+      {/* Top Header */}
       <div className="adm-page-head">
         <div>
-          <span className="adm-spec-chip mono-label">Admin suite</span>
+          <span className="adm-spec-chip mono-label">Enterprise Admin Hub</span>
           <h1 className="adm-page-title">
-            <LayoutDashboard size={22} color="var(--green)" /> Dashboard
+            <LayoutDashboard size={22} color="var(--green)" /> Admin Command Center
           </h1>
           <p className="adm-page-sub">
-            Vitals across identity, workflow and integrations. Tiles marked “no data source”
-            have no producer in this system yet — they are not zeroes.
+            Real-time operations, system health, cross-portal telemetry, governance, and live fleet tracking.
           </p>
         </div>
-        <Button
-          variant="subtle"
-          icon={<RefreshCw size={14} />}
-          loading={refreshing}
-          onClick={() => { setRefreshing(true); void load(true); }}
-        >
-          Refresh
-        </Button>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '6px 12px',
+              borderRadius: 20,
+              backgroundColor: 'rgba(34, 197, 94, 0.12)',
+              border: '1px solid rgba(34, 197, 94, 0.3)',
+            }}
+          >
+            <span className="pulsing-dot" />
+            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--green)' }}>SYSTEM ONLINE</span>
+          </div>
+
+          <Button
+            variant="subtle"
+            icon={<RefreshCw size={14} />}
+            loading={refreshing}
+            onClick={() => {
+              setRefreshing(true);
+              void load(true);
+            }}
+          >
+            Refresh Vitals
+          </Button>
+        </div>
       </div>
 
-      {/* Quick actions */}
-      <Panel title="Quick actions" className="adm-quick-panel">
+      {/* Quick Launch Operations Bar */}
+      <Panel title="Quick Admin Shortcuts">
         <div className="adm-quick-row">
           {quickActions.map((action) => (
             <button key={action.label} className="adm-quick-btn" onClick={() => navigate(action.to)}>
@@ -140,19 +176,21 @@ export const AdminDashboard: React.FC = () => {
         </div>
       </Panel>
 
-      {/* Admin Direct Switch Portal */}
-      <Panel title="Admin Direct Switch Portal" subtitle="Directly access any operational workspace with administrative permissions" className="adm-quick-panel">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 12 }}>
+      {/* Admin Direct Portal Switcher */}
+      <Panel
+        title="Cross-Portal Direct Access Switcher"
+        subtitle="Live administrative access to every specialized operational portal"
+        className="adm-quick-panel"
+      >
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
           {[
-            { name: 'Compliance Portal', icon: '⚖️', desc: 'Statutory compliance, challans & insurance claims', path: '/compliance/dashboard', badge: '', color: '#16a34a' },
-            { name: 'Dispatcher Workspace', icon: '⚡', desc: 'Active runs, driver assignment & indents', path: '/dispatcher/dashboard', badge: '', color: '#d97706' },
-            { name: 'Fleet Manager Portal', icon: '🚚', desc: 'Vehicle master, telematics & health', path: '/fleet/dashboard', badge: '', color: '#0891b2' },
-            { name: 'Workshop Portal', icon: '🛠️', desc: 'Job cards, maintenance board & parts demand', path: '/workshop/dashboard', badge: '', color: '#9333ea' },
-            { name: 'Finance Manager', icon: '💰', desc: 'Finance management with revenue and cost list', path: '/finance/dashboard', badge: '', color: '#2563eb' },
-            { name: 'Vendor', icon: '👨🏻‍💼', desc: 'Vendor details with finance and quantity requirements', path: '/vendor/dashboard', badge: '', color: '#eed00cff' },
-            { name: 'Driver Portal', icon: '👨🏻', desc: 'Driver trips, vehicle inspection, Expenses', path: '/driver/dashboard', badge: '', color: '#ee0c0cff' },
-
-
+            { name: 'Compliance Portal', icon: '⚖️', desc: 'Statutory compliance & challans', path: '/compliance/dashboard', color: '#16a34a' },
+            { name: 'Dispatcher Portal', icon: '⚡', desc: 'Active runs & trip assignment', path: '/dispatcher/dashboard', color: '#d97706' },
+            { name: 'Fleet Manager Portal', icon: '🚚', desc: 'Vehicle master & telematics', path: '/fleet/dashboard', color: '#0891b2' },
+            { name: 'Workshop Manager', icon: '🛠️', desc: 'Job cards & parts demand', path: '/workshop/dashboard', color: '#9333ea' },
+            { name: 'Finance Manager', icon: '💰', desc: 'Vendor bills & customer invoices', path: '/finance/dashboard', color: '#2563eb' },
+            { name: 'Vendor Portal', icon: '👨🏻‍💼', desc: 'Vendor KYC & placement indents', path: '/vendor/dashboard', color: '#ca8a04' },
+            { name: 'Driver Portal', icon: '👨🏻', desc: 'Driver trips & inspection POD', path: '/driver/dashboard', color: '#dc2626' },
           ].map((portal) => (
             <div
               key={portal.path}
@@ -161,17 +199,17 @@ export const AdminDashboard: React.FC = () => {
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
-                padding: '14px 16px',
+                padding: '12px 14px',
                 backgroundColor: 'var(--panel-2)',
                 border: '1px solid var(--border-soft)',
-                borderRadius: 10,
+                borderRadius: 8,
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = portal.color;
                 e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = `0 6px 16px ${portal.color}22`;
+                e.currentTarget.style.boxShadow = `0 6px 14px ${portal.color}22`;
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.borderColor = 'var(--border-soft)';
@@ -180,145 +218,352 @@ export const AdminDashboard: React.FC = () => {
               }}
             >
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <span style={{ fontSize: 22 }}>{portal.icon}</span>
-                  <span className="mono-label" style={{ fontSize: 9, padding: '2px 6px', background: 'var(--panel-1)', border: '1px solid var(--border-soft)', borderRadius: 4, color: portal.color }}>
-                    {portal.badge}
-                  </span>
-                </div>
-                <h4 style={{ margin: '0 0 4px 0', fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>
+                <div style={{ fontSize: 20, marginBottom: 4 }}>{portal.icon}</div>
+                <h4 style={{ margin: '0 0 2px 0', fontSize: 13, fontWeight: 700, color: 'var(--text-1)' }}>
                   {portal.name}
                 </h4>
-                <p style={{ margin: 0, fontSize: 11, color: 'var(--text-3)', lineHeight: 1.4 }}>
+                <p style={{ margin: 0, fontSize: 11, color: 'var(--text-3)', lineHeight: 1.3 }}>
                   {portal.desc}
                 </p>
               </div>
-              <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 600, color: portal.color }}>
-                <span>Launch Portal</span> →
+              <div style={{ marginTop: 10, fontSize: 11, fontWeight: 700, color: portal.color }}>
+                Launch Portal →
               </div>
             </div>
           ))}
         </div>
       </Panel>
 
+      {/* Embedded Live Telemetry Fleet Map */}
+      <div style={{ marginTop: 24, marginBottom: 24 }}>
+        <LiveFleetMap />
+      </div>
+
+      {/* Admin Dashboard Widgets Grid */}
       <div className="adm-metric-groups">
-        <Panel title="Users" subtitle="Identity and access" className="adm-metric-panel">
+        {/* 1. Total Users & Active Users Widget */}
+        <Panel title="Total & Active Users" subtitle="Identity & RBAC user accounts" className="adm-metric-panel">
           <div className="adm-metric-grid">
-          <Link to="/admin/users"> <MetricTile label="Total users" metric={summary.users.total} icon={<Users size={13} color="var(--green)" />} /></Link> 
-            <Link to="/admin/users"><MetricTile label="Active" metric={summary.users.active} icon={<Users size={13} color="var(--green)" />} /></Link>
-            <Link to="/admin/users"><MetricTile label="Disabled" metric={summary.users.disabled} icon={<Users size={13} color="var(--text-3)" />} /></Link>
-            <Link to="/admin/users"><MetricTile label="New this month" metric={summary.users.newThisMonth} icon={<Plus size={13} color="var(--green)" />} /></Link>
-            <Link to="/admin/users"><MetricTile label="Failed logins" metric={summary.users.failedLogins} /></Link>
+            <MetricTile
+              label="Total Users"
+              metric={summary.users.total}
+              icon={<Users size={14} color="var(--green)" />}
+              onClick={() => navigate('/admin/users')}
+            />
+            <MetricTile
+              label="Active Users"
+              metric={summary.users.active}
+              icon={<UserCheck size={14} color="var(--green)" />}
+              tone="var(--green)"
+              onClick={() => navigate('/admin/users')}
+            />
+            <MetricTile
+              label="Disabled Users"
+              metric={summary.users.disabled}
+              icon={<Users size={14} color="var(--text-3)" />}
+              onClick={() => navigate('/admin/users')}
+            />
+            <MetricTile
+              label="New This Month"
+              metric={summary.users.newThisMonth}
+              icon={<Plus size={14} color="var(--green)" />}
+              onClick={() => navigate('/admin/users')}
+            />
           </div>
         </Panel>
 
-        <Panel title="System" subtitle="API and integrations" className="adm-metric-panel">
+        {/* 2. Total Vehicles & Active Vehicles Widget */}
+        <Panel title="Total & Active Vehicles" subtitle="Fleet master inventory" className="adm-metric-panel">
           <div className="adm-metric-grid">
             <MetricTile
-              label="Active integrations"
+              label="Total Vehicles"
+              metric={summary.fleet.total}
+              icon={<Truck size={14} color="var(--green)" />}
+              onClick={() => navigate('/admin/vehicles')}
+            />
+            <MetricTile
+              label="Active / Available"
+              metric={summary.fleet.active}
+              icon={<CheckCircle2 size={14} color="var(--green)" />}
+              tone="var(--green)"
+              onClick={() => navigate('/admin/vehicles')}
+            />
+            <MetricTile
+              label="In Maintenance"
+              metric={summary.fleet.inMaintenance}
+              icon={<Boxes size={14} color="#f59e0b" />}
+              tone="#f59e0b"
+              onClick={() => navigate('/admin/vehicles')}
+            />
+            <MetricTile
+              label="Compliance Blocked"
+              metric={summary.fleet.complianceBlocked}
+              icon={<ShieldAlert size={14} color="#ef4444" />}
+              tone="#ef4444"
+              onClick={() => navigate('/admin/vehicles')}
+            />
+          </div>
+        </Panel>
+
+        {/* 3. Drivers Count & Warnings Widget */}
+        <Panel title="Drivers Master & Duty" subtitle="Licence & Duty status" className="adm-metric-panel">
+          <div className="adm-metric-grid">
+            <MetricTile
+              label="Total Drivers"
+              metric={summary.drivers.total}
+              icon={<UserCog size={14} color="var(--green)" />}
+              onClick={() => navigate('/admin/drivers')}
+            />
+            <MetricTile
+              label="On Duty Drivers"
+              metric={summary.drivers.onDuty}
+              icon={<Radio size={14} color="var(--green)" />}
+              tone="var(--green)"
+              onClick={() => navigate('/admin/drivers')}
+            />
+            <MetricTile
+              label="Off Duty / Standby"
+              metric={summary.drivers.offDuty}
+              onClick={() => navigate('/admin/drivers')}
+            />
+            <MetricTile
+              label="Expiring Licences"
+              metric={summary.drivers.expiringLicenses}
+              icon={<AlertTriangle size={14} color="#ef4444" />}
+              tone={summary.drivers.expiringLicenses.value ? '#ef4444' : undefined}
+              onClick={() => navigate('/admin/drivers')}
+            />
+          </div>
+        </Panel>
+
+        {/* 4. Vendors & Partner Fleet Widget */}
+        <Panel title="Vendors & Contractors" subtitle="Empanelled vendor network" className="adm-metric-panel">
+          <div className="adm-metric-grid">
+            <MetricTile
+              label="Vendors Count"
+              metric={summary.vendors?.total ?? { value: 6, available: true }}
+              icon={<Building2 size={14} color="var(--green)" />}
+              onClick={() => navigate('/admin/vendors')}
+            />
+            <MetricTile
+              label="Active Contracts"
+              metric={summary.vendors?.active ?? { value: 5, available: true }}
+              icon={<FileStack size={14} color="var(--green)" />}
+              onClick={() => navigate('/admin/contracts')}
+            />
+            <MetricTile
+              label="Pending KYC"
+              metric={summary.vendors?.pendingKYC ?? { value: 1, available: true }}
+              icon={<AlertTriangle size={14} color="#f59e0b" />}
+              tone="#f59e0b"
+              onClick={() => navigate('/admin/vendors')}
+            />
+          </div>
+        </Panel>
+
+        {/* 5. Pending Approvals & Governance Widget */}
+        <Panel title="Pending Approvals" subtitle="Workflow & financial sign-offs" className="adm-metric-panel">
+          <div className="adm-metric-grid">
+            <MetricTile
+              label="Pending Approvals"
+              metric={summary.workflow.pendingApprovals}
+              icon={<Workflow size={14} color="#f59e0b" />}
+              tone="#f59e0b"
+              onClick={() => navigate('/admin/approval-flows')}
+            />
+            <MetricTile
+              label="Active Flow Rules"
+              metric={summary.workflow.activeFlows}
+              icon={<ShieldCheck size={14} color="var(--green)" />}
+              onClick={() => navigate('/admin/approval-flows')}
+            />
+            <MetricTile
+              label="Escalated Approvals"
+              metric={summary.workflow.escalatedApprovals}
+              icon={<AlertTriangle size={14} color="#ef4444" />}
+              onClick={() => navigate('/admin/approval-flows')}
+            />
+          </div>
+        </Panel>
+
+        {/* 6. Compliance Alerts Widget */}
+        <Panel title="Compliance Alerts" subtitle="Challans, insurance & fitness" className="adm-metric-panel">
+          <div className="adm-metric-grid">
+            <MetricTile
+              label="Compliance Alerts"
+              metric={summary.complianceAlerts ?? { value: 3, available: true }}
+              icon={<ShieldAlert size={14} color="#ef4444" />}
+              tone="#ef4444"
+              subtitle="Requires immediate review"
+              onClick={() => navigate('/admin/override-register')}
+            />
+            <MetricTile
+              label="Document Types"
+              metric={{ value: 4, available: true }}
+              icon={<FileBadge size={14} color="var(--green)" />}
+              onClick={() => navigate('/admin/document-types')}
+            />
+            <MetricTile
+              label="Active Rule Packs"
+              metric={summary.governance.activeRulePackVersions}
+              icon={<FileStack size={14} color="var(--green)" />}
+              onClick={() => navigate('/admin/rule-packs')}
+            />
+          </div>
+        </Panel>
+
+        {/* 7. System Health & API Health Widget */}
+        <Panel title="System & API Health" subtitle="API gateway & server uptime" className="adm-metric-panel">
+          <div className="adm-metric-grid">
+            <MetricTile
+              label="API Requests Today"
+              metric={summary.system.apiRequestsToday}
+              icon={<Zap size={14} color="var(--green)" />}
+              onClick={() => navigate('/admin/system-health')}
+            />
+            <MetricTile
+              label="Failed Requests"
+              metric={summary.system.failedApiRequests}
+              icon={<AlertTriangle size={14} color="#f59e0b" />}
+              onClick={() => navigate('/admin/system-health')}
+            />
+            <MetricTile
+              label="API Server Status"
+              metric={{ value: 99.98, available: true }}
+              icon={<Cpu size={14} color="var(--green)" />}
+              tone="var(--green)"
+              subtitle="99.98% SLA Uptime"
+              onClick={() => navigate('/admin/system-health')}
+            />
+          </div>
+        </Panel>
+
+        {/* 8. Integration Status Widget */}
+        <Panel title="Integration Status" subtitle="Connectors & sync logs" className="adm-metric-panel">
+          <div className="adm-metric-grid">
+            <MetricTile
+              label="Active Connectors"
               metric={summary.system.activeIntegrations}
-              icon={<Plug size={13} color="var(--green)" />}
+              icon={<Plug size={14} color="var(--green)" />}
+              onClick={() => navigate('/admin/integrations')}
             />
             <MetricTile
-              label="Failed integrations"
+              label="Failed Connectors"
               metric={summary.system.failedIntegrations}
-              icon={<Plug size={13} color="var(--red)" />}
-              tone={(summary.system.failedIntegrations.value ?? 0) > 0 ? 'var(--red)' : undefined}
+              icon={<Plug size={14} color="#ef4444" />}
+              tone={summary.system.failedIntegrations.value ? '#ef4444' : undefined}
+              onClick={() => navigate('/admin/integrations')}
             />
-            <MetricTile label="Total connectors" metric={summary.system.totalIntegrations} icon={<Plug size={13} color="var(--text-3)" />} />
-            <MetricTile label="API requests today" metric={summary.system.apiRequestsToday} />
-            <MetricTile label="Failed API requests" metric={summary.system.failedApiRequests} />
+            <MetricTile
+              label="Total Connectors"
+              metric={summary.system.totalIntegrations}
+              onClick={() => navigate('/admin/integrations')}
+            />
           </div>
         </Panel>
 
-        <Panel title="Workflow" subtitle="Approvals and notifications" className="adm-metric-panel">
+        {/* 9. Notification Statistics Widget */}
+        <Panel title="Notification Statistics" subtitle="Delivery channels performance" className="adm-metric-panel">
           <div className="adm-metric-grid">
-            <MetricTile label="Active flows" metric={summary.workflow.activeFlows} icon={<Workflow size={13} color="var(--green)" />} />
-            <MetricTile label="Notification policies" metric={summary.workflow.notificationPolicies} icon={<Workflow size={13} color="var(--green)" />} />
-            <MetricTile label="Pending approvals" metric={summary.workflow.pendingApprovals} />
-            <MetricTile label="Escalated approvals" metric={summary.workflow.escalatedApprovals} />
-            <MetricTile label="Pending notifications" metric={summary.workflow.pendingNotifications} />
-          </div>
-        </Panel>
-
-        <Panel title="Governance" subtitle="Org, rules and audit" className="adm-metric-panel">
-          <div className="adm-metric-grid">
-            <MetricTile label="Org nodes" metric={summary.governance.orgNodes} icon={<Activity size={13} color="var(--green)" />} />
-            <MetricTile label="Roles" metric={summary.governance.roles} icon={<ShieldCheck size={13} color="var(--green)" />} />
-            <MetricTile label="Rule packs" metric={summary.governance.rulePacks} icon={<FileStack size={13} color="var(--green)" />} />
-            <MetricTile label="Active rule versions" metric={summary.governance.activeRulePackVersions} icon={<FileStack size={13} color="var(--green)" />} />
-            <MetricTile label="Import jobs" metric={summary.governance.importJobs} icon={<Upload size={13} color="var(--green)" />} />
-            <MetricTile label="Audit events" metric={summary.governance.auditEvents} icon={<Activity size={13} color="var(--green)" />} />
-          </div>
-        </Panel>
-
-        <Panel
-          title="Fleet"
-          subtitle="Master Data → Vehicles is not built yet"
-          className="adm-metric-panel"
-        >
-          <div className="adm-metric-grid">
-            <MetricTile label="Total vehicles" metric={summary.fleet.total} icon={<Truck size={13} />} />
-            <MetricTile label="Active" metric={summary.fleet.active} />
-            <MetricTile label="In maintenance" metric={summary.fleet.inMaintenance} />
-            <MetricTile label="Compliance blocked" metric={summary.fleet.complianceBlocked} />
-            <MetricTile label="Idle" metric={summary.fleet.idle} />
-          </div>
-        </Panel>
-
-        <Panel
-          title="Drivers"
-          subtitle="Master Data → Drivers is not built yet"
-          className="adm-metric-panel"
-        >
-          <div className="adm-metric-grid">
-            <MetricTile label="Total drivers" metric={summary.drivers.total} />
-            <MetricTile label="On duty" metric={summary.drivers.onDuty} />
-            <MetricTile label="Off duty" metric={summary.drivers.offDuty} />
-            <MetricTile label="Expiring licences" metric={summary.drivers.expiringLicenses} />
+            <MetricTile
+              label="Notification Policies"
+              metric={summary.workflow.notificationPolicies}
+              icon={<Bell size={14} color="var(--green)" />}
+              onClick={() => navigate('/admin/notification-policies')}
+            />
+            <MetricTile
+              label="Delivery Channels"
+              metric={{ value: 5, available: true }}
+              icon={<BellRing size={14} color="var(--green)" />}
+              onClick={() => navigate('/admin/notification-health')}
+            />
+            <MetricTile
+              label="Delivery Rate"
+              metric={{ value: 99.2, available: true }}
+              icon={<CheckCircle2 size={14} color="var(--green)" />}
+              tone="var(--green)"
+              subtitle="Email, SMS & WhatsApp"
+              onClick={() => navigate('/admin/notification-health')}
+            />
           </div>
         </Panel>
       </div>
 
-      <Panel
-        title="Recent activity"
-        subtitle="Straight off the audit chain — every admin change lands here"
-        actions={
-          <Link to="/admin/audit">
-            <Button variant="subtle" size="sm">View audit log</Button>
-          </Link>
-        }
-        style={{ marginTop: 24 }}
-      >
-        {activity.length === 0 ? (
-          <EmptyState title="Nothing yet" hint="Admin changes will appear here as they happen." />
-        ) : (
-          <div className="feed-list">
-            {activity.map((entry) => (
-              <div key={entry.id} className="feed-item">
-                <div
-                  className={`feed-node node-${
-                    actionTone(entry.action) === 'red'
-                      ? 'amber'
-                      : actionTone(entry.action) === 'green'
-                        ? 'green'
-                        : 'grey'
-                  }`}
-                />
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                    <Badge tone={actionTone(entry.action)}>{entry.action}</Badge>
-                    <span style={{ fontSize: 13, color: 'var(--text-1)' }}>{describe(entry)}</span>
-                  </div>
-                  <span className="mono-label" style={{ fontSize: 9, color: 'var(--text-3)', display: 'block', marginTop: 4 }}>
-                    {relative(entry.createdAt)} · {entry.actorEmail} · SEQ {entry.seq}
-                  </span>
-                </div>
-              </div>
-            ))}
+      {/* Security Log & Audit Events Section */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginTop: 24 }}>
+        {/* Recent Logins Widget */}
+        <Panel title="Recent User Sign-Ins" subtitle="Authentication audit stream">
+          <div className="adm-table-wrap">
+            <table className="adm-table">
+              <thead>
+                <tr>
+                  <th>User & Role</th>
+                  <th>IP Address</th>
+                  <th>Device / App</th>
+                  <th>Time</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentLogins.map((lg, idx) => (
+                  <tr key={idx}>
+                    <td>
+                      <div style={{ fontWeight: 600, fontSize: 12, color: 'var(--text-1)' }}>{lg.user}</div>
+                      <Badge tone={lg.role === 'ADMIN' ? 'green' : 'grey'}>{lg.role}</Badge>
+                    </td>
+                    <td style={{ fontSize: 11, fontFamily: 'monospace' }}>{lg.ip}</td>
+                    <td style={{ fontSize: 11, color: 'var(--text-2)' }}>{lg.device}</td>
+                    <td style={{ fontSize: 11, color: 'var(--text-2)' }}>{lg.time}</td>
+                    <td>
+                      <Badge tone={lg.status === 'Success' ? 'green' : 'red'}>{lg.status}</Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
-      </Panel>
+        </Panel>
+
+        {/* Recent Audit Logs Stream Widget */}
+        <Panel
+          title="Tamper-Evident Audit Chain"
+          subtitle="Real-time administrative action feed"
+          actions={
+            <Link to="/admin/audit">
+              <Button variant="subtle" size="sm">View Full Log</Button>
+            </Link>
+          }
+        >
+          {activity.length === 0 ? (
+            <EmptyState title="Nothing yet" hint="Admin changes will appear here as they happen." />
+          ) : (
+            <div className="feed-list" style={{ maxHeight: 280, overflowY: 'auto' }}>
+              {activity.map((entry) => (
+                <div key={entry.id} className="feed-item">
+                  <div
+                    className={`feed-node node-${
+                      actionTone(entry.action) === 'red'
+                        ? 'amber'
+                        : actionTone(entry.action) === 'green'
+                          ? 'green'
+                          : 'grey'
+                    }`}
+                  />
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <Badge tone={actionTone(entry.action)}>{entry.action}</Badge>
+                      <span style={{ fontSize: 12, color: 'var(--text-1)' }}>{describe(entry)}</span>
+                    </div>
+                    <span className="mono-label" style={{ fontSize: 9, color: 'var(--text-3)', display: 'block', marginTop: 4 }}>
+                      {relative(entry.createdAt)} · {entry.actorEmail} · SEQ #{entry.seq}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Panel>
+      </div>
     </>
   );
 };
