@@ -228,9 +228,9 @@ export const BillSubmission: React.FC = () => {
 
               {/* Upload Boxes */}
               {[
-                { label: 'Invoice PDF (Required)', file: invoiceFile, setFile: setInvoiceFile, required: true },
-                { label: 'Proof of Delivery (POD) (Required)', file: podFile, setFile: setPodFile, required: true },
-                { label: 'Supporting Documents (Toll Receipts, Detention Slips)', file: supportFile, setFile: setSupportFile, required: false },
+                { id: 'invoice', label: 'Invoice PDF (Required)', file: invoiceFile, setFile: setInvoiceFile, required: true },
+                { id: 'pod', label: 'Proof of Delivery (POD) (Required)', file: podFile, setFile: setPodFile, required: true },
+                { id: 'support', label: 'Supporting Documents (Toll Receipts, Detention Slips)', file: supportFile, setFile: setSupportFile, required: false },
               ].map((box) => (
                 <div key={box.label} className="vp-form-group" style={{ marginBottom: 0 }}>
                   <label className="vp-label">{box.label}:</label>
@@ -244,6 +244,7 @@ export const BillSubmission: React.FC = () => {
                       alignItems: 'center',
                       gap: 12,
                       transition: 'all 0.2s ease',
+                      position: 'relative',
                     }}
                   >
                     <Upload size={20} color={box.file ? 'var(--vendor-accent)' : 'var(--text-3)'} />
@@ -257,13 +258,18 @@ export const BillSubmission: React.FC = () => {
                       )}
                     </div>
                     <input
+                      id={`upload-${box.id}`}
                       type="file"
                       accept=".pdf,.jpg,.png"
                       onChange={(e) => box.setFile(e.target.files?.[0] || null)}
-                      style={{ position: 'absolute', opacity: 0, width: 200, cursor: 'pointer' }}
+                      style={{ display: 'none' }}
                     />
-                    <button className="vp-btn vp-btn-secondary" style={{ padding: '4px 10px', fontSize: 11, position: 'relative' }}
-                      onClick={() => document.getElementById(`upload-${box.label}`)?.click()}>
+                    <button
+                      type="button"
+                      className="vp-btn vp-btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: 11, position: 'relative' }}
+                      onClick={() => document.getElementById(`upload-${box.id}`)?.click()}
+                    >
                       Browse
                     </button>
                   </div>
