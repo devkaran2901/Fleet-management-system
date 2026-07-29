@@ -355,15 +355,11 @@ export const Imports: React.FC = () => {
                               <Badge tone="green">OK</Badge>
                             ) : (
                               <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                                 {rowErrors.map((e, i) => {
-                                   const fieldDef = entityDef?.fields.find((f) => f.key === e.field);
-                                   const fieldLabel = fieldDef ? fieldDef.label : e.field;
-                                   return (
-                                     <span key={i} style={{ fontSize: 11, color: 'var(--red)' }}>
-                                       {fieldLabel}: {e.message}
-                                     </span>
-                                   );
-                                 })}
+                                {rowErrors.map((e, i) => (
+                                  <span key={i} style={{ fontSize: 11, color: 'var(--red)' }}>
+                                    {e.field}: {e.message}
+                                  </span>
+                                ))}
                               </div>
                             )}
                           </td>
