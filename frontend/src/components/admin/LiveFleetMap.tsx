@@ -844,7 +844,7 @@ export const LiveFleetMap: React.FC = () => {
       </div>
 
       {/* Main Map Grid Layout: Interactive Map Canvas Left, Telemetry Drawer Right */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', height: isFullscreen ? 'calc(100vh - 85px)' : 380, position: 'relative' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', height: isFullscreen ? 'calc(100vh - 85px)' : 500, position: 'relative' }}>
         {/* Leaflet Real-World Map Viewport */}
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
           <div ref={mapContainerRef} style={{ width: '100%', height: '100%', backgroundColor: bgSubtle }} />
