@@ -399,18 +399,13 @@ export const LiveFleetMap: React.FC = () => {
           height: 22px;
         ">
           <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8 7C8 4.79 9.79 3 12 3H20C22.21 3 24 4.79 24 7V10H8V7Z" fill="#ffffff"/>
-            <rect x="5" y="9" width="22" height="18" rx="4" fill="#ffffff"/>
-            <path d="M2 14C2 12.5 5 12 5 12V18C5 18 2 17.5 2 16V14Z" fill="#ffffff"/>
-            <path d="M30 14C30 12.5 27 12 27 12V18C27 18 30 17.5 30 16V14Z" fill="#ffffff"/>
-            <rect x="8" y="12" width="16" height="6.5" rx="2" fill="${statusColor}"/>
-            <rect x="12" y="20.5" width="8" height="1.6" rx="0.8" fill="${statusColor}"/>
-            <rect x="12" y="23" width="8" height="1.6" rx="0.8" fill="${statusColor}"/>
-            <rect x="12" y="25.5" width="8" height="1.6" rx="0.8" fill="${statusColor}"/>
-            <ellipse cx="8.5" cy="24.5" rx="1.8" ry="1.2" fill="${statusColor}"/>
-            <ellipse cx="23.5" cy="24.5" rx="1.8" ry="1.2" fill="${statusColor}"/>
-            <rect x="8" y="27" width="3.5" height="3" rx="1" fill="#ffffff"/>
-            <rect x="20.5" y="27" width="3.5" height="3" rx="1" fill="#ffffff"/>
+            <path d="M1 6C1 4.89543 1.89543 4 3 4H18C19.1046 4 20 4.89543 20 6V20C20 21.1046 19.1046 22 18 22H3C1.89543 22 1 21.1046 1 20V6Z" fill="#ffffff"/>
+            <path d="M21 8C21 7.44772 21.4477 7 22 7H24.5C25.1837 7 25.8285 7.32049 26.2372 7.86477L30.569 13.6405C30.849 14.0139 31 14.4691 31 14.9372V20C31 21.1046 30.1046 22 29 22H21V8Z" fill="#ffffff"/>
+            <path d="M22.5 9.5H24.2C24.6 9.5 24.97 9.7 25.2 10.02L27.8 13.5H22.5V9.5Z" fill="${statusColor}"/>
+            <circle cx="7.5" cy="22" r="4.5" fill="#ffffff"/>
+            <circle cx="7.5" cy="22" r="2" fill="${statusColor}"/>
+            <circle cx="24.5" cy="22" r="4.5" fill="#ffffff"/>
+            <circle cx="24.5" cy="22" r="2" fill="${statusColor}"/>
           </svg>
         </div>
 
@@ -556,18 +551,13 @@ export const LiveFleetMap: React.FC = () => {
             justify-content: center;
           ">
             <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M8 7C8 4.79 9.79 3 12 3H20C22.21 3 24 4.79 24 7V10H8V7Z" fill="#ffffff"/>
-              <rect x="5" y="9" width="22" height="18" rx="4" fill="#ffffff"/>
-              <path d="M2 14C2 12.5 5 12 5 12V18C5 18 2 17.5 2 16V14Z" fill="#ffffff"/>
-              <path d="M30 14C30 12.5 27 12 27 12V18C27 18 30 17.5 30 16V14Z" fill="#ffffff"/>
-              <rect x="8" y="12" width="16" height="6.5" rx="2" fill="#0f172a"/>
-              <rect x="12" y="20.5" width="8" height="1.6" rx="0.8" fill="#0f172a"/>
-              <rect x="12" y="23" width="8" height="1.6" rx="0.8" fill="#0f172a"/>
-              <rect x="12" y="25.5" width="8" height="1.6" rx="0.8" fill="#0f172a"/>
-              <ellipse cx="8.5" cy="24.5" rx="1.8" ry="1.2" fill="#0f172a"/>
-              <ellipse cx="23.5" cy="24.5" rx="1.8" ry="1.2" fill="#0f172a"/>
-              <rect x="8" y="27" width="3.5" height="3" rx="1" fill="#ffffff"/>
-              <rect x="20.5" y="27" width="3.5" height="3" rx="1" fill="#ffffff"/>
+              <path d="M1 6C1 4.89543 1.89543 4 3 4H18C19.1046 4 20 4.89543 20 6V20C20 21.1046 19.1046 22 18 22H3C1.89543 22 1 21.1046 1 20V6Z" fill="#ffffff"/>
+              <path d="M21 8C21 7.44772 21.4477 7 22 7H24.5C25.1837 7 25.8285 7.32049 26.2372 7.86477L30.569 13.6405C30.849 14.0139 31 14.4691 31 14.9372V20C31 21.1046 30.1046 22 29 22H21V8Z" fill="#ffffff"/>
+              <path d="M22.5 9.5H24.2C24.6 9.5 24.97 9.7 25.2 10.02L27.8 13.5H22.5V9.5Z" fill="#0f172a"/>
+              <circle cx="7.5" cy="22" r="4.5" fill="#ffffff"/>
+              <circle cx="7.5" cy="22" r="2" fill="#0f172a"/>
+              <circle cx="24.5" cy="22" r="4.5" fill="#ffffff"/>
+              <circle cx="24.5" cy="22" r="2" fill="#0f172a"/>
             </svg>
           </div>
         `,
@@ -1073,29 +1063,29 @@ export const LiveFleetMap: React.FC = () => {
               >
                 {/* Top Section: Truck Preview & Registration Info */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 8, borderBottom: `1px solid ${borderSoft}` }}>
+                  {/* Vector SVG Vehicle Indicator Logo Badge */}
                   <div
                     style={{
-                      width: 58,
+                      width: 44,
                       height: 44,
-                      borderRadius: 8,
-                      backgroundColor: bgCard,
-                      border: `1px solid ${borderSoft}`,
+                      borderRadius: 10,
+                      backgroundColor: `${getStatusColor(selectedVehicle.status)}18`,
+                      border: `1px solid ${getStatusColor(selectedVehicle.status)}44`,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+                      flexShrink: 0,
                     }}
                   >
-                    <img
-                      src="/traverse-truck.png"
-                      alt="TRAVERSE 3D Logistics Truck"
-                      style={{
-                        width: 50,
-                        height: 36,
-                        objectFit: 'contain',
-                        filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))',
-                      }}
-                    />
+                    <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M1 6C1 4.89543 1.89543 4 3 4H18C19.1046 4 20 4.89543 20 6V20C20 21.1046 19.1046 22 18 22H3C1.89543 22 1 21.1046 1 20V6Z" fill={getStatusColor(selectedVehicle.status)}/>
+                      <path d="M21 8C21 7.44772 21.4477 7 22 7H24.5C25.1837 7 25.8285 7.32049 26.2372 7.86477L30.569 13.6405C30.849 14.0139 31 14.4691 31 14.9372V20C31 21.1046 30.1046 22 29 22H21V8Z" fill={getStatusColor(selectedVehicle.status)}/>
+                      <path d="M22.5 9.5H24.2C24.6 9.5 24.97 9.7 25.2 10.02L27.8 13.5H22.5V9.5Z" fill="#ffffff"/>
+                      <circle cx="7.5" cy="22" r="4.5" fill={getStatusColor(selectedVehicle.status)}/>
+                      <circle cx="7.5" cy="22" r="2" fill="#ffffff"/>
+                      <circle cx="24.5" cy="22" r="4.5" fill={getStatusColor(selectedVehicle.status)}/>
+                      <circle cx="24.5" cy="22" r="2" fill="#ffffff"/>
+                    </svg>
                   </div>
                   <div>
                     <div style={{ fontSize: 9, fontWeight: 800, color: '#0284c7', letterSpacing: 0.8, textTransform: 'uppercase' }}>
