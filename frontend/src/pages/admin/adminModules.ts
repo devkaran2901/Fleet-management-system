@@ -176,7 +176,7 @@ export const ADMIN_NAV: AdminGroup[] = [
         label: 'Fuel Stations',
         icon: Fuel,
         service: 'M-04',
-        built: false,
+        built: true,
         summary: 'Station master, tank inventory and pricing.',
         planned: [
           'Station master: name, location, owner',
@@ -190,7 +190,7 @@ export const ADMIN_NAV: AdminGroup[] = [
         label: 'Parts',
         icon: Boxes,
         service: 'M-05',
-        built: false,
+        built: true,
         summary: 'Parts catalogue with stock thresholds.',
         planned: [
           'Parts master: part number, category, vendor',
@@ -217,7 +217,7 @@ export const ADMIN_NAV: AdminGroup[] = [
         label: 'Contracts',
         icon: FileSignature,
         service: 'M-07',
-        built: false,
+        built: true,
         summary: 'Rate cards, escalation formulae and versioning.',
         planned: [
           'Contract details with parties and validity window',
@@ -244,7 +244,7 @@ export const ADMIN_NAV: AdminGroup[] = [
         label: 'Webhooks',
         icon: Webhook,
         service: 'P-06',
-        built: false,
+        built: true,
         summary: 'Outbound event delivery to external systems.',
         planned: [
           'Create a webhook against an event, target URL and signing secret',
@@ -257,7 +257,7 @@ export const ADMIN_NAV: AdminGroup[] = [
         label: 'API Keys',
         icon: KeyRound,
         service: 'P-06',
-        built: false,
+        built: true,
         summary: 'Scoped tokens for programmatic access.',
         planned: [
           'Generate and revoke keys with an expiry date',
@@ -270,7 +270,7 @@ export const ADMIN_NAV: AdminGroup[] = [
         label: 'Sync Logs',
         icon: RefreshCcw,
         service: 'P-06',
-        built: false,
+        built: true,
         summary: 'Per-connector sync outcomes.',
         planned: [
           'Success and failure logs per connector run',
@@ -296,7 +296,7 @@ export const ADMIN_NAV: AdminGroup[] = [
         label: 'Jobs',
         icon: ClipboardList,
         service: 'P-07',
-        built: false,
+        built: true,
         summary: 'Business jobs such as OCR, invoicing and fuel reconciliation.',
         planned: [
           'Job list with status, duration and triggering actor',
@@ -309,7 +309,7 @@ export const ADMIN_NAV: AdminGroup[] = [
         label: 'Background Tasks',
         icon: Timer,
         service: 'P-07',
-        built: false,
+        built: true,
         summary: 'Scheduled system tasks.',
         planned: [
           'Nightly backups, cleanup jobs and report generation',
@@ -335,7 +335,7 @@ export const ADMIN_NAV: AdminGroup[] = [
         label: 'Device Health',
         icon: HardDrive,
         service: 'P-08',
-        built: false,
+        built: true,
         summary: 'GPS device fleet status.',
         planned: [
           'Device status: Online, Offline, Tampered',
@@ -348,7 +348,7 @@ export const ADMIN_NAV: AdminGroup[] = [
         label: 'Notification Health',
         icon: BellRing,
         service: 'P-03',
-        built: false,
+        built: true,
         summary: 'Delivery performance per channel.',
         planned: [
           'Delivery success percentage and failed notifications',
@@ -382,7 +382,7 @@ export const ADMIN_NAV: AdminGroup[] = [
         label: 'Override Register',
         icon: FileBadge,
         service: 'P-05',
-        built: false,
+        built: true,
         summary: 'Every rule bypass, who did it and who approved it.',
         planned: [
           'Record each rule-pack override with the blocked rule and justification',
@@ -400,7 +400,7 @@ export const ADMIN_NAV: AdminGroup[] = [
         label: 'Document Types',
         icon: FileBadge,
         service: 'P-09',
-        built: false,
+        built: true,
         summary: 'Insurance, fitness, permit, PUC and their rules.',
         planned: [
           'Create document types such as Insurance, Fitness, Permit and PUC',
@@ -413,7 +413,7 @@ export const ADMIN_NAV: AdminGroup[] = [
         label: 'Localization',
         icon: Globe,
         service: 'P-09',
-        built: false,
+        built: true,
         summary: 'Languages, translations and regional formats.',
         planned: [
           'Language catalogue (English, Hindi, Tamil, …)',
@@ -426,7 +426,7 @@ export const ADMIN_NAV: AdminGroup[] = [
         label: 'Branding',
         icon: Palette,
         service: 'P-09',
-        built: false,
+        built: true,
         summary: 'Tenant look and feel.',
         planned: [
           'Logo and company name',
@@ -439,7 +439,7 @@ export const ADMIN_NAV: AdminGroup[] = [
         label: 'Tenant Settings',
         icon: Settings2,
         service: 'P-09',
-        built: false,
+        built: true,
         summary: 'Per-tenant security, limits and feature toggles.',
         planned: [
           'Password and MFA policies',

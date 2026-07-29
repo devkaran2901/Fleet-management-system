@@ -252,6 +252,9 @@ export interface DashboardSummary {
   users: { total: Metric; active: Metric; disabled: Metric; newThisMonth: Metric; failedLogins: Metric };
   fleet: { total: Metric; active: Metric; inMaintenance: Metric; complianceBlocked: Metric; idle: Metric };
   drivers: { total: Metric; onDuty: Metric; offDuty: Metric; expiringLicenses: Metric };
+  vendors?: { total: Metric; active: Metric; pendingKYC: Metric };
+  complianceAlerts?: Metric;
+  pendingApprovalsTotal?: Metric;
   system: {
     apiRequestsToday: Metric; failedApiRequests: Metric; activeIntegrations: Metric;
     failedIntegrations: Metric; totalIntegrations: Metric;
@@ -264,6 +267,204 @@ export interface DashboardSummary {
     orgNodes: Metric; roles: Metric; rulePacks: Metric; activeRulePackVersions: Metric;
     importJobs: Metric; auditEvents: Metric;
   };
+}
+
+export interface LiveVehicleTelemetry {
+  id: string;
+  vehicleNumber: string;
+  category: 'Owned' | 'Vendor';
+  status: 'Available' | 'In Transit' | 'Maintenance' | 'Blocked';
+  driverName: string;
+  currentLocation: string;
+  lat: number;
+  lng: number;
+  speedKmH: number;
+  fuelLevel: number;
+  batteryLevel: number;
+  lastPing: string;
+  destination?: string;
+  site: string;
+}
+
+export interface FuelStation {
+  id: string;
+  code: string;
+  name: string;
+  location: string;
+  owner: string;
+  tankCapacityLiters: number;
+  currentStockLiters: number;
+  dieselPrice: number;
+  petrolPrice: number;
+  status: 'Active' | 'Low Stock' | 'Closed';
+  contactPerson: string;
+  phone: string;
+  updatedAt: string;
+}
+
+export interface PartItem {
+  id: string;
+  partNumber: string;
+  name: string;
+  category: string;
+  vendor: string;
+  unitCost: number;
+  stockQty: number;
+  minStockQty: number;
+  maxStockQty: number;
+  reorderPoint: number;
+  status: 'In Stock' | 'Low Stock' | 'Out of Stock';
+  compatModels: string[];
+}
+
+export interface ContractItem {
+  id: string;
+  contractNumber: string;
+  title: string;
+  partyName: string;
+  partyType: 'Vendor' | 'Customer';
+  startDate: string;
+  endDate: string;
+  rateType: 'Fixed Route' | 'Per KM' | 'Monthly Retainer';
+  monthlyValue: number;
+  status: 'Active' | 'Draft' | 'Expiring Soon' | 'Terminated';
+  escalationClause: string;
+}
+
+export interface WebhookEndpoint {
+  id: string;
+  name: string;
+  targetUrl: string;
+  eventTriggers: string[];
+  secretKey: string;
+  status: 'Active' | 'Disabled' | 'Failing';
+  lastTriggered: string;
+  successRate: number;
+  retryPolicy: string;
+}
+
+export interface ApiKeyItem {
+  id: string;
+  name: string;
+  prefix: string;
+  scopes: string[];
+  rateLimitReqPerMin: number;
+  lastUsedAt: string | null;
+  expiresAt: string | null;
+  status: 'Active' | 'Revoked' | 'Expired';
+  createdAt: string;
+}
+
+export interface SyncLogItem {
+  id: string;
+  connectorKey: string;
+  connectorName: string;
+  syncType: 'Incremental' | 'Full Sync' | 'Webhook';
+  recordsSynced: number;
+  errorCount: number;
+  durationMs: number;
+  status: 'SUCCESS' | 'FAILED' | 'PARTIAL';
+  timestamp: string;
+  errorMessage?: string;
+}
+
+export interface BatchJob {
+  id: string;
+  name: string;
+  type: 'OCR' | 'Invoicing' | 'Fuel Reconciliation' | 'Compliance Audit';
+  status: 'Running' | 'Completed' | 'Failed' | 'Queued';
+  triggeredBy: string;
+  itemsProcessed: number;
+  totalItems: number;
+  durationSeconds: number;
+  createdAt: string;
+  logs: string[];
+}
+
+export interface BackgroundTask {
+  id: string;
+  name: string;
+  scheduleCron: string;
+  handler: string;
+  lastRun: string;
+  nextRun: string;
+  status: 'Active' | 'Paused' | 'Failed';
+  executionCount: number;
+}
+
+export interface DeviceHealthItem {
+  id: string;
+  imei: string;
+  model: string;
+  vehicleNumber: string;
+  signalStrength: 'Strong' | 'Medium' | 'Weak' | 'No Signal';
+  batteryPercentage: number;
+  status: 'Online' | 'Offline' | 'Tampered';
+  lastPingTime: string;
+  firmwareVersion: string;
+}
+
+export interface NotificationHealthItem {
+  id: string;
+  channel: 'Email' | 'SMS' | 'Push' | 'WhatsApp' | 'In-App';
+  totalSent: number;
+  delivered: number;
+  failed: number;
+  avgLatencyMs: number;
+  status: 'Healthy' | 'Degraded' | 'Down';
+  failureReason?: string;
+}
+
+export interface OverrideRecord {
+  id: string;
+  ruleCode: string;
+  ruleLabel: string;
+  entityType: string;
+  entityRef: string;
+  justification: string;
+  operator: string;
+  approver: string;
+  riskSeverity: 'HIGH' | 'MEDIUM' | 'LOW';
+  timestamp: string;
+}
+
+export interface DocumentTypeItem {
+  id: string;
+  code: string;
+  name: string;
+  category: 'Vehicle' | 'Driver' | 'Vendor' | 'Trip';
+  validityDays: number;
+  advanceWarningDays: number;
+  isMandatory: boolean;
+  ocrEnabled: boolean;
+}
+
+export interface LocalizationConfig {
+  defaultLanguage: string;
+  supportedLanguages: string[];
+  dateFormat: string;
+  timeFormat: '12h' | '24h';
+  currency: string;
+  timezone: string;
+}
+
+export interface BrandingConfig {
+  companyName: string;
+  logoUrl: string;
+  primaryColor: string;
+  accentColor: string;
+  loginBannerText: string;
+  supportEmail: string;
+  supportPhone: string;
+}
+
+export interface TenantSettingItem {
+  id: string;
+  key: string;
+  category: 'Security' | 'Limits' | 'Features' | 'Data Retention';
+  label: string;
+  value: string | boolean | number;
+  description: string;
 }
 
 export interface ActivityEntry {

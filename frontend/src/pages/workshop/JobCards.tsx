@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Search, Plus, Eye, Edit, UserPlus, ArrowRight, Printer } from 'lucide-react';
 import { workshopApi } from '../../services/workshopApi';
 import type { JobCard } from '../../services/workshopApi';
+import { masterUnifiedStore } from '../../services/masterUnifiedStore';
 import {
   Panel,
   Button,
@@ -119,7 +120,10 @@ export const JobCards: React.FC = () => {
       await workshopApi.updateJobCard(moveStatusCard.id, {
         status: nextStatus,
       });
-      notify('success', `Job Card moved to ${nextStatus}`);
+      if (nextStatus === 'Completed' || nextStatus === 'QC' || nextStatus === 'Road Test') {
+        masterUnifiedStore.updateJobCardStage('jc-104', 'READY_FOR_DELIVERY');
+      }
+      notify('success', `Job Card moved to ${nextStatus}. Vehicle status updated in Master Store.`);
       setMoveStatusCard(null);
       fetchJobCards();
     } catch (err: any) {

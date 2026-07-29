@@ -12,6 +12,7 @@ import { COMPLIANCE_NAV, findComplianceGroup } from '../pages/compliance/complia
 import { WORKSHOP_NAV, findWorkshopGroup } from '../pages/workshop/workshopModules';
 import { FINANCE_NAV, findFinanceGroup } from '../pages/finance/financeModules';
 import { VENDOR_NAV, findVendorGroup } from '../pages/vendor/vendorModules';
+import { DRIVER_NAV, findDriverGroup } from '../pages/driver/driverModules';
 import { VelocityLogo } from './VelocityLogo';
 import '../styles/admin.css';
 
@@ -35,6 +36,7 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
   const isWorkshop = location.pathname.startsWith('/workshop');
   const isFinance = location.pathname.startsWith('/finance');
   const isVendor = location.pathname.startsWith('/vendor');
+  const isDriver = location.pathname.startsWith('/driver');
 
   const roles = user?.roles ?? [];
   const hasAdmin = roles.includes('ADMIN');
@@ -44,9 +46,10 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
   const hasWorkshopManager = roles.includes('WORKSHOP_MANAGER') || roles.includes('R-06');
   const hasFinanceManager = roles.includes('FINANCE_MANAGER') || roles.includes('R-14');
   const hasVendor = roles.includes('VENDOR') || isVendor;
+  const hasDriver = roles.includes('DRIVER') || isDriver;
 
   const isCustomRole = location.pathname.startsWith('/custom') ||
-    (!hasAdmin && !hasDispatcher && !hasFleetManager && !hasComplianceManager && !hasWorkshopManager && !hasFinanceManager && !hasVendor);
+    (!hasAdmin && !hasDispatcher && !hasFleetManager && !hasComplianceManager && !hasWorkshopManager && !hasFinanceManager && !hasVendor && !hasDriver);
 
   // Determine which nav to show based on route + role
   let nav = ADMIN_NAV;
@@ -182,7 +185,11 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
   } else if (hasDispatcher) {
     nav = DISPATCHER_NAV;
     resolveGroup = findDispatcherGroup;
-  } else {
+  } else if (isDriver) {
+    nav = DRIVER_NAV;
+    resolveGroup = findDriverGroup;
+  }
+  else {
     nav = DISPATCHER_NAV;
     resolveGroup = findDispatcherGroup;
   }
@@ -243,7 +250,7 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
             <span className="mono-label" style={{ fontSize: 8, color: 'var(--text-3)' }}>WORKSPACE</span>
             <select
-              value={isDispatcher ? 'dispatcher' : (isFleet ? 'fleet' : (isCompliance ? 'compliance' : (isWorkshop ? 'workshop' : (isFinance ? 'finance' : (isVendor ? 'vendor' : 'admin')))))}
+              value={isDispatcher ? 'dispatcher' : (isFleet ? 'fleet' : (isCompliance ? 'compliance' : (isWorkshop ? 'workshop' : (isFinance ? 'finance' : (isVendor ? 'vendor' : (isDriver ? 'driver' : 'admin'))))))}
               onChange={(e) => {
                 const val = e.target.value;
                 if (val === 'admin') navigate('/admin/dashboard');
@@ -253,6 +260,7 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
                 else if (val === 'workshop') navigate('/workshop/dashboard');
                 else if (val === 'finance') navigate('/finance/dashboard');
                 else if (val === 'vendor') navigate('/vendor/dashboard');
+                else if (val === 'driver') navigate('/driver/dashboard');
                 onNavigate();
               }}
               style={{
@@ -275,6 +283,7 @@ export const AppSidebar: React.FC<{ open: boolean; onNavigate: () => void }> = (
               <option value="workshop">🛠️ Workshop Manager Portal</option>
               <option value="finance">💼 Finance Manager Portal</option>
               <option value="vendor">🤝 Vendor Portal</option>
+              <option value="driver">🚗 Driver Portal</option>
             </select>
           </div>
         )}

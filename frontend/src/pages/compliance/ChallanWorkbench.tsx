@@ -5,6 +5,8 @@ import {
 } from 'lucide-react';
 import { Panel, Badge, Button, useToast, Modal } from '../../components/admin/ui';
 
+import { masterUnifiedStore } from '../../services/masterUnifiedStore';
+
 interface Challan {
   challanNo: string;
   vehicleNo: string;
@@ -26,8 +28,26 @@ interface Challan {
 
 const INITIAL_CHALLANS: Challan[] = [
   {
+    challanNo: 'CH-99210',
+    vehicleNo: 'WB 02 JK 7890',
+    date: '2026-07-28',
+    time: '11:20',
+    amount: 5000,
+    status: 'Open',
+    violationType: 'Expired PUC & Statutory Certificate',
+    location: 'Dankuni Checkpost Inspection Bay, Kolkata',
+    authority: 'West Bengal Traffic Police & RTO',
+    site: 'Kolkata Depot',
+    daysOpen: 1,
+    daysRemaining: 14,
+    assignedTo: 'Vendor',
+    policyHint: 'Blocked vehicle status active until statutory PUC challan is paid and verified.',
+    evidencePhoto: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=300',
+    evidenceMap: '22.6854° N, 88.2974° E'
+  },
+  {
     challanNo: 'CH-99120',
-    vehicleNo: 'MH-43-R-8899',
+    vehicleNo: 'DL 01 AB 1234',
     date: '2026-07-15',
     time: '14:25',
     amount: 2000,
@@ -165,7 +185,8 @@ export const ChallanWorkbench: React.FC = () => {
       }
       return c;
     }));
-    notify('success', `Payment of ₹ ${selectedChallan.amount.toLocaleString()} settled for ${selectedChallan.challanNo}`);
+    masterUnifiedStore.resolveChallan(selectedChallan.challanNo);
+    notify('success', `Payment of ₹ ${selectedChallan.amount.toLocaleString()} settled for ${selectedChallan.challanNo}. Unblocked in Master Store.`);
     setPaymentModalOpen(false);
   };
 

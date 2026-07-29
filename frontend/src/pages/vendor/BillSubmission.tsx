@@ -6,9 +6,9 @@ import { initialBills, initialPayments } from './vendorDataStore';
 import type { Bill } from './vendorDataStore';
 
 const TRIP_OPTIONS = [
-  { id: 'TRIP-4020', route: 'Bhiwandi -> Chakan', vehicle: 'MH-12-PQ-9988', driver: 'Ramesh Kumar', contractRate: 48500, distanceKm: 165 },
-  { id: 'TRIP-4021', route: 'Navi Mumbai -> Ahmedabad', vehicle: 'KA-01-AB-1234', driver: 'Suresh Yadav', contractRate: 62000, distanceKm: 530 },
-  { id: 'TRIP-4022', route: 'Bengaluru -> Chennai', vehicle: 'HR-26-DQ-7711', driver: 'Vijay Singh', contractRate: 39000, distanceKm: 340 },
+  { id: 'TRP-2026-002', route: 'Bhiwandi Hub -> Thane', vehicle: 'MH 04 CD 5678', driver: 'Vikram Singh', contractRate: 48500, distanceKm: 165 },
+  { id: 'TRP-2026-006', route: 'Sanand Industrial -> Vadodara', vehicle: 'GJ 01 LM 4321', driver: 'Mukesh Patel', contractRate: 29000, distanceKm: 140 },
+  { id: 'TRP-2026-005', route: 'Dankuni -> Kolkata Depot', vehicle: 'WB 02 JK 7890', driver: 'Pradeep Das', contractRate: 62000, distanceKm: 320 },
 ];
 
 export const BillSubmission: React.FC = () => {
