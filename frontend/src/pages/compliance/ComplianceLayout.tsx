@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { ChevronRight, Menu, Moon, Sun } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { AppSidebar } from '../../components/AppSidebar';
+import { PortalSwitcher } from '../../components/PortalSwitcher';
 import { findComplianceGroup, findComplianceModule } from './complianceModules';
 import { ToastProvider } from '../../components/admin/ui';
 import '../../styles/admin.css';
@@ -61,6 +62,7 @@ export const ComplianceLayout: React.FC = () => {
             </div>
 
             <div className="adm-topbar-actions">
+              <PortalSwitcher />
               <div
                 className="mobile-hide"
                 style={{

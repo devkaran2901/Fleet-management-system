@@ -3,6 +3,7 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import { DriverSidebar } from './DriverSidebar';
 import { initialDuty, initialProfile } from './driverDataStore';
 import { ShieldAlert, Bell, Globe, UserCheck, CheckCircle, Truck, X, Sun, Moon } from 'lucide-react';
+import { PortalSwitcher } from '../../components/PortalSwitcher';
 import '../../styles/driver.css';
 
 export const DriverLayout: React.FC = () => {
@@ -110,6 +111,9 @@ export const DriverLayout: React.FC = () => {
           </div>
 
           <div className="driver-header-actions">
+            {/* Admin-only portal switcher — renders nothing for drivers */}
+            <PortalSwitcher variant="driver" />
+
             {/* Light / Dark Mode Toggle Button */}
             <button
               onClick={toggleTheme}

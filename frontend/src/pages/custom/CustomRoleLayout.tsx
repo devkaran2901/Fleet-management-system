@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { ChevronRight, Menu, Moon, Sun, Shield } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { AppSidebar } from '../../components/AppSidebar';
+import { PortalSwitcher } from '../../components/PortalSwitcher';
 import { ToastProvider } from '../../components/admin/ui';
 import '../../styles/admin.css';
 
@@ -58,6 +59,7 @@ export const CustomRoleLayout: React.FC = () => {
             </div>
 
             <div className="adm-topbar-actions">
+              <PortalSwitcher />
               <div
                 className="mobile-hide"
                 style={{
