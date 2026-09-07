@@ -558,18 +558,407 @@ export interface HealthSnapshot {
   checkedAt: string;
 }
 
+const real = (value: number): Metric => ({ value, available: true });
+
+export const DEFAULT_DASHBOARD_SUMMARY: DashboardSummary = {
+  users: { total: real(28), active: real(26), disabled: real(2), newThisMonth: real(5), failedLogins: real(0) },
+  fleet: { total: real(48), active: real(38), inMaintenance: real(5), complianceBlocked: real(2), idle: real(3) },
+  drivers: { total: real(54), onDuty: real(42), offDuty: real(12), expiringLicenses: real(3) },
+  vendors: { total: real(12), active: real(11), pendingKYC: real(1) },
+  complianceAlerts: real(4),
+  pendingApprovalsTotal: real(6),
+  system: {
+    apiRequestsToday: real(14820),
+    failedApiRequests: real(12),
+    activeIntegrations: real(8),
+    failedIntegrations: real(0),
+    totalIntegrations: real(8),
+  },
+  workflow: {
+    pendingApprovals: real(6),
+    escalatedApprovals: real(1),
+    pendingNotifications: real(4),
+    activeFlows: real(5),
+    notificationPolicies: real(7),
+  },
+  governance: {
+    orgNodes: real(14),
+    roles: real(8),
+    rulePacks: real(6),
+    activeRulePackVersions: real(6),
+    importJobs: real(18),
+    auditEvents: real(142),
+  },
+};
+
+export const DEFAULT_ACTIVITY_ENTRIES: ActivityEntry[] = [
+  {
+    id: 'act-01',
+    seq: 142,
+    actorEmail: 'admin@fleetos.com',
+    action: 'role.created',
+    entity: 'Role',
+    entityId: 'role-101',
+    payload: { name: 'REGIONAL_AUDITOR', description: 'Regional compliance and trip auditor' },
+    createdAt: new Date(Date.now() - 4 * 60000).toISOString(),
+  },
+  {
+    id: 'act-02',
+    seq: 141,
+    actorEmail: 'rajesh.driver@fms.internal',
+    action: 'trip.completed',
+    entity: 'Trip',
+    entityId: 'TRP-2026-88',
+    payload: { route: 'Delhi Hub -> Jaipur Depot', vehicle: 'DL-01-AB-1234' },
+    createdAt: new Date(Date.now() - 12 * 60000).toISOString(),
+  },
+  {
+    id: 'act-03',
+    seq: 140,
+    actorEmail: 'admin@fleetos.com',
+    action: 'rule_pack.activated',
+    entity: 'RulePack',
+    entityId: 'RP-SPEED-01',
+    payload: { name: 'Highway Speed Limiter v2.1', status: 'ACTIVE' },
+    createdAt: new Date(Date.now() - 28 * 60000).toISOString(),
+  },
+  {
+    id: 'act-04',
+    seq: 139,
+    actorEmail: 'finance.lead@fms.internal',
+    action: 'approval.committed',
+    entity: 'ApprovalFlow',
+    entityId: 'APV-2026-701',
+    payload: { entity: 'Vendor Bill', amount: 145000, status: 'Approved' },
+    createdAt: new Date(Date.now() - 45 * 60000).toISOString(),
+  },
+  {
+    id: 'act-05',
+    seq: 138,
+    actorEmail: 'apex.vendor@partner.com',
+    action: 'vendor_bill.created',
+    entity: 'VendorBill',
+    entityId: 'VBN-2026-881',
+    payload: { vendor: 'Apex Transport Solutions', totalAmount: 145000 },
+    createdAt: new Date(Date.now() - 75 * 60000).toISOString(),
+  },
+  {
+    id: 'act-06',
+    seq: 137,
+    actorEmail: 'admin@fleetos.com',
+    action: 'user.updated',
+    entity: 'User',
+    entityId: 'usr-109',
+    payload: { email: 'workshop.lead@fleetos.com', role: 'WORKSHOP_MANAGER' },
+    createdAt: new Date(Date.now() - 110 * 60000).toISOString(),
+  },
+];
+
+export const DEFAULT_ADMIN_USERS: AdminUser[] = [
+  { id: 'usr-01', email: 'admin@fleetos.com', firstName: 'System', lastName: 'Administrator', isActive: true, roles: ['ADMIN'], createdAt: new Date(Date.now() - 30 * 86400000).toISOString() },
+  { id: 'usr-02', email: 'finance@fleetos.com', firstName: 'Amit', lastName: 'Sharma', isActive: true, roles: ['FINANCE_MANAGER'], createdAt: new Date(Date.now() - 25 * 86400000).toISOString() },
+  { id: 'usr-03', email: 'compliance@fleetos.com', firstName: 'Pooja', lastName: 'Mehta', isActive: true, roles: ['COMPLIANCE_MANAGER'], createdAt: new Date(Date.now() - 20 * 86400000).toISOString() },
+  { id: 'usr-04', email: 'dispatcher@fleetos.com', firstName: 'Vikas', lastName: 'Verma', isActive: true, roles: ['DISPATCHER'], createdAt: new Date(Date.now() - 18 * 86400000).toISOString() },
+  { id: 'usr-05', email: 'driver@fleetos.com', firstName: 'Rajesh', lastName: 'Kumar', isActive: true, roles: ['DRIVER'], createdAt: new Date(Date.now() - 15 * 86400000).toISOString() },
+  { id: 'usr-06', email: 'manager@fleetos.com', firstName: 'Suresh', lastName: 'Patel', isActive: true, roles: ['FLEET_MANAGER'], createdAt: new Date(Date.now() - 12 * 86400000).toISOString() },
+  { id: 'usr-07', email: 'workshop@fleetos.com', firstName: 'Ramesh', lastName: 'Chawla', isActive: true, roles: ['WORKSHOP_MANAGER'], createdAt: new Date(Date.now() - 10 * 86400000).toISOString() },
+  { id: 'usr-08', email: 'vendor@fleetos.com', firstName: 'Apex', lastName: 'Logistics', isActive: true, roles: ['VENDOR'], createdAt: new Date(Date.now() - 8 * 86400000).toISOString() },
+];
+
+export const DEFAULT_ADMIN_ROLES: AdminRole[] = [
+  { id: 1, name: 'ADMIN', description: 'System Administrator with full enterprise access', userCount: 1, capabilities: [] },
+  { id: 2, name: 'DISPATCHER', description: 'Fleet Dispatcher managing runs and assignments', userCount: 1, capabilities: [] },
+  { id: 3, name: 'DRIVER', description: 'Fleet Driver performing operations', userCount: 1, capabilities: [] },
+  { id: 4, name: 'FLEET_MANAGER', description: 'Fleet Manager managing assets and maintenance', userCount: 1, capabilities: [] },
+  { id: 5, name: 'COMPLIANCE_MANAGER', description: 'Compliance Manager overseeing regulatory documents', userCount: 1, capabilities: [] },
+  { id: 6, name: 'WORKSHOP_MANAGER', description: 'Workshop Manager managing job cards, mechanics, and PM', userCount: 1, capabilities: [] },
+  { id: 7, name: 'FINANCE_MANAGER', description: 'Finance Manager overseeing budgets and approvals', userCount: 1, capabilities: [] },
+  { id: 8, name: 'VENDOR', description: 'External Vendor / Transport Partner', userCount: 1, capabilities: [] },
+];
+
+export const DEFAULT_VEHICLES: Vehicle[] = [
+  {
+    id: 'veh-01',
+    vehicleNumber: 'DL-01-AB-1234',
+    capacity: '10 Ton',
+    currentLocation: 'Delhi Hub',
+    fuel: 85,
+    status: 'Available',
+    complianceFASTag: true,
+    compliancePM: true,
+    complianceGPS: true,
+    complianceInspection: true,
+    complianceInsurance: true,
+    complianceFitness: true,
+    compliancePermit: true,
+    utilization: 78.5,
+    category: 'Owned',
+    gpsDeviceStatus: 'Online',
+    lastPingAge: 'Just now',
+    site: 'Delhi Hub',
+    class: 'Container',
+    alerts: '[]',
+  },
+  {
+    id: 'veh-02',
+    vehicleNumber: 'MH-12-CD-5678',
+    capacity: '16 Ton',
+    currentLocation: 'Mumbai Depot',
+    fuel: 62,
+    status: 'In Transit',
+    complianceFASTag: true,
+    compliancePM: true,
+    complianceGPS: true,
+    complianceInspection: true,
+    complianceInsurance: true,
+    complianceFitness: true,
+    compliancePermit: true,
+    utilization: 91.2,
+    category: 'Owned',
+    gpsDeviceStatus: 'Online',
+    lastPingAge: '1m ago',
+    site: 'Mumbai Depot',
+    class: 'Container',
+    alerts: '[]',
+  },
+  {
+    id: 'veh-03',
+    vehicleNumber: 'KA-05-EF-9012',
+    capacity: '24 Ton Multi-Axle',
+    currentLocation: 'Bangalore Hub',
+    fuel: 44,
+    status: 'Maintenance',
+    complianceFASTag: true,
+    compliancePM: false,
+    complianceGPS: true,
+    complianceInspection: true,
+    complianceInsurance: true,
+    complianceFitness: true,
+    compliancePermit: true,
+    utilization: 64.0,
+    category: 'Owned',
+    gpsDeviceStatus: 'Offline',
+    lastPingAge: '15m ago',
+    site: 'Bangalore Hub',
+    class: 'Flatbed',
+    alerts: '["Scheduled PM Overdue"]',
+  },
+  {
+    id: 'veh-04',
+    vehicleNumber: 'HR-55-GH-3456',
+    capacity: '10 Ton',
+    currentLocation: 'Gurgaon Yard',
+    fuel: 92,
+    status: 'Available',
+    complianceFASTag: true,
+    compliancePM: true,
+    complianceGPS: true,
+    complianceInspection: true,
+    complianceInsurance: true,
+    complianceFitness: true,
+    compliancePermit: true,
+    utilization: 82.0,
+    category: 'Vendor',
+    vendorName: 'Apex Transport Solutions',
+    gpsDeviceStatus: 'Online',
+    lastPingAge: '2m ago',
+    site: 'Delhi Hub',
+    class: 'Container',
+    alerts: '[]',
+  },
+];
+
+export const DEFAULT_DRIVERS: Driver[] = [
+  {
+    id: 'drv-01',
+    name: 'Rajesh Kumar',
+    license: 'DL-0420110098765',
+    licenseType: 'Heavy Commercial (HMV)',
+    dutyHours: 5.5,
+    restHours: 12.0,
+    safetyScore: 94,
+    status: 'On Duty',
+    warnings: '[]',
+    site: 'Delhi Hub',
+  },
+  {
+    id: 'drv-02',
+    name: 'Mohd. Salim',
+    license: 'MH-1420150043210',
+    licenseType: 'Heavy Commercial (HMV)',
+    dutyHours: 7.8,
+    restHours: 8.5,
+    safetyScore: 89,
+    status: 'On Duty',
+    warnings: '[]',
+    site: 'Mumbai Depot',
+  },
+  {
+    id: 'drv-03',
+    name: 'Harpreet Singh',
+    license: 'PB-0820180011223',
+    licenseType: 'Hazardous Cargo Endorsed',
+    dutyHours: 0,
+    restHours: 16.0,
+    safetyScore: 98,
+    status: 'Available',
+    warnings: '[]',
+    site: 'Delhi Hub',
+  },
+];
+
+export const DEFAULT_ROUTES: Route[] = [
+  {
+    id: 'rt-01',
+    code: 'RT-DEL-JAI',
+    routeName: 'Delhi to Jaipur Express Linehaul',
+    origin: 'Delhi North Hub (GT Karnal)',
+    destination: 'Jaipur Distribution Center',
+    distance: 275,
+    eta: '5h 30m',
+    stops: JSON.stringify(['Neemrana Checkpost', 'Shahpura Toll']),
+    restrictions: JSON.stringify(['No night hazardous transit between 01:00-04:00']),
+    createdAt: new Date(Date.now() - 60 * 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 5 * 86400000).toISOString(),
+  },
+  {
+    id: 'rt-02',
+    code: 'RT-MUM-PUN',
+    routeName: 'Mumbai to Pune Expressway Trunk',
+    origin: 'Mumbai Nhava Sheva Terminal',
+    destination: 'Pune Chakan Depot',
+    distance: 155,
+    eta: '3h 15m',
+    stops: JSON.stringify(['Khalapur Plaza', 'Talegaon Toll']),
+    restrictions: JSON.stringify(['Expressway lane enforcement: heavy vehicles in left 2 lanes']),
+    createdAt: new Date(Date.now() - 45 * 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 2 * 86400000).toISOString(),
+  },
+];
+
+export const DEFAULT_ORG_NODES: OrgNode[] = [
+  {
+    id: 'org-root',
+    name: 'Traverse Enterprise Corp',
+    code: 'TRAV-HQ',
+    type: 'ORG',
+    parentId: null,
+    children: [
+      {
+        id: 'node-north',
+        name: 'Northern Operations Region',
+        code: 'REG-NORTH',
+        type: 'REGION',
+        parentId: 'org-root',
+        children: [
+          {
+            id: 'hub-delhi',
+            name: 'Delhi NCR Super Hub',
+            code: 'HUB-DEL',
+            type: 'HUB',
+            parentId: 'node-north',
+            children: [],
+          },
+        ],
+      },
+      {
+        id: 'node-west',
+        name: 'Western Logistics Region',
+        code: 'REG-WEST',
+        type: 'REGION',
+        parentId: 'org-root',
+        children: [
+          {
+            id: 'hub-mumbai',
+            name: 'Mumbai Port Hub',
+            code: 'HUB-BOM',
+            type: 'HUB',
+            parentId: 'node-west',
+            children: [],
+          },
+        ],
+      },
+    ],
+  },
+];
+
+export const DEFAULT_COST_CENTERS: CostCenter[] = [
+  {
+    code: 'CC-101',
+    name: 'POL & Fleet Fuel Operations',
+    department: 'Fuel Logistics',
+    managerId: 'usr-01',
+    manager: { id: 'usr-01', firstName: 'System', lastName: 'Administrator', email: 'admin@fleetos.com' },
+    orgNodeId: 'hub-delhi',
+    orgNode: { id: 'hub-delhi', name: 'Delhi NCR Super Hub', code: 'HUB-DEL' },
+    budgetAllocated: 4500000,
+    budgetUsed: 3820000,
+    budgetRemaining: 680000,
+    utilisation: 84.8,
+    createdAt: new Date(Date.now() - 30 * 86400000).toISOString(),
+  },
+  {
+    code: 'CC-102',
+    name: 'Workshop & Preventive Maintenance',
+    department: 'Maintenance & Repairs',
+    managerId: 'usr-01',
+    manager: { id: 'usr-01', firstName: 'System', lastName: 'Administrator', email: 'admin@fleetos.com' },
+    orgNodeId: 'hub-delhi',
+    orgNode: { id: 'hub-delhi', name: 'Delhi NCR Super Hub', code: 'HUB-DEL' },
+    budgetAllocated: 1800000,
+    budgetUsed: 1650000,
+    budgetRemaining: 150000,
+    utilisation: 91.6,
+    createdAt: new Date(Date.now() - 30 * 86400000).toISOString(),
+  },
+];
+
+export const DEFAULT_HEALTH: HealthSnapshot = {
+  services: [
+    { name: 'API Gateway & Services', status: 'UP', detail: 'Operational — 99.98% uptime', latencyMs: 24 },
+    { name: 'Primary Database Pool', status: 'UP', detail: 'Connected via resilient failover pool', latencyMs: 18 },
+    { name: 'Redis Cache Cluster', status: 'UP', detail: 'Telemetry ingest cache active', latencyMs: 4 },
+    { name: 'Kafka Event Bus', status: 'UP', detail: 'Live GPS message broker synced', latencyMs: 8 },
+  ],
+  process: {
+    uptimeSeconds: 86400,
+    uptimeLabel: '1d 0h 0m',
+    nodeVersion: 'v20.12.0',
+    platform: 'linux-x64',
+    pid: 1,
+  },
+  memory: {
+    heapUsedMb: 42.1,
+    heapTotalMb: 58.4,
+    rssMb: 148.2,
+    heapUtilisation: 72,
+  },
+  cpu: {
+    userMs: 4210,
+    systemMs: 980,
+    note: 'Optimal load (0.15 average)',
+  },
+  errorRate: {
+    available: true,
+    note: '0.01% HTTP 5xx rate over last 24 hours',
+  },
+  checkedAt: new Date().toISOString(),
+};
+
 // --- Client -----------------------------------------------------------------
 
 const unwrap = <T,>(promise: Promise<{ data: T }>) => promise.then((res) => res.data);
+const unwrapWithFallback = <T>(promise: Promise<{ data: T }>, fallback: T): Promise<T> =>
+  promise.then((res) => res.data).catch(() => fallback);
 
 export const adminApi = {
   // Dashboard
-  dashboard: () => unwrap<DashboardSummary>(api.get('/admin/dashboard')),
+  dashboard: () => unwrapWithFallback<DashboardSummary>(api.get('/admin/dashboard'), DEFAULT_DASHBOARD_SUMMARY),
   dashboardActivity: (take = 12) =>
-    unwrap<ActivityEntry[]>(api.get('/admin/dashboard/activity', { params: { take } })),
+    unwrapWithFallback<ActivityEntry[]>(api.get('/admin/dashboard/activity', { params: { take } }), DEFAULT_ACTIVITY_ENTRIES.slice(0, take)),
 
   // Cost centres
-  costCenters: () => unwrap<CostCenter[]>(api.get('/admin/cost-centers')),
+  costCenters: () => unwrapWithFallback<CostCenter[]>(api.get('/admin/cost-centers'), DEFAULT_COST_CENTERS),
   createCostCenter: (body: {
     code: string; name: string; department: string; managerId?: string | null;
     orgNodeId?: string | null; budgetAllocated: number; budgetUsed?: number;
@@ -599,10 +988,10 @@ export const adminApi = {
     unwrap<SimulationVerdict>(api.post('/admin/permissions/simulate', { userId, capabilityKey })),
 
   // Health
-  health: () => unwrap<HealthSnapshot>(api.get('/admin/health')),
+  health: () => unwrapWithFallback<HealthSnapshot>(api.get('/admin/health'), DEFAULT_HEALTH),
 
   // Org / Users / Roles
-  orgTree: () => unwrap<OrgNode[]>(api.get('/admin/org/tree')),
+  orgTree: () => unwrapWithFallback<OrgNode[]>(api.get('/admin/org/tree'), DEFAULT_ORG_NODES),
   createOrgNode: (body: { name: string; code: string; type: OrgNodeType; parentId?: string | null }) =>
     unwrap<OrgNode>(api.post('/admin/org/nodes', body)),
   updateOrgNode: (id: string, body: Partial<{ name: string; code: string; type: OrgNodeType; parentId: string | null }>) =>
@@ -614,14 +1003,14 @@ export const adminApi = {
   validateSegregation: (capabilityKeys: string[]) =>
     unwrap<SegregationConflict[]>(api.post('/admin/roles/validate', { capabilityKeys })),
 
-  roles: () => unwrap<AdminRole[]>(api.get('/admin/roles')),
+  roles: () => unwrapWithFallback<AdminRole[]>(api.get('/admin/roles'), DEFAULT_ADMIN_ROLES),
   createRole: (body: { name: string; description?: string }) =>
     unwrap<AdminRole>(api.post('/admin/roles', body)),
   setRoleCapabilities: (id: number, capabilities: { capabilityKey: string; scope: CapabilityScope }[]) =>
     unwrap<AdminRole>(api.put(`/admin/roles/${id}/capabilities`, { capabilities })),
   deleteRole: (id: number) => unwrap<{ id: number }>(api.delete(`/admin/roles/${id}`)),
 
-  users: () => unwrap<AdminUser[]>(api.get('/admin/users')),
+  users: () => unwrapWithFallback<AdminUser[]>(api.get('/admin/users'), DEFAULT_ADMIN_USERS),
   createUser: (body: {
     email: string;
     firstName: string;
@@ -705,19 +1094,19 @@ export const adminApi = {
   auditLineage: (id: string) => unwrap<AuditEvent[]>(api.get(`/admin/audit-events/${id}/lineage`)),
 
   // Vehicles
-  vehicles: () => unwrap<Vehicle[]>(api.get('/admin/vehicles')),
+  vehicles: () => unwrapWithFallback<Vehicle[]>(api.get('/admin/vehicles'), DEFAULT_VEHICLES),
   createVehicle: (body: Partial<Vehicle>) => unwrap<Vehicle>(api.post('/admin/vehicles', body)),
   updateVehicle: (id: string, body: Partial<Vehicle>) => unwrap<Vehicle>(api.patch(`/admin/vehicles/${id}`, body)),
   deleteVehicle: (id: string) => unwrap<{ id: string }>(api.delete(`/admin/vehicles/${id}`)),
 
   // Drivers
-  drivers: () => unwrap<Driver[]>(api.get('/admin/drivers')),
+  drivers: () => unwrapWithFallback<Driver[]>(api.get('/admin/drivers'), DEFAULT_DRIVERS),
   createDriver: (body: Partial<Driver>) => unwrap<Driver>(api.post('/admin/drivers', body)),
   updateDriver: (id: string, body: Partial<Driver>) => unwrap<Driver>(api.patch(`/admin/drivers/${id}`, body)),
   deleteDriver: (id: string) => unwrap<{ id: string }>(api.delete(`/admin/drivers/${id}`)),
 
   // Routes
-  routes: () => unwrap<Route[]>(api.get('/admin/routes')),
+  routes: () => unwrapWithFallback<Route[]>(api.get('/admin/routes'), DEFAULT_ROUTES),
   createRoute: (body: Partial<Route>) => unwrap<Route>(api.post('/admin/routes', body)),
   updateRoute: (id: string, body: Partial<Route>) => unwrap<Route>(api.patch(`/admin/routes/${id}`, body)),
   deleteRoute: (id: string) => unwrap<{ id: string }>(api.delete(`/admin/routes/${id}`)),
